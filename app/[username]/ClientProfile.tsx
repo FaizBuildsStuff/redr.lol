@@ -971,7 +971,7 @@ function DiscordProfileCard({ user, discordData, lanyardData }: DiscordProfileCa
     ? discordData.connected_accounts
     : fallbackConnections;
 
-  const fallbackBadges = [
+  const fallbackBadges: Array<{ id: string; icon: string; description: string; link?: string }> = [
     { id: "partner", icon: "partner", description: "Partnered Server Owner" },
     { id: "early_supporter", icon: "early_supporter", description: "Early Supporter" },
     { id: "active_developer", icon: "active_developer", description: "Active Developer" }
@@ -996,9 +996,9 @@ function DiscordProfileCard({ user, discordData, lanyardData }: DiscordProfileCa
 
       {/* Cover Image */}
       <div
-        className="card-cover h-[160px] bg-cover bg-center relative"
+        className="card-cover h-[160px] relative"
         style={{
-          backgroundImage: `url(https://camilo404.azurewebsites.net/v1/banner/201796217292718080)`,
+          backgroundColor: primaryAccent,
         }}
       >
         <div className="cover-overlay absolute inset-0 bg-gradient-to-b from-transparent via-[#ffffff]/20 to-[#ffffff] dark:via-black/20 dark:to-[#0D0D0D]"></div>
@@ -1017,7 +1017,7 @@ function DiscordProfileCard({ user, discordData, lanyardData }: DiscordProfileCa
                 />
               )}
               <img
-                class="avatar-img w-full h-full rounded-full border-4 border-stone-200 dark:border-[#050505] relative z-10"
+                className="avatar-img w-full h-full rounded-full border-4 border-stone-200 dark:border-[#050505] relative z-10"
                 src={`https://camilo404.azurewebsites.net/v1/avatar/201796217292718080`}
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = "/assets/images/no-image-found.jpg";
@@ -1587,14 +1587,14 @@ export default function ClientProfile({ user }: ClientProfileProps) {
             transition={{ type: "spring", damping: 20, stiffness: 120, delay: 0.15 }}
             className="w-full max-w-5xl relative z-10 px-4 py-20 flex flex-col items-center z-20"
           >
-            <div className="grid grid-cols-1 lg:grid-cols-[auto_minmax(400px,480px)] gap-[0.9rem] justify-center items-start w-full">
+            <div className="grid grid-cols-1 lg:grid-cols-[400px_400px] gap-6 justify-center items-start w-fit mx-auto">
               {/* Left Column: Discord Profile Card */}
               <div className="flex justify-center w-full">
                 <DiscordProfileCard user={user} discordData={discordData} lanyardData={lanyardData} />
               </div>
 
               {/* Right Column: Stacked Bento Widgets */}
-              <div className="flex flex-col gap-[0.9rem] w-full max-w-[480px] mx-auto lg:mx-0">
+              <div className="flex flex-col gap-[0.9rem] w-full max-w-[400px] mx-auto lg:mx-0">
                 <ClockWidget />
                 <ShadowWidget />
                 <SocialWidget />
