@@ -11,14 +11,26 @@ import {
   CheckCircle2,
   Undo2,
   Tv,
-  Type
+  Type,
+  Plug
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { DiscordProfile } from "@/components/DiscordProfile";
 
 interface UserProfile {
   id: number;
   username: string;
   email: string;
+  discord_id?: string;
 }
 
 export default function CustomizePage() {
@@ -35,6 +47,11 @@ export default function CustomizePage() {
   const [saving, setSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
+  // Discord states
+  const [isDiscordDialogOpen, setIsDiscordDialogOpen] = useState(false);
+  const [inputDiscordId, setInputDiscordId] = useState("");
+  const [savingDiscord, setSavingDiscord] = useState(false);
+
   useEffect(() => {
     async function checkAuth() {
       try {
@@ -42,6 +59,9 @@ export default function CustomizePage() {
         const data = await res.json();
         if (data.user) {
           setUser(data.user);
+          if (data.user.discord_id) {
+            setInputDiscordId(data.user.discord_id);
+          }
         } else {
           router.push("/signin");
         }
@@ -63,6 +83,25 @@ export default function CustomizePage() {
       setSavedSuccess(true);
       setTimeout(() => setSavedSuccess(false), 2000);
     }, 800);
+  };
+
+  const handleSaveDiscord = async () => {
+    try {
+      setSavingDiscord(true);
+      const res = await fetch("/api/user/discord", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ discord_id: inputDiscordId }),
+      });
+      if (res.ok) {
+        setUser((prev) => prev ? { ...prev, discord_id: inputDiscordId } : prev);
+        setIsDiscordDialogOpen(false);
+      }
+    } catch (error) {
+      console.error("Failed to save discord id:", error);
+    } finally {
+      setSavingDiscord(false);
+    }
   };
 
   if (loading) {
@@ -139,6 +178,46 @@ export default function CustomizePage() {
           
           {/* CONTROL SUITE (LEFT) */}
           <div className="lg:col-span-3 space-y-6">
+            
+            {/* DISCORD INTEGRATION */}
+            <div className="rounded-[24px] border border-white/5 bg-[#0A0A0A]/80 p-6 backdrop-blur-3xl flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-white uppercase tracking-wider text-[#7A7A7A]">Discord Integration</h3>
+                <p className="mt-1 text-xs text-[#8C8C8C]">Connect your Discord to show live status on your profile.</p>
+              </div>
+              <Dialog open={isDiscordDialogOpen} onOpenChange={setIsDiscordDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="border-white/10 bg-white/[0.02] hover:bg-white/[0.05] text-xs font-semibold uppercase tracking-wider">
+                    {user.discord_id ? "Edit Connection" : "Connect Discord"}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="bg-[#0A0A0A] border-white/10 text-white sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Connect Discord Account</DialogTitle>
+                    <DialogDescription className="text-[#8C8C8C]">
+                      Enter your Discord User ID to fetch your live Lanyard status and profile data.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="py-4">
+                    <Input
+                      placeholder="e.g. 203574366745657345"
+                      value={inputDiscordId}
+                      onChange={(e) => setInputDiscordId(e.target.value)}
+                      className="bg-black border-white/10 text-white placeholder:text-[#555]"
+                    />
+                  </div>
+                  <div className="flex justify-end">
+                    <Button
+                      onClick={handleSaveDiscord}
+                      disabled={savingDiscord}
+                      className="bg-indigo-600 hover:bg-indigo-500 text-white"
+                    >
+                      {savingDiscord ? "Saving..." : "Save Connection"}
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
             
             {/* THEME SELECTION */}
             <div className="rounded-[24px] border border-white/5 bg-[#0A0A0A]/80 p-6 backdrop-blur-3xl">
@@ -268,60 +347,10 @@ export default function CustomizePage() {
               </div>
 
               {/* CARD PREVIEW WINDOW */}
-              <div className="flex-1 flex items-center justify-center p-6 relative z-10">
-                
-                {/* Dynamically styled preview card */}
-                <div
-                  className={`w-full max-w-[280px] p-6 rounded-3xl border transition-all duration-500 flex flex-col items-center text-center ${
-                    selectedTheme === "crimson-dither"
-                      ? "bg-gradient-to-br from-red-950/20 to-neutral-950 border-red-500/30 shadow-[0_15px_30px_rgba(239,68,68,0.08)]"
-                      : selectedTheme === "quantum-purple"
-                      ? "bg-gradient-to-br from-purple-950/20 to-neutral-950 border-purple-500/20 shadow-[0_15px_30px_rgba(168,85,247,0.06)]"
-                      : selectedTheme === "neon-emerald"
-                      ? "bg-gradient-to-br from-green-950/20 to-neutral-950 border-green-500/20 shadow-[0_15px_30px_rgba(34,197,94,0.06)]"
-                      : "bg-neutral-950 border-neutral-800 shadow-[0_15px_30px_rgba(0,0,0,0.4)]"
-                  }`}
-                  style={{
-                    fontFamily: customFont === "Satoshi" ? "Satoshi" : customFont === "Outfit" ? "Outfit" : "monospace"
-                  }}
-                >
-                  {/* Dynamic mock avatar */}
-                  <div className={`h-16 w-16 rounded-2xl border flex items-center justify-center relative overflow-hidden transition-all duration-500 ${
-                    selectedTheme === "crimson-dither" ? "bg-gradient-to-br from-red-600 to-black border-red-500/20" :
-                    selectedTheme === "quantum-purple" ? "bg-gradient-to-br from-purple-600 to-black border-purple-500/20" :
-                    selectedTheme === "neon-emerald" ? "bg-gradient-to-br from-green-600 to-black border-green-500/20" :
-                    "bg-neutral-900 border-neutral-800"
-                  }`}>
-                    <span className="text-lg font-black text-white tracking-widest uppercase">{user.username.slice(0, 2)}</span>
-                  </div>
-
-                  <h4 className="mt-4 text-base font-semibold text-white tracking-tight">@{user.username}</h4>
-                  <p className="mt-1.5 text-xs text-[#8C8C8C] max-w-[200px] leading-relaxed">
-                    Check out my custom bio-identity links and aesthetics.
-                  </p>
-
-                  {/* Dummy links */}
-                  <div className="mt-6 w-full space-y-2">
-                    <div className="h-8.5 rounded-lg bg-white/[0.02] border border-white/5 flex items-center justify-center text-[10px] font-semibold text-[#8C8C8C]">
-                      Discord Server
-                    </div>
-                    <div className="h-8.5 rounded-lg bg-white/[0.02] border border-white/5 flex items-center justify-center text-[10px] font-semibold text-[#8C8C8C]">
-                      My Portfolio
-                    </div>
-                  </div>
-
-                  {/* Audio visualization mock if audio is on */}
-                  {musicActive && (
-                    <div className="mt-6 flex items-center justify-center gap-1">
-                      <div className="h-3 w-0.5 bg-red-500 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }} />
-                      <div className="h-4.5 w-0.5 bg-red-500 rounded-full animate-bounce" style={{ animationDelay: "0.3s" }} />
-                      <div className="h-2.5 w-0.5 bg-red-500 rounded-full animate-bounce" style={{ animationDelay: "0.5s" }} />
-                      <div className="h-3.5 w-0.5 bg-red-500 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }} />
-                    </div>
-                  )}
-
+              <div className="flex-1 flex items-center justify-center p-6 relative z-10 w-full overflow-hidden">
+                <div className="w-full h-full flex items-center justify-center">
+                  <DiscordProfile discordId={user.discord_id || ""} />
                 </div>
-
               </div>
 
               {/* Bottom reset actions */}

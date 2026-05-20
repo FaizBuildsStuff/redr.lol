@@ -14,7 +14,7 @@ export default async function UserProfilePage({ params }: PageProps) {
   let user = null;
   try {
     const users = await sql`
-      SELECT id, username, email, created_at 
+      SELECT id, username, email, discord_id, created_at 
       FROM users 
       WHERE LOWER(username) = LOWER(${username})
       LIMIT 1
@@ -56,6 +56,7 @@ export default async function UserProfilePage({ params }: PageProps) {
     id: user.id,
     username: user.username,
     email: user.email,
+    discord_id: user.discord_id,
     created_at: user.created_at ? new Date(user.created_at).toLocaleDateString("en-US", { month: "long", year: "numeric" }) : "May 2026"
   }} />;
 }

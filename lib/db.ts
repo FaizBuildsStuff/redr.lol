@@ -18,8 +18,12 @@ export async function initDb() {
         username VARCHAR(255) UNIQUE NOT NULL,
         email VARCHAR(255) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL,
+        discord_id VARCHAR(255),
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
+    `;
+    await sql`
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS discord_id VARCHAR(255);
     `;
     console.log("Database schema initialized successfully.");
   } catch (error) {

@@ -943,7 +943,8 @@ function DiscordProfileCard({ user, discordData, lanyardData }: DiscordProfileCa
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    window.open(`https://discord.com/users/201796217292718080`, '_blank');
+    if (!user.discord_id) return;
+    window.open(`https://discord.com/users/${user.discord_id}`, '_blank');
     setMessage('');
   };
 
@@ -1016,14 +1017,18 @@ function DiscordProfileCard({ user, discordData, lanyardData }: DiscordProfileCa
                   className="avatar-decoration absolute top-1/2 left-1/2 w-full h-full -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none"
                 />
               )}
-              <img
-                className="avatar-img w-full h-full rounded-full border-4 border-stone-200 dark:border-[#050505] relative z-10"
-                src={`https://camilo404.azurewebsites.net/v1/avatar/201796217292718080`}
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = "/assets/images/no-image-found.jpg";
-                }}
-                alt="Avatar"
-              />
+              {discordData?.user?.avatar && user.discord_id ? (
+                <img
+                  className="w-full h-full rounded-full object-cover shadow-inner border-4 border-stone-200 dark:border-[#050505] relative z-10"
+                  src={`https://redroseapi.vercel.app/v1/avatar/${user.discord_id}`}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "/assets/images/no-image-found.jpg";
+                  }}
+                  alt="Avatar"
+                />
+              ) : (
+                <div className="w-full h-full rounded-full bg-stone-700 border-4 border-stone-200 dark:border-[#050505]" />
+              )}
             </div>
 
             {/* Status Badge */}
@@ -1178,6 +1183,7 @@ interface ClientProfileProps {
     username: string;
     email: string;
     created_at: string;
+    discord_id?: string;
   };
 }
 
@@ -1201,9 +1207,11 @@ export default function ClientProfile({ user }: ClientProfileProps) {
 
   // Initialize dynamic fetches
   useEffect(() => {
+    if (!user.discord_id) return;
+
     const fetchDiscord = async () => {
       try {
-        const res = await fetch("https://camilo404.azurewebsites.net/v1/user/201796217292718080");
+        const res = await fetch(`https://redroseapi.vercel.app/v1/user/${user.discord_id}`);
         if (res.ok) {
           const data = await res.json();
           setDiscordData(data);
@@ -1215,7 +1223,7 @@ export default function ClientProfile({ user }: ClientProfileProps) {
 
     const fetchLanyard = async () => {
       try {
-        const res = await fetch("https://api.lanyard.rest/v1/users/201796217292718080");
+        const res = await fetch(`https://api.lanyard.rest/v1/users/${user.discord_id}`);
         if (res.ok) {
           const json = await res.json();
           if (json.success) {
@@ -1239,7 +1247,7 @@ export default function ClientProfile({ user }: ClientProfileProps) {
           ws.send(JSON.stringify({
             op: 2,
             d: {
-              subscribe_to_id: "201796217292718080"
+              subscribe_to_id: user.discord_id
             }
           }));
         } else if (data.t === "PRESENCE_UPDATE") {
@@ -1253,7 +1261,7 @@ export default function ClientProfile({ user }: ClientProfileProps) {
     return () => {
       ws.close();
     };
-  }, []);
+  }, [user.discord_id]);
 
   // Initialize Audio
   useEffect(() => {
