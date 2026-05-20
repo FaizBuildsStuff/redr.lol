@@ -168,3 +168,14 @@
   -webkit-animation: uiDanceScale 2.8s;
   animation-fill-mode: both;
 }
+
+/* ========================================
+   Custom Cursor Designs
+   ======================================== */
+html, body, div, span, p, h1, h2, h3, h4, h5, h6, img, svg {
+  cursor: url('/assets/images/cursor/pointer.png'), auto;
+}
+
+a, button, select, [role="button"], input[type="submit"], input[type="range"], input[type="button"], .cursor-pointer {
+  cursor: url('/assets/images/cursor/link.png'), pointer !important;
+}
