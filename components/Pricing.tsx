@@ -189,90 +189,89 @@ const PricingSection = () => {
 
             {/* Inner */}
             <div className="relative flex h-full flex-col rounded-[42px] bg-[#080808]/95 p-8">
-            <div className="flex-1">
-              {/* Noise */}
-              <div className="absolute inset-0 opacity-[0.03] mix-blend-soft-light">
-                <div
-                  className="h-full w-full"
-                  style={{
-                    backgroundImage:
-                      "url('https://grainy-gradients.vercel.app/noise.svg')",
-                  }}
-                />
-              </div>
-
-              {/* Top */}
-              <div className="relative flex items-start justify-between">
-                <div>
-                  <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2">
-                    <div className="h-2 w-2 rounded-full bg-white/60" />
-
-                    <span className="text-xs tracking-[0.18em] text-[#A1A1A1] uppercase">
-                      starter
-                    </span>
-                  </div>
-
-                  <h3 className="mt-8 text-[4rem] font-medium leading-none tracking-[-0.12em] text-white">
-                    Free
-                  </h3>
-
-                  <div className="mt-5 flex items-end gap-2">
-                    <span className="text-[5rem] font-medium leading-none tracking-[-0.12em] text-white">
-                      €0
-                    </span>
-
-                    <span className="mb-3 text-[#777]">forever</span>
-                  </div>
+              <div className="flex-1">
+                {/* Noise */}
+                <div className="absolute inset-0 opacity-[0.03] mix-blend-soft-light">
+                  <div
+                    className="h-full w-full"
+                    style={{
+                      backgroundImage:
+                        "url('https://grainy-gradients.vercel.app/noise.svg')",
+                    }}
+                  />
                 </div>
 
-                {/* Floating Shape */}
-                <motion.div
-                  animate={{
-                    rotate: [0, 12, -12, 0],
-                    y: [0, -10, 0],
-                  }}
-                  transition={{
-                    duration: 10,
-                    repeat: Infinity,
-                  }}
-                  className="opacity-[0.08]"
-                >
-                  <svg width="90" height="90" viewBox="0 0 90 90" fill="none">
-                    <path
-                      d="M20 45C20 25 70 25 70 45C70 65 20 65 20 45Z"
-                      stroke="#ffffff"
-                      strokeWidth="4"
-                      strokeDasharray="8 10"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                </motion.div>
-              </div>
+                {/* Top */}
+                <div className="relative flex items-start justify-between">
+                  <div>
+                    <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2">
+                      <div className="h-2 w-2 rounded-full bg-white/60" />
 
-              {/* Description */}
-              <p className="relative mt-8 max-w-sm text-[15px] leading-[1.9] tracking-[0.03em] text-[#8F8F8F]">
-                Perfect for creators starting their online presence with smooth
-                customization and modern profile tools.
-              </p>
-
-              {/* Features */}
-              <div className="relative mt-12 space-y-5">
-                {[
-                  "Basic Customization",
-                  "Profile Analytics",
-                  "Basic Effects",
-                  "Add Your Socials",
-                ].map((feature, i) => (
-                  <div key={i} className="group/item flex items-center gap-4">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] transition-all duration-300 group-hover/item:border-white/20">
-                      <Check className="h-3.5 w-3.5 text-white" />
+                      <span className="text-xs tracking-[0.18em] text-[#A1A1A1] uppercase">
+                        starter
+                      </span>
                     </div>
 
-                    <span className="text-[#D4D4D4]">{feature}</span>
-                  </div>
-                ))}
-              </div>
+                    <h3 className="mt-8 text-[4rem] font-medium leading-none tracking-[-0.12em] text-white">
+                      Free
+                    </h3>
 
+                    <div className="mt-5 flex items-end gap-2">
+                      <span className="text-[5rem] font-medium leading-none tracking-[-0.12em] text-white">
+                        €0
+                      </span>
+
+                      <span className="mb-3 text-[#777]">forever</span>
+                    </div>
+                  </div>
+
+                  {/* Floating Shape */}
+                  <motion.div
+                    animate={{
+                      rotate: [0, 12, -12, 0],
+                      y: [0, -10, 0],
+                    }}
+                    transition={{
+                      duration: 10,
+                      repeat: Infinity,
+                    }}
+                    className="opacity-[0.08]"
+                  >
+                    <svg width="90" height="90" viewBox="0 0 90 90" fill="none">
+                      <path
+                        d="M20 45C20 25 70 25 70 45C70 65 20 65 20 45Z"
+                        stroke="#ffffff"
+                        strokeWidth="4"
+                        strokeDasharray="8 10"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                  </motion.div>
+                </div>
+
+                {/* Description */}
+                <p className="relative mt-8 max-w-sm text-[15px] leading-[1.9] tracking-[0.03em] text-[#8F8F8F]">
+                  Perfect for creators starting their online presence with
+                  smooth customization and modern profile tools.
+                </p>
+
+                {/* Features */}
+                <div className="relative mt-12 space-y-5">
+                  {[
+                    "Basic Customization",
+                    "Profile Analytics",
+                    "Basic Effects",
+                    "Add Your Socials",
+                  ].map((feature, i) => (
+                    <div key={i} className="group/item flex items-center gap-4">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] transition-all duration-300 group-hover/item:border-white/20">
+                        <Check className="h-3.5 w-3.5 text-white" />
+                      </div>
+
+                      <span className="text-[#D4D4D4]">{feature}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* CTA */}

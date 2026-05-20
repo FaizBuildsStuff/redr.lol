@@ -1,18 +1,21 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import Footer from "@/components/Footer";
+import Header from "@/components/Header";
 
 export const metadata: Metadata = {
   title: {
-    default: "red.rose",
-    template: "%s • red.rose",
+    default: "redr.lol",
+    template: "%s • redr.lol",
   },
 
   description:
-    "Profiles with personality. Create expressive, customizable, and beautifully designed spaces for the modern internet.",
+    "Build expressive digital identities with modern customization, smooth animations, profile effects, and creative freedom.",
 
   keywords: [
-    "red.rose",
+    "redr.lol",
+    "redr",
     "profiles",
     "digital identity",
     "link in bio",
@@ -21,25 +24,28 @@ export const metadata: Metadata = {
     "custom profiles",
     "aesthetic profiles",
     "social profile",
+    "animated profiles",
+    "modern bio pages",
+    "internet identity",
   ],
 
-  metadataBase: new URL("https://red.rose"),
+  metadataBase: new URL("https://redr.lol"),
 
   openGraph: {
-    title: "red.rose",
+    title: "redr.lol",
     description:
-      "Profiles with personality.",
-    url: "https://red.rose",
-    siteName: "red.rose",
+      "Build expressive digital identities with modern customization and profile effects.",
+    url: "https://redr.lol",
+    siteName: "redr.lol",
     locale: "en_US",
     type: "website",
   },
 
   twitter: {
     card: "summary_large_image",
-    title: "red.rose",
+    title: "redr.lol",
     description:
-      "Profiles with personality.",
+      "Build expressive digital identities with modern customization and profile effects.",
   },
 
   icons: {
@@ -53,7 +59,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full antialiased">
+    <html lang="en" className="h-full antialiased" suppressHydrationWarning>
       <head>
         <link
           rel="stylesheet"

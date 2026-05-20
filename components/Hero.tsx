@@ -297,88 +297,88 @@ const Hero = () => {
         </motion.div>
 
         {/* Heading */}
-<motion.h1
-  initial={{ opacity: 0, y: 35 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ duration: 0.9 }}
-  className="relative mx-auto max-w-6xl text-center text-[3.7rem] font-medium leading-[0.84] tracking-[-0.11em] text-[#F5F1E8] sm:text-[5rem] md:text-[7rem]"
->
-  <span className="relative inline-block">
-    <span className="inline-block pr-2">b</span>
-    <span className="inline-block pr-2">u</span>
-    <span className="inline-block pr-2">i</span>
-    <span className="inline-block pr-2">l</span>
-    <span className="inline-block">d</span>
+        <motion.h1
+          initial={{ opacity: 0, y: 35 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.9 }}
+          className="relative mx-auto max-w-6xl text-center text-[3.7rem] font-medium leading-[0.84] tracking-[-0.11em] text-[#F5F1E8] sm:text-[5rem] md:text-[7rem]"
+        >
+          <span className="relative inline-block">
+            <span className="inline-block pr-2">b</span>
+            <span className="inline-block pr-2">u</span>
+            <span className="inline-block pr-2">i</span>
+            <span className="inline-block pr-2">l</span>
+            <span className="inline-block">d</span>
 
-    <span className="mx-5" />
+            <span className="mx-5" />
 
-    <span className="inline-block pr-2">y</span>
-    <span className="inline-block pr-2">o</span>
-    <span className="inline-block pr-2">u</span>
-    <span className="inline-block">r</span>
-  </span>
+            <span className="inline-block pr-2">y</span>
+            <span className="inline-block pr-2">o</span>
+            <span className="inline-block pr-2">u</span>
+            <span className="inline-block">r</span>
+          </span>
 
-  <br />
+          <br />
 
-  <span className="relative inline-block text-white">
-    <span className="inline-block pr-2">i</span>
-    <span className="inline-block pr-2">n</span>
-    <span className="inline-block pr-2">t</span>
-    <span className="inline-block pr-2">e</span>
-    <span className="inline-block pr-2">r</span>
-    <span className="inline-block pr-2">n</span>
-    <span className="inline-block pr-2">e</span>
-    <span className="inline-block">t</span>
-  </span>
+          <span className="relative inline-block text-white">
+            <span className="inline-block pr-2">i</span>
+            <span className="inline-block pr-2">n</span>
+            <span className="inline-block pr-2">t</span>
+            <span className="inline-block pr-2">e</span>
+            <span className="inline-block pr-2">r</span>
+            <span className="inline-block pr-2">n</span>
+            <span className="inline-block pr-2">e</span>
+            <span className="inline-block">t</span>
+          </span>
 
-  <br />
+          <br />
 
-  <span className="relative inline-block text-red-500">
-    <span className="inline-block pr-2">i</span>
-    <span className="inline-block pr-2">d</span>
-    <span className="inline-block pr-2">e</span>
-    <span className="inline-block pr-2">n</span>
-    <span className="inline-block pr-2">t</span>
-    <span className="inline-block pr-2">i</span>
-    <span className="inline-block pr-2">t</span>
-    <span className="inline-block">y</span>
+          <span className="relative inline-block text-red-500">
+            <span className="inline-block pr-2">i</span>
+            <span className="inline-block pr-2">d</span>
+            <span className="inline-block pr-2">e</span>
+            <span className="inline-block pr-2">n</span>
+            <span className="inline-block pr-2">t</span>
+            <span className="inline-block pr-2">i</span>
+            <span className="inline-block pr-2">t</span>
+            <span className="inline-block">y</span>
 
-    {/* Hand Drawn Underline */}
-    <svg
-      className="absolute -bottom-7 left-0 w-full"
-      viewBox="0 0 400 40"
-      fill="none"
-    >
-      <motion.path
-        initial={{ pathLength: 0 }}
-        animate={{ pathLength: 1 }}
-        transition={{
-          duration: 2,
-          delay: 0.4,
-        }}
-        d="M5 25C80 5 180 38 395 18"
-        stroke="#ef4444"
-        strokeWidth="6"
-        strokeLinecap="round"
-      />
-    </svg>
-  </span>
-</motion.h1>
+            {/* Hand Drawn Underline */}
+            <svg
+              className="absolute -bottom-7 left-0 w-full"
+              viewBox="0 0 400 40"
+              fill="none"
+            >
+              <motion.path
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{
+                  duration: 2,
+                  delay: 0.4,
+                }}
+                d="M5 25C80 5 180 38 395 18"
+                stroke="#ef4444"
+                strokeWidth="6"
+                strokeLinecap="round"
+              />
+            </svg>
+          </span>
+        </motion.h1>
 
-{/* Description */}
-<motion.p
-  initial={{ opacity: 0, y: 25 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{
-    duration: 1,
-    delay: 0.15,
-  }}
-  className="mt-14 max-w-2xl text-[15px] leading-[1.9] tracking-[0.03em] text-[#A1A1A1] sm:text-lg"
->
-  Create beautifully crafted profile pages with custom themes, smooth
-  animations, social links, music, and complete creative freedom —
-  designed to make your internet presence unforgettable.
-</motion.p>
+        {/* Description */}
+        <motion.p
+          initial={{ opacity: 0, y: 25 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{
+            duration: 1,
+            delay: 0.15,
+          }}
+          className="mt-14 max-w-2xl text-[15px] leading-[1.9] tracking-[0.03em] text-[#A1A1A1] sm:text-lg"
+        >
+          Create beautifully crafted profile pages with custom themes, smooth
+          animations, social links, music, and complete creative freedom —
+          designed to make your internet presence unforgettable.
+        </motion.p>
 
         {/* Buttons */}
         <motion.div
