@@ -128,3 +128,43 @@
     @apply font-sans;
   }
 }
+
+/* ========================================
+   Theme View Transitions API - Shigure UI Dance Mask
+   ======================================== */
+@keyframes uiDanceScale {
+  0% {
+    mask-size: 0;
+    -webkit-mask-size: 0;
+  }
+  10% {
+    mask-size: 50vmax;
+    -webkit-mask-size: 50vmax;
+  }
+  90% {
+    mask-size: 50vmax;
+    -webkit-mask-size: 50vmax;
+  }
+  100% {
+    mask-size: 2000vmax;
+    -webkit-mask-size: 2000vmax;
+  }
+}
+
+::view-transition-group(root) {
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+::view-transition-new(root) {
+  mask: url('https://media.tenor.com/cyORI7kwShQAAAAi/shigure-ui-dance.gif') center / 0 no-repeat;
+  -webkit-mask: url('https://media.tenor.com/cyORI7kwShQAAAAi/shigure-ui-dance.gif') center / 0 no-repeat;
+  animation: uiDanceScale 2.8s;
+  -webkit-animation: uiDanceScale 2.8s;
+  animation-fill-mode: both;
+}
+
+::view-transition-old(root) {
+  animation: uiDanceScale 2.8s;
+  -webkit-animation: uiDanceScale 2.8s;
+  animation-fill-mode: both;
+}

@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTheme } from "next-themes";
+
 const Volume2 = (props: React.SVGProps<SVGSVGElement>) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
     <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
@@ -84,6 +86,26 @@ const Github = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+const Sun = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <circle cx="12" cy="12" r="4" />
+    <path d="M12 2v2" />
+    <path d="M12 20v2" />
+    <path d="m4.93 4.93 1.41 1.41" />
+    <path d="m17.66 17.66 1.41 1.41" />
+    <path d="M2 12h2" />
+    <path d="M20 12h2" />
+    <path d="m6.34 17.66-1.41 1.41" />
+    <path d="m19.07 4.93-1.41 1.41" />
+  </svg>
+);
+
+const Moon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+  </svg>
+);
+
 interface ClientProfileProps {
   user: {
     id: number;
@@ -98,7 +120,14 @@ export default function ClientProfile({ user }: ClientProfileProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.3);
   
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Initialize mounting state
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Initialize Audio
   useEffect(() => {
@@ -142,10 +171,31 @@ export default function ClientProfile({ user }: ClientProfileProps) {
     }
   };
 
+  const toggleTheme = () => {
+    const currentTheme = theme === "system" ? "dark" : theme;
+    const nextTheme = currentTheme === "dark" ? "light" : "dark";
+    const doc = document as any;
+    
+    if (!doc.startViewTransition) {
+      setTheme(nextTheme);
+      return;
+    }
+
+    doc.startViewTransition(() => {
+      // Toggle dark class synchronously to ensure DOM snapshot catches the transition correctly
+      if (nextTheme === "dark") {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+      setTheme(nextTheme);
+    });
+  };
+
   const formattedUid = `UID ${String(user.id).padStart(3, "0")},${String(100 + (user.id % 900))}`;
 
   return (
-    <div className="relative min-h-screen bg-[#030303] text-[#F5F1E8] font-['Satoshi'] flex items-center justify-center overflow-hidden">
+    <div className="relative min-h-screen bg-[#F5F1E8] dark:bg-[#030303] text-stone-900 dark:text-[#F5F1E8] font-['Satoshi'] flex items-center justify-center overflow-hidden transition-colors duration-500">
       
       {/* Ambient background particles */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden z-0">
@@ -162,32 +212,46 @@ export default function ClientProfile({ user }: ClientProfileProps) {
         />
       </div>
 
-      {/* AUDIO CONTROLS (Floating in top right after entering) */}
-      <AnimatePresence>
-        {entered && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="absolute top-6 right-6 z-40 flex items-center gap-3 bg-black/40 border border-white/5 p-2 rounded-2xl backdrop-blur-md"
+      {/* FLOATING CONTROLS (Unified theme switcher & audio controls) */}
+      {mounted && (
+        <div className="absolute top-6 right-6 z-50 flex items-center gap-3">
+          {/* Theme Toggle Button */}
+          <button
+            onClick={toggleTheme}
+            className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/40 dark:bg-black/40 border border-stone-200/50 dark:border-white/5 hover:bg-stone-200/40 dark:hover:bg-white/[0.06] text-amber-500 dark:text-indigo-400 transition-all duration-300 shadow-sm cursor-pointer"
+            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
           >
-            <button
-              onClick={togglePlayback}
-              className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.06] text-red-400 hover:text-red-300 transition-all duration-200"
-            >
-              {isPlaying ? <Volume2 className="h-4.5 w-4.5" /> : <VolumeX className="h-4.5 w-4.5" />}
-            </button>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.05"
-              value={volume}
-              onChange={(e) => setVolume(parseFloat(e.target.value))}
-              className="w-16 h-1 bg-white/10 rounded-full appearance-none cursor-pointer accent-red-500"
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+            {theme === "dark" ? <Sun className="h-4.5 w-4.5" /> : <Moon className="h-4.5 w-4.5" />}
+          </button>
+
+          {/* Audio controls (visible only if entered) */}
+          <AnimatePresence>
+            {entered && (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="flex items-center gap-3 bg-white/40 dark:bg-black/40 border border-stone-200/50 dark:border-white/5 p-2 rounded-2xl backdrop-blur-md"
+              >
+                <button
+                  onClick={togglePlayback}
+                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.06] text-red-400 hover:text-red-300 transition-all duration-200"
+                >
+                  {isPlaying ? <Volume2 className="h-4.5 w-4.5" /> : <VolumeX className="h-4.5 w-4.5" />}
+                </button>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.05"
+                  value={volume}
+                  onChange={(e) => setVolume(parseFloat(e.target.value))}
+                  className="w-16 h-1 bg-black/10 dark:bg-white/10 rounded-full appearance-none cursor-pointer accent-red-500"
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
 
       <AnimatePresence>
         {/* INTRO SCREEN (TAP TO ENTER GATES) */}
@@ -198,7 +262,7 @@ export default function ClientProfile({ user }: ClientProfileProps) {
             exit={{ opacity: 0, scale: 1.08 }}
             transition={{ duration: 0.55, ease: "easeInOut" }}
             onClick={handleEnterChamber}
-            className="absolute inset-0 z-50 bg-[#030303] flex flex-col items-center justify-center cursor-pointer p-6"
+            className="absolute inset-0 z-40 bg-[#F5F1E8] dark:bg-[#030303] flex flex-col items-center justify-center cursor-pointer p-6 transition-colors duration-500"
           >
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
               <div className="absolute left-1/2 top-1/2 h-[300px] w-[300px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-red-600/10 blur-[100px] animate-pulse" />
@@ -222,13 +286,13 @@ export default function ClientProfile({ user }: ClientProfileProps) {
               </motion.div>
 
               <div className="space-y-2">
-                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#666666]">
+                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-stone-500 dark:text-[#666666]">
                   Chamber Security Active
                 </p>
-                <h1 className="text-xl font-bold uppercase tracking-[0.2em] text-white">
+                <h1 className="text-xl font-bold uppercase tracking-[0.2em] text-stone-900 dark:text-white">
                   Unlock @{user.username}
                 </h1>
-                <p className="text-xs text-[#8C8C8C] max-w-[280px] leading-relaxed mx-auto">
+                <p className="text-xs text-stone-600 dark:text-[#8C8C8C] max-w-[280px] leading-relaxed mx-auto">
                   Tapping the chamber de-crypts visual styles and streams background wave frequencies.
                 </p>
               </div>
@@ -237,10 +301,10 @@ export default function ClientProfile({ user }: ClientProfileProps) {
               <motion.div
                 animate={{ opacity: [0.3, 1, 0.3] }}
                 transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
-                className="flex items-center gap-2 rounded-full border border-red-500/10 bg-red-500/5 px-6 py-2.5"
+                className="flex items-center gap-2 rounded-full border border-red-500/20 dark:border-red-500/10 bg-red-500/5 px-6 py-2.5"
               >
                 <LockOpen className="h-3.5 w-3.5 text-red-400" />
-                <span className="text-[10px] uppercase font-bold tracking-[0.18em] text-red-400">
+                <span className="text-[10px] uppercase font-bold tracking-[0.18em] text-red-450 dark:text-red-400">
                   Tap to Decipher
                 </span>
               </motion.div>
@@ -259,12 +323,12 @@ export default function ClientProfile({ user }: ClientProfileProps) {
             {/* Holographic Glowing border */}
             <div className="absolute -inset-px rounded-[32px] bg-gradient-to-b from-red-600/20 via-transparent to-transparent opacity-40 blur-sm pointer-events-none" />
 
-            <div className="relative rounded-[30px] border border-white/5 bg-[#090909]/80 p-8 backdrop-blur-3xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] flex flex-col items-center text-center">
+            <div className="relative rounded-[30px] border border-stone-200/50 dark:border-white/5 bg-[#FFFFFF]/85 dark:bg-[#090909]/80 p-8 backdrop-blur-3xl shadow-[0_20px_50px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.6)] flex flex-col items-center text-center transition-all duration-500">
               
               {/* Decorative verified tick banner */}
               <div className="absolute top-6 left-6 flex items-center gap-1 bg-red-500/10 border border-red-500/20 px-2.5 py-1 rounded-lg">
                 <Award className="h-3.5 w-3.5 text-red-500" />
-                <span className="text-[8px] font-bold uppercase tracking-wider text-red-400">Supporter</span>
+                <span className="text-[8px] font-bold uppercase tracking-wider text-red-450 dark:text-red-400">Supporter</span>
               </div>
 
               {/* AVATAR SPHERE WITH GLOW */}
@@ -278,24 +342,24 @@ export default function ClientProfile({ user }: ClientProfileProps) {
               {/* USER META */}
               <div className="mt-5 space-y-1">
                 <div className="flex items-center justify-center gap-1.5">
-                  <h2 className="text-xl font-bold tracking-tight text-white">@{user.username}</h2>
+                  <h2 className="text-xl font-bold tracking-tight text-stone-900 dark:text-white">@{user.username}</h2>
                   <div className="flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.4)]">
                     <Check className="h-2.5 w-2.5 stroke-[4px]" />
                   </div>
                 </div>
                 
-                <p className="text-[10px] text-[#555] font-mono tracking-widest uppercase leading-none">
+                <p className="text-[10px] text-stone-400 dark:text-[#555] font-mono tracking-widest uppercase leading-none">
                   {formattedUid}
                 </p>
               </div>
 
               {/* BIO DESCRIPTION */}
-              <p className="mt-4 text-xs text-[#8C8C8C] leading-relaxed max-w-[280px]">
+              <p className="mt-4 text-xs text-stone-600 dark:text-[#8C8C8C] leading-relaxed max-w-[280px]">
                 Welcome to my digital profile! I customize creative styles, layouts, and interactive media arrays.
               </p>
 
               {/* MEMBER TIMELINE */}
-              <div className="mt-4 flex items-center gap-1.5 justify-center text-[10px] text-[#444] uppercase tracking-wider font-semibold">
+              <div className="mt-4 flex items-center gap-1.5 justify-center text-[10px] text-stone-400 dark:text-[#444] uppercase tracking-wider font-semibold">
                 <Calendar className="h-3.5 w-3.5 text-red-500/80" />
                 <span>Member since {user.created_at}</span>
               </div>
@@ -306,20 +370,20 @@ export default function ClientProfile({ user }: ClientProfileProps) {
                   href="https://twitter.com"
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center justify-between rounded-xl bg-white/[0.02] border border-white/5 hover:border-red-500/20 hover:bg-red-950/10 px-4 py-3 text-xs font-medium text-white transition-all duration-300 group"
+                  className="flex items-center justify-between rounded-xl bg-stone-50/50 dark:bg-white/[0.02] border border-stone-200/60 dark:border-white/5 hover:border-red-500/30 hover:bg-red-500/[0.04] dark:hover:bg-red-950/10 px-4 py-3 text-xs font-medium text-stone-800 dark:text-white transition-all duration-300 group"
                 >
                   <div className="flex items-center gap-3">
                     <Twitter className="h-4 w-4 text-sky-400 group-hover:scale-110 transition-transform" />
                     <span>Official Twitter</span>
                   </div>
-                  <ExternalLink className="h-3 w-3 text-[#444] group-hover:text-white" />
+                  <ExternalLink className="h-3 w-3 text-stone-400 dark:text-[#444] group-hover:text-stone-850 dark:group-hover:text-white transition-colors" />
                 </a>
 
                 <a
                   href="https://discord.gg"
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center justify-between rounded-xl bg-white/[0.02] border border-white/5 hover:border-red-500/20 hover:bg-red-950/10 px-4 py-3 text-xs font-medium text-white transition-all duration-300 group"
+                  className="flex items-center justify-between rounded-xl bg-stone-50/50 dark:bg-white/[0.02] border border-stone-200/60 dark:border-white/5 hover:border-red-500/30 hover:bg-red-500/[0.04] dark:hover:bg-red-950/10 px-4 py-3 text-xs font-medium text-stone-800 dark:text-white transition-all duration-300 group"
                 >
                   <div className="flex items-center gap-3">
                     <svg className="h-4 w-4 fill-indigo-400 group-hover:scale-110 transition-transform" viewBox="0 0 127.14 96.36">
@@ -327,20 +391,20 @@ export default function ClientProfile({ user }: ClientProfileProps) {
                     </svg>
                     <span>Community Discord</span>
                   </div>
-                  <ExternalLink className="h-3 w-3 text-[#444] group-hover:text-white" />
+                  <ExternalLink className="h-3 w-3 text-stone-400 dark:text-[#444] group-hover:text-stone-850 dark:group-hover:text-white transition-colors" />
                 </a>
 
                 <a
                   href="https://github.com"
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center justify-between rounded-xl bg-white/[0.02] border border-white/5 hover:border-red-500/20 hover:bg-red-950/10 px-4 py-3 text-xs font-medium text-white transition-all duration-300 group"
+                  className="flex items-center justify-between rounded-xl bg-stone-50/50 dark:bg-white/[0.02] border border-stone-200/60 dark:border-white/5 hover:border-red-500/30 hover:bg-red-500/[0.04] dark:hover:bg-red-950/10 px-4 py-3 text-xs font-medium text-stone-850 dark:text-white transition-all duration-300 group"
                 >
                   <div className="flex items-center gap-3">
-                    <Github className="h-4 w-4 text-white group-hover:scale-110 transition-transform" />
+                    <Github className="h-4 w-4 text-stone-850 dark:text-white group-hover:scale-110 transition-transform" />
                     <span>Personal GitHub</span>
                   </div>
-                  <ExternalLink className="h-3 w-3 text-[#444] group-hover:text-white" />
+                  <ExternalLink className="h-3 w-3 text-stone-400 dark:text-[#444] group-hover:text-stone-850 dark:group-hover:text-white transition-colors" />
                 </a>
               </div>
 
@@ -357,7 +421,7 @@ export default function ClientProfile({ user }: ClientProfileProps) {
                       <div className="w-1 bg-red-500 rounded-full animate-bounce h-2.5" style={{ animationDelay: "0.1s" }} />
                     </>
                   ) : (
-                    <span className="text-[9px] uppercase font-bold tracking-widest text-[#444]">
+                    <span className="text-[9px] uppercase font-bold tracking-widest text-stone-400 dark:text-[#444]">
                       FREQ CORE IDLE
                     </span>
                   )}
@@ -365,7 +429,7 @@ export default function ClientProfile({ user }: ClientProfileProps) {
               </div>
 
               {/* Brand Footer Sign */}
-              <div className="mt-6 pt-4 border-t border-white/5 flex items-center gap-1 text-[8px] font-bold uppercase tracking-widest text-[#333]">
+              <div className="mt-6 pt-4 border-t border-stone-100 dark:border-white/5 flex items-center gap-1 text-[8px] font-bold uppercase tracking-widest text-stone-300 dark:text-[#333] transition-colors w-full justify-center">
                 <span>Designed by redr.lol</span>
               </div>
 
