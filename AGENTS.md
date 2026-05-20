@@ -28,8 +28,12 @@ Welcome, automated agent. This is the master rule book and integration registry 
 
 > [!WARNING]
 > **2. Brand SVG Constraints**
-> Do not attempt to import brand logotypes (e.g. YouTube, GitHub, Twitter) from `lucide-react`. Write custom inline SVG elements directly inside the component scopes to avoid compiler compilation errors under Turbopack.
+> Do not attempt to import brand logotypes (e.g. YouTube, GitHub, Twitter, Discord) from `lucide-react`. Write custom inline SVG elements directly inside the component scopes to avoid compiler compilation errors under Turbopack.
 
 > [!NOTE]
 > **3. UI Design DNA**
-> Maintain dark HSL layouts (`#0D0D0D` / `#050505`) with crimson glowing visual grids (`#950000`). Never pollute layouts with standard non-harmonious visual styles.
+> Maintain dark HSL layouts (`#0D0D0D` / `#050505`) with crimson glowing visual grids (`#950000`). Never pollute layouts with standard non-harmonious visual styles or flat primary colors.
+
+> [!CAUTION]
+> **4. SQL Parametric Tagging & Case-Insensitive Queries**
+> Never use raw string interpolation in SQL queries. Always wrap queries in tagged template strings (e.g., `sql` SELECT...`) and query usernames case-insensitively using `LOWER(username) = LOWER(${username})`.

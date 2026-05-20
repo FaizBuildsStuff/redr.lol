@@ -11,7 +11,7 @@
                                      
 ```
 
-**An elite, ultra-modern bio-profile and custom web-identity space.**
+**An elite, ultra-modern bio-profile and custom web-identity space.**  
 *A highly optimized, glassmorphic, visual canvas crafted for digital creators, collectors, and cyber-enthusiasts.*
 
 ---
@@ -31,13 +31,14 @@
 `redr.lol` allows developers and creators to design high-fidelity, interactive digital profile chambers. Powered by a responsive global layout featuring a custom **Cyber-Crimson Grid** design system, users can register, unlock rare badges, custom-host high-resolution profile imagery, structure custom links, and publish beautiful bio-profile sites.
 
 ```
-       [ Public Landing ]  ───────>  [ Secure Gateways ] (JWT / Cookie Auth)
+       [ Public Landing ]  ───────>  [ Secure Gateways ] (Cookie-based Session JWT)
                │                                   │
                ▼                                   ▼
       [ Chamber Identity ] <───────────── [ Creator Dashboard ]
    pulsating "Tap to Decipher" gateway       • Modular Settings & Layout Control
    audio visualizer & dynamic canvas         • SVG-rendered live analytics charts
    lossless media loop streaming             • Theme templates & custom visual nodes
+   Oneko mouse tracking pixel animations     • Badges inventory & supporter tiers
 ```
 
 ---
@@ -46,18 +47,21 @@
 
 | Feature Module | Technical Focus | Core Mechanics |
 | :--- | :--- | :--- |
-| **🔒 Authenticated Shell (`(auth)`)** | Security & Session Registry | Full JWT sign-in / registration pipeline tied to browser `HttpOnly` cookie stores. |
+| **🔒 Authenticated Shell (`(auth)`)** | Security & Session Registry | Secure signup and signin APIs utilizing `bcryptjs` password hashing and signed cookie verification using HMAC-SHA256. |
 | **🛠️ Control Chamber (`(dashboard)`)** | Unified Layout Sandbox | Persistent custom sidebar shell featuring sublink trees, live user metrics, support widgets, and profile status tags. |
-| **🎨 Live Customizer** | Real-time Canvas Rendering | Active state customization spanning glassmorphic card variables, accent switches, and Satoshi font typography templates. |
-| **🌐 Dynamic Chamber Gates (`/[username]`)**| Gestural Core Autoplay | Pulsating visual gate overcoming standard browser audio restrictions via client-bound click loops and equalizer rendering. |
-| **🛢️ Neon Serverless DB** | High-Performance Storage | Direct query interface with sub-millisecond Postgres latency and safe parameterized protection filters. |
+| **🎨 Live Customizer** | Real-time Canvas Rendering | Active state customization spanning glassmorphic card variables, accent switches (Crimson, Purple, Emerald, Mono), and Satoshi/Outfit typography templates. |
+| **🔗 Dynamic Links Router** | Interactive social nodes | Manage, toggle visibility of, and delete custom redirection buttons (GitHub, Twitter, Discord, YouTube, Web). |
+| **🌐 Dynamic Chamber Gates (`/[username]`)**| Gestural Core Autoplay | Pulsating visual gate overcoming standard browser audio restrictions via client-bound click loops, animated cursor shapes, pixelated Oneko widget track loops, and real-time audio visualizer spectrum canvas. |
+| **📊 Quantum Analytics** | SVG Sparkline Graphics | Visual metrics dashboard highlighting Unique Views, Click-Through Rates (CTR), referrals, and device share. |
+| **🛢️ Neon Serverless DB** | High-Performance Storage | Direct query interface with serverless Postgres edge clusters and safe parameterized protection filters. |
 
 ---
 
 ## 🛠️ Technology Stack
 
 * **Client & Compiler:** Next.js 16.2.6 utilizing the cutting-edge **Turbopack Compiler Core** for instant hot-module updates.
-* **Database Pipeline:** Neon Serverless PostgreSQL running edge-optimized AWS query clusters.
+* **Database Pipeline:** Neon Serverless PostgreSQL running edge-optimized query clusters accessed via modern tagged templates.
+* **Session Layer:** Custom JWT-like signed cookies (`session` HttpOnly cookie & `is_logged_in` client cookie) with SHA256 signatures.
 * **Aesthetic Styling:** Tailwind CSS v4.0 with customized ambient red glow filters, glassmorphism cards, and textured noise sheets.
 * **Motion Physics:** Framer Motion v12 delivering seamless spatial transitions, drag animations, and exit timelines.
 * **Metadata & SEO:** Semantic header hierarchies equipped with automated dynamic site templates, OpenGraph indices, and theme hydration guards.

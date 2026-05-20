@@ -1,6 +1,6 @@
 # 🤖 redr.lol — AI Agent Operational Directive & Workspace Guidelines
 
-Welcome, Agent. This document outlines the core constraints, visual guidelines, database protocols, and compilation parameters required to write production-grade code within the **redr.lol** chamber workspace. 
+Welcome, Agent. This document outlines the core constraints, visual guidelines, database protocols, and compilation parameters required to write production-grade code within the **redr.lol** workspace.
 
 ---
 
@@ -9,9 +9,10 @@ Welcome, Agent. This document outlines the core constraints, visual guidelines, 
 | Operational Boundary | Critical Parameter | Expected Behavior |
 | :--- | :--- | :--- |
 | **Compiler Targets** | Next.js 16 + Turbopack | Brand icon imports from `lucide-react` will fail. You must use native inline SVG React components instead. |
-| **Route Parameters** | Next.js 15+ Promises | Dynamic route parameters (e.g. `params`) must be properly awaited before accessing properties (e.g., `const { username } = await params`). |
+| **Route Parameters** | Next.js 15+ Promises | Dynamic route parameters (e.g. `params` and `searchParams`) must be properly awaited before accessing properties (e.g., `const { username } = await params`). |
 | **Theme & Style** | Cyber-Crimson HSL Grid | Midnight background coordinates (`#050505` to `#0D0D0D`) with glassmorphism sheets and saturated red highlights (`#950000`). |
 | **State Hydration** | Root level `suppressHydrationWarning` | Must remain active on `<html>` inside `layout.tsx` to handle custom client themes safely. |
+| **Path Aliases** | `@/*` prefixes | All imports from components, libraries, or styles must resolve using the `@/` alias root. |
 
 ---
 
@@ -21,7 +22,7 @@ Welcome, Agent. This document outlines the core constraints, visual guidelines, 
 > [!WARNING]
 > **Lucide brand-icon exports are restricted.**
 > Direct imports like `import { Github, Twitter, Youtube, Discord } from "lucide-react"` will cause Next.js Turbopack compiler builds to crash because those brand exports are absent in the local configuration module.
-> **Action:** Declared brand icons must be designed as local inline SVGs inside your React code:
+> **Action:** Declared brand icons must be designed as local inline SVGs inside your React code. Example:
 > ```tsx
 > const GithubIcon = (props: React.SVGProps<SVGSVGElement>) => (
 >   <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5" {...props}>
@@ -32,8 +33,8 @@ Welcome, Agent. This document outlines the core constraints, visual guidelines, 
 
 ### 2. Async Dynamic Routing Parameters (Next.js 15+)
 > [!IMPORTANT]
-> **Always await `params` promises in dynamic routes.**
-> Under modern Next.js paradigms, `params` and `searchParams` are async promises. Accessing them synchronously will fail typecheck runs and crash production builds.
+> **Always await `params` and `searchParams` promises in pages and layouts.**
+> Under modern Next.js paradigms, route parameters are unresolved Promises. Accessing them synchronously will fail typecheck runs and crash production builds.
 > **Action:** Keep dynamic inputs resolved asynchronously:
 > ```typescript
 > interface PageProps {
@@ -48,16 +49,37 @@ Welcome, Agent. This document outlines the core constraints, visual guidelines, 
 ### 3. Absolute Path Resolution
 > [!NOTE]
 > **Always use `@/` absolute aliases.**
-> All imports in components, libraries, and sub-pages must utilize absolute prefixing to avoid deep relative traversal spaghetti (e.g. `../../../../components`).
+> All imports in components, libraries, and sub-pages must utilize absolute prefixing to avoid deep relative traversal (e.g. `../../../../components`).
 > **Action:** Write clean, predictable imports:
-> `import { sql } from "@/lib/db";`
-> `import { Button } from "@/components/ui/button";`
+> - `import { sql } from "@/lib/db";`
+> - `import { Button } from "@/components/ui/button";`
+
+### 4. Database Query Parameters and Case Insensitivity
+> [!IMPORTANT]
+> **Avoid raw string interpolation in SQL queries. Always lower-case usernames when checking uniqueness or fetching profiles.**
+> SQL queries must use tagged templates to protect against injection. Usernames are queried case-insensitively using `LOWER()`.
+> **Action:**
+> ```typescript
+> const users = await sql`
+>   SELECT * FROM users 
+>   WHERE LOWER(username) = LOWER(${username})
+>   LIMIT 1
+> `;
+> ```
+
+### 5. Hydration Mismatch Protection
+* Next-themes reads theme parameters on the client. Keep `suppressHydrationWarning` assigned to the root `<html>` node inside the global [app/layout.tsx](file:///e:/Programming%20Projects/redrose/app/layout.tsx) file to ensure clean renders.
 
 ---
 
 ## 🎨 Visual Identity Checklists
 
 When designing components, pages, or overlays:
-1. **Harmonious Neon Glows:** Restrict glows to fine border shadows (`box-shadow: 0 0 15px rgba(149, 0, 0, 0.15)`) and micro-animations. Avoid massive, fully saturated blocks.
+1. **Harmonious Ambient Glows:** Restrict glows to fine border shadows (`box-shadow: 0 0 15px rgba(149, 0, 0, 0.15)`) and micro-animations. Avoid massive, fully saturated blocks of flat primary colors.
 2. **Glassmorphic Backdrops:** Cards should use semi-transparent background blends (`rgba(13, 13, 13, 0.7)`) backed by heavy backdrop blurs (`backdrop-filter: blur(12px)`) to keep dashboard elements legible over dark noise.
 3. **Fluid Micro-Animations:** Implement lightweight Framer Motion dynamic curves (`type: "spring"`, `stiffness: 120`, `damping: 18`) on interaction points, hover loops, and sidebar selections.
+4. **Theme Accents:**
+   * Crimson style (`#950000`/`#ef4444` borders and glows).
+   * Violet style (`#a855f7` borders and glows).
+   * Emerald style (`#22c55e` borders and glows).
+   * Void style (stealth dark neutral borders).
