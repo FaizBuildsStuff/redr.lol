@@ -23,7 +23,16 @@ export async function initDb() {
       );
     `;
     await sql`
-      ALTER TABLE users ADD COLUMN IF NOT EXISTS discord_id VARCHAR(255);
+      ALTER TABLE users 
+      ADD COLUMN IF NOT EXISTS discord_id VARCHAR(255),
+      ADD COLUMN IF NOT EXISTS typewriter_heading VARCHAR(255),
+      ADD COLUMN IF NOT EXISTS typewriter_quotes JSONB,
+      ADD COLUMN IF NOT EXISTS custom_links JSONB,
+      ADD COLUMN IF NOT EXISTS active_badges JSONB,
+      ADD COLUMN IF NOT EXISTS theme VARCHAR(50) DEFAULT 'crimson-dither',
+      ADD COLUMN IF NOT EXISTS music_active BOOLEAN DEFAULT false,
+      ADD COLUMN IF NOT EXISTS sparkles_active BOOLEAN DEFAULT true,
+      ADD COLUMN IF NOT EXISTS custom_font VARCHAR(50) DEFAULT 'Satoshi';
     `;
     console.log("Database schema initialized successfully.");
   } catch (error) {

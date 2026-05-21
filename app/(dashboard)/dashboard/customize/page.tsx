@@ -24,13 +24,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { DiscordProfile } from "@/components/DiscordProfile";
 
 interface UserProfile {
   id: number;
   username: string;
   email: string;
   discord_id?: string;
+  typewriter_heading?: string;
+  typewriter_quotes?: string[];
 }
 
 export default function CustomizePage() {
@@ -43,6 +44,11 @@ export default function CustomizePage() {
   const [musicActive, setMusicActive] = useState(false);
   const [sparklesActive, setSparklesActive] = useState(true);
   const [customFont, setCustomFont] = useState("Satoshi");
+  
+  const [typewriterHeading, setTypewriterHeading] = useState("Web Designer & Developer");
+  const [typewriterQuotes, setTypewriterQuotes] = useState<string[]>([
+    "The world doesn't need heroes, it needs someone to pull the strings from the shadows."
+  ]);
   
   const [saving, setSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
@@ -62,6 +68,12 @@ export default function CustomizePage() {
           if (data.user.discord_id) {
             setInputDiscordId(data.user.discord_id);
           }
+          if (data.user.typewriter_heading) {
+            setTypewriterHeading(data.user.typewriter_heading);
+          }
+          if (data.user.typewriter_quotes && data.user.typewriter_quotes.length > 0) {
+            setTypewriterQuotes(data.user.typewriter_quotes);
+          }
         } else {
           router.push("/signin");
         }
@@ -75,14 +87,29 @@ export default function CustomizePage() {
     checkAuth();
   }, [router]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setSaving(true);
     setSavedSuccess(false);
-    setTimeout(() => {
+    
+    try {
+      const res = await fetch("/api/user/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          typewriter_heading: typewriterHeading,
+          typewriter_quotes: typewriterQuotes
+        })
+      });
+      
+      if (res.ok) {
+        setSavedSuccess(true);
+        setTimeout(() => setSavedSuccess(false), 2000);
+      }
+    } catch (e) {
+      console.error("Save error:", e);
+    } finally {
       setSaving(false);
-      setSavedSuccess(true);
-      setTimeout(() => setSavedSuccess(false), 2000);
-    }, 800);
+    }
   };
 
   const handleSaveDiscord = async () => {
@@ -174,10 +201,10 @@ export default function CustomizePage() {
         </div>
 
         {/* WORKSPACE GRID */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+        <div className="max-w-3xl mx-auto space-y-6">
           
-          {/* CONTROL SUITE (LEFT) */}
-          <div className="lg:col-span-3 space-y-6">
+          {/* CONTROL SUITE */}
+          <div className="space-y-6">
             
             {/* DISCORD INTEGRATION */}
             <div className="rounded-[24px] border border-white/5 bg-[#0A0A0A]/80 p-6 backdrop-blur-3xl flex items-center justify-between">
@@ -306,6 +333,65 @@ export default function CustomizePage() {
               </div>
             </div>
 
+            {/* TYPEWRITER WIDGET CONTROLS */}
+            <div className="rounded-[24px] border border-white/5 bg-[#0A0A0A]/80 p-6 backdrop-blur-3xl">
+              <h3 className="text-sm font-semibold text-white uppercase tracking-wider text-[#7A7A7A] mb-4 flex items-center gap-2">
+                <Type className="h-4 w-4" /> Typewriter Settings
+              </h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-[10px] uppercase tracking-wider text-[#666] mb-1.5 font-semibold">Heading</label>
+                  <Input
+                    type="text"
+                    value={typewriterHeading}
+                    onChange={(e) => setTypewriterHeading(e.target.value)}
+                    placeholder="e.g. Web Designer & Developer"
+                    className="h-11 w-full rounded-xl border-white/10 bg-[#050505] text-xs text-white placeholder-[#333] transition-all focus:border-red-500/30"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-[10px] uppercase tracking-wider text-[#666] mb-1.5 font-semibold">Animated Quotes</label>
+                  <div className="space-y-3">
+                    {typewriterQuotes.map((quote, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <Input
+                          type="text"
+                          value={quote}
+                          onChange={(e) => {
+                            const newQuotes = [...typewriterQuotes];
+                            newQuotes[index] = e.target.value;
+                            setTypewriterQuotes(newQuotes);
+                          }}
+                          placeholder="Quote..."
+                          className="h-11 w-full rounded-xl border-white/10 bg-[#050505] text-xs text-white placeholder-[#333] transition-all focus:border-red-500/30"
+                        />
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            if (typewriterQuotes.length > 1) {
+                              setTypewriterQuotes(typewriterQuotes.filter((_, i) => i !== index));
+                            }
+                          }}
+                          className="h-11 w-11 shrink-0 rounded-xl border-white/10 bg-white/[0.02] text-[#8C8C8C] hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20"
+                        >
+                          &times;
+                        </Button>
+                      </div>
+                    ))}
+                    <Button
+                      variant="outline"
+                      onClick={() => setTypewriterQuotes([...typewriterQuotes, ""])}
+                      className="w-full h-9 rounded-lg border-white/5 bg-white/[0.01] text-[10px] uppercase tracking-wider font-semibold text-[#8C8C8C] hover:text-white"
+                    >
+                      + Add Quote
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* FONT SELECTOR */}
             <div className="rounded-[24px] border border-white/5 bg-[#0A0A0A]/80 p-6 backdrop-blur-3xl">
               <h3 className="text-sm font-semibold text-white uppercase tracking-wider text-[#7A7A7A] mb-4">Typography Core</h3>
@@ -329,49 +415,6 @@ export default function CustomizePage() {
             </div>
 
           </div>
-
-          {/* ACTIVE PREVIEW CANVAS (RIGHT) */}
-          <div className="lg:col-span-2">
-            <div className="sticky top-12 rounded-[28px] border border-white/5 bg-[#070707] p-4 flex flex-col justify-between shadow-2xl relative overflow-hidden h-[540px]">
-              
-              {/* Subtle grid accent inside preview container */}
-              <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,_transparent_1px),_linear-gradient(90deg,_rgba(255,255,255,0.015)_1px,_transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
-              
-              <div className="relative z-10 flex items-center justify-between border-b border-white/5 pb-3">
-                <span className="text-[10px] uppercase font-bold tracking-[0.18em] text-[#555] flex items-center gap-1.5">
-                  <Tv className="h-3.5 w-3.5" /> Live Render Preview
-                </span>
-                <span className="text-[10px] px-2 py-0.5 rounded-md bg-green-500/10 border border-green-500/20 text-green-400 font-semibold tracking-wider uppercase">
-                  Connected
-                </span>
-              </div>
-
-              {/* CARD PREVIEW WINDOW */}
-              <div className="flex-1 flex items-center justify-center p-6 relative z-10 w-full overflow-hidden">
-                <div className="w-full h-full flex items-center justify-center">
-                  <DiscordProfile discordId={user.discord_id || ""} />
-                </div>
-              </div>
-
-              {/* Bottom reset actions */}
-              <div className="relative z-10 border-t border-white/5 pt-3.5 flex justify-between text-[#555] text-[10px] font-semibold uppercase tracking-wider">
-                <span>Accents: {musicActive ? "Music Player, " : ""}{sparklesActive ? "Cursor Sparkles" : "None"}</span>
-                <button
-                  onClick={() => {
-                    setSelectedTheme("crimson-dither");
-                    setMusicActive(false);
-                    setSparklesActive(true);
-                    setCustomFont("Satoshi");
-                  }}
-                  className="flex items-center gap-1 text-[#8C8C8C] hover:text-white transition-colors duration-200"
-                >
-                  <Undo2 className="h-3 w-3" /> Reset
-                </button>
-              </div>
-
-            </div>
-          </div>
-
         </div>
 
       </div>

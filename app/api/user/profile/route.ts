@@ -1,0 +1,115 @@
+import { NextRequest, NextResponse } from "next/server";
+import { sql } from "@/lib/db";
+import { verifyToken } from "@/lib/session";
+import { cookies } from "next/headers";
+
+export async function PATCH(req: NextRequest) {
+  try {
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get("session")?.value;
+    if (!sessionCookie) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = verifyToken(sessionCookie);
+    if (!user || !user.userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const userId = user.userId;
+    let hasUpdates = false;
+
+    // Run individual tagged-template updates for each provided field.
+    // The neon driver requires tagged template syntax — raw function calls don't work reliably.
+
+    if (body.typewriter_heading !== undefined) {
+      await sql`
+        UPDATE users SET typewriter_heading = ${body.typewriter_heading}
+        WHERE id = ${userId}
+      `;
+      hasUpdates = true;
+    }
+
+    if (body.typewriter_quotes !== undefined) {
+      const quotesJson = JSON.stringify(body.typewriter_quotes);
+      await sql`
+        UPDATE users SET typewriter_quotes = ${quotesJson}::jsonb
+        WHERE id = ${userId}
+      `;
+      hasUpdates = true;
+    }
+
+    if (body.custom_links !== undefined) {
+      const linksJson = JSON.stringify(body.custom_links);
+      await sql`
+        UPDATE users SET custom_links = ${linksJson}::jsonb
+        WHERE id = ${userId}
+      `;
+      hasUpdates = true;
+    }
+
+    if (body.active_badges !== undefined) {
+      const badgesJson = JSON.stringify(body.active_badges);
+      await sql`
+        UPDATE users SET active_badges = ${badgesJson}::jsonb
+        WHERE id = ${userId}
+      `;
+      hasUpdates = true;
+    }
+
+    if (body.theme !== undefined) {
+      await sql`
+        UPDATE users SET theme = ${body.theme}
+        WHERE id = ${userId}
+      `;
+      hasUpdates = true;
+    }
+
+    if (body.music_active !== undefined) {
+      await sql`
+        UPDATE users SET music_active = ${body.music_active}
+        WHERE id = ${userId}
+      `;
+      hasUpdates = true;
+    }
+
+    if (body.sparkles_active !== undefined) {
+      await sql`
+        UPDATE users SET sparkles_active = ${body.sparkles_active}
+        WHERE id = ${userId}
+      `;
+      hasUpdates = true;
+    }
+
+    if (body.custom_font !== undefined) {
+      await sql`
+        UPDATE users SET custom_font = ${body.custom_font}
+        WHERE id = ${userId}
+      `;
+      hasUpdates = true;
+    }
+
+    if (!hasUpdates) {
+      return NextResponse.json({ message: "No updates provided" });
+    }
+
+    // Return the updated user row
+    const [updated] = await sql`
+      SELECT id, username, email, typewriter_heading, typewriter_quotes,
+             custom_links, active_badges, theme, music_active, sparkles_active, custom_font
+      FROM users
+      WHERE id = ${userId}
+    `;
+
+    if (!updated) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ user: updated });
+
+  } catch (error) {
+    console.error("Failed to update profile:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
+}

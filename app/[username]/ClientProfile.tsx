@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
+import { Award, ShieldCheck, CheckCircle2, Gem } from "lucide-react";
 
 // ========================================
 // Inline SVG Controls
@@ -488,16 +489,14 @@ function ClockWidget() {
 // ========================================
 // Shadow/Terminal Quote Widget Component
 // ========================================
-const quotes = [
-  "The world doesn't need heroes, it needs someone to pull the strings from the shadows.",
-  "I am the one who lurks in the shadows to hunt the shadows.",
-  "I seek neither power nor glory. I only seek to be the Eminence in Shadow.",
-  "True power is not in the light, but in the darkness that swallows it.",
-  "The hour of awakening is at hand.",
-  "I am Atomic."
-];
 
-function ShadowWidget() {
+function ShadowWidget({ heading, quotesProp }: { heading?: string, quotesProp?: string[] }) {
+  const quotes = quotesProp && quotesProp.length > 0 ? quotesProp : [
+    "The world doesn't need heroes, it needs someone to pull the strings from the shadows.",
+    "True power lies not in being seen, but in orchestrating the unseen.",
+    "A masterpiece is never rushed, it is carefully constructed layer by layer.",
+    "You only see what I allow you to see."
+  ];
   const [currentQuote, setCurrentQuote] = useState('');
   const quoteIndex = useRef(0);
   const charIndex = useRef(0);
@@ -558,7 +557,7 @@ function ShadowWidget() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M8 9l3 3-3 3m5 0h3" />
           </svg>
           <span className="font-['Cinzel'] font-bold text-[0.85rem] tracking-[2px] uppercase text-stone-900 dark:text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]">
-            Web Designer &amp; Developer
+            {heading || "Web Designer & Developer"}
           </span>
         </div>
         <div className="shadow-quote font-['Playfair_Display'] italic text-[0.95rem] md:text-[1rem] leading-relaxed text-stone-900 dark:text-white border-l-[3px] border-stone-400 dark:border-white/20 pl-4 opacity-95 min-h-[4.5em] flex items-center select-none">
@@ -569,6 +568,178 @@ function ShadowWidget() {
         </div>
       </div>
     </InteractiveCard>
+  );
+}
+
+// ========================================
+// Badge Registry & BadgeChip Component
+// ========================================
+const BADGE_REGISTRY = {
+  early: {
+    name: "Early Adopter",
+    desc: "Granted to users who joined redr.lol during the alpha registration phase.",
+    tier: "Legendary",
+    gradient: "linear-gradient(135deg, #f59e0b, #d97706)",
+    glow: "rgba(245, 158, 11, 0.55)",
+    bg: "rgba(245, 158, 11, 0.10)",
+    border: "rgba(245, 158, 11, 0.30)",
+    Icon: Award,
+    color: "#f59e0b",
+  },
+  verified: {
+    name: "Verified Profile",
+    desc: "Proof of verified identity. Ensures account authenticity.",
+    tier: "Elite",
+    gradient: "linear-gradient(135deg, #3b82f6, #4f46e5)",
+    glow: "rgba(59, 130, 246, 0.55)",
+    bg: "rgba(59, 130, 246, 0.10)",
+    border: "rgba(59, 130, 246, 0.30)",
+    Icon: ShieldCheck,
+    color: "#3b82f6",
+  },
+  developer: {
+    name: "Quantum Contributor",
+    desc: "Granted to core ecosystem engineers and contributors.",
+    tier: "Developer",
+    gradient: "linear-gradient(135deg, #ef4444, #e11d48)",
+    glow: "rgba(239, 68, 68, 0.55)",
+    bg: "rgba(239, 68, 68, 0.10)",
+    border: "rgba(239, 68, 68, 0.30)",
+    Icon: CheckCircle2,
+    color: "#ef4444",
+  },
+  premium: {
+    name: "Diamond Premium",
+    desc: "Active premium subscriber badge. Elite level display.",
+    tier: "Premium Only",
+    gradient: "linear-gradient(135deg, #a855f7, #d946ef)",
+    glow: "rgba(168, 85, 247, 0.55)",
+    bg: "rgba(168, 85, 247, 0.10)",
+    border: "rgba(168, 85, 247, 0.30)",
+    Icon: Gem,
+    color: "#a855f7",
+  },
+} as const;
+
+function BadgeChip({ badgeId }: { badgeId: string }) {
+  const [hovered, setHovered] = useState(false);
+  const chipRef = useRef<HTMLDivElement>(null);
+  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
+  const meta = BADGE_REGISTRY[badgeId as keyof typeof BADGE_REGISTRY];
+  if (!meta) return null;
+  const { Icon, name, desc, tier, gradient, glow, bg, border, color } = meta;
+
+  const handleMouseEnter = () => {
+    if (chipRef.current) {
+      const rect = chipRef.current.getBoundingClientRect();
+      setTooltipPos({
+        x: rect.left + rect.width / 2,
+        y: rect.top,
+      });
+    }
+    setHovered(true);
+  };
+
+  return (
+    <div
+      ref={chipRef}
+      className="relative badge-chip-root"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {/* Badge chip — premium pill with shimmer */}
+      <div
+        className="relative flex items-center gap-2 px-3.5 py-1.5 rounded-full border cursor-default select-none overflow-hidden"
+        style={{
+          background: bg,
+          borderColor: hovered ? color : border,
+          transform: hovered ? 'scale(1.1)' : 'scale(1)',
+          boxShadow: hovered
+            ? `0 0 20px ${glow}, 0 0 6px ${glow}, inset 0 0 12px ${glow}`
+            : `0 0 0 0 transparent`,
+          transition: 'transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease, border-color 0.22s ease',
+        }}
+      >
+        {/* Shimmer sweep */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: `linear-gradient(105deg, transparent 40%, ${color}15 45%, ${color}30 50%, ${color}15 55%, transparent 60%)`,
+            backgroundSize: '200% 100%',
+            animation: 'badgeShimmer 3s ease-in-out infinite',
+          }}
+        />
+        <Icon className="h-3.5 w-3.5 flex-shrink-0 relative z-10" style={{ color, filter: hovered ? `drop-shadow(0 0 4px ${glow})` : 'none', transition: 'filter 0.2s ease' }} />
+        <span className="text-[9px] font-black uppercase tracking-widest relative z-10" style={{ color, textShadow: hovered ? `0 0 8px ${glow}` : 'none', transition: 'text-shadow 0.2s ease' }}>
+          {tier}
+        </span>
+      </div>
+
+      {/* Hover Card popup — fixed positioning to escape overflow:hidden */}
+      <AnimatePresence>
+        {hovered && (
+          <motion.div
+            initial={{ opacity: 0, y: 6, scale: 0.94 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 6, scale: 0.94 }}
+            transition={{ duration: 0.15, ease: 'easeOut' }}
+            className="fixed z-[9999] w-56 pointer-events-none"
+            style={{
+              left: `${tooltipPos.x}px`,
+              top: `${tooltipPos.y - 10}px`,
+              transform: 'translate(-50%, -100%)',
+            }}
+          >
+            <div
+              className="rounded-2xl p-3.5 shadow-2xl"
+              style={{
+                background: 'rgba(8, 8, 8, 0.97)',
+                border: `1px solid ${border}`,
+                boxShadow: `0 16px 48px rgba(0,0,0,0.6), 0 0 0 1px ${border}, 0 0 24px ${glow}`,
+                backdropFilter: 'blur(24px)',
+              }}
+            >
+              {/* Badge icon + name row */}
+              <div className="flex items-center gap-2.5 mb-2">
+                <div
+                  className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl"
+                  style={{
+                    background: gradient,
+                    boxShadow: `0 0 18px ${glow}`,
+                  }}
+                >
+                  <Icon className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <p className="text-[12px] font-bold text-white leading-tight">{name}</p>
+                  <p
+                    className="text-[9px] font-extrabold uppercase tracking-[0.15em] mt-0.5"
+                    style={{ color }}
+                  >
+                    {tier}
+                  </p>
+                </div>
+              </div>
+              {/* Divider */}
+              <div className="h-px mb-2" style={{ background: border }} />
+              {/* Description */}
+              <p className="text-[10px] leading-relaxed" style={{ color: 'rgba(160,160,160,0.9)' }}>
+                {desc}
+              </p>
+            </div>
+            {/* Arrow */}
+            <div
+              className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0"
+              style={{
+                borderLeft: '6px solid transparent',
+                borderRight: '6px solid transparent',
+                borderTop: `6px solid ${border}`,
+              }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 
@@ -650,7 +821,33 @@ function ScrambleLink({ href, label, icon, title }: ScrambleLinkProps) {
 // ========================================
 // Social Connection Grid Widget Component
 // ========================================
-function SocialWidget() {
+function SocialWidget({ customLinks }: { customLinks?: any[] }) {
+  const links = customLinks && customLinks.length > 0 ? customLinks.filter(l => l.active !== false) : [
+    { title: "GitHub", url: "https://github.com/Camilo404", iconType: "github" },
+    { title: "YouTube", url: "https://www.youtube.com/channel/UChzlaSE1adSPVGYBBOQ1ibg", iconType: "youtube" },
+    { title: "Instagram", url: "https://www.instagram.com/camiloxtz/", iconType: "instagram" },
+    { title: "Steam", url: "https://steamcommunity.com/profiles/76561198832154348/", iconType: "steam" }
+  ];
+
+  const renderIcon = (type: string) => {
+    switch (type) {
+      case "twitter":
+        return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4.5 w-4.5"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" /></svg>;
+      case "github":
+        return <svg className="h-4.5 w-4.5 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" /></svg>;
+      case "discord":
+        return <svg className="h-4.5 w-4.5 fill-current" viewBox="0 0 127.14 96.36"><path d="M107.7,8.07A105.15,105.15,0,0,0,77.26,0a77.19,77.19,0,0,0-3.3,6.83A96.67,96.67,0,0,0,53.22,6.83,77.19,77.19,0,0,0,49.88,0,105.15,105.15,0,0,0,19.44,8.07C3.66,31.58-1.86,54.65,1,77.53A105.73,105.73,0,0,0,32,96.36a77.7,77.7,0,0,0,6.63-10.85,68.43,68.43,0,0,1-10.5-5c1-.73,2-1.51,2.94-2.31A75.52,75.52,0,0,0,96,78.2c1,.8,1.94,1.58,2.94,2.31a68.17,68.17,0,0,1-10.5,5A77.7,77.7,0,0,0,95.12,96.36a105.73,105.73,0,0,0,31.06-18.83C129.87,50.7,123.36,27.83,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53S36.18,40.36,42.45,40.36,53.83,46,53.83,53,48.72,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.24,60,73.24,53S78.41,40.36,84.69,40.36,96.07,46,96.07,53,91,65.69,84.69,65.69Z"/></svg>;
+      case "youtube":
+        return <svg className="h-4.5 w-4.5 fill-current" viewBox="0 0 24 24"><path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.518 3.545 12 3.545 12 3.545s-7.518 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.87.508 9.388.508 9.388.508s7.518 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" /></svg>;
+      case "instagram":
+        return <svg className="h-4.5 w-4.5 fill-none stroke-current stroke-2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" y1="6.5" x2="17.51" y2="6.5" /></svg>;
+      case "steam":
+        return <svg className="h-4.5 w-4.5 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.54 3.03 8.375 7.153 9.605l.937-2.612a2.385 2.385 0 0 1-.09-.597 2.395 2.395 0 1 1 4.79 0c0 .416-.107.807-.294 1.15l.904 2.523C18.847 20.672 22 16.71 22 12c0-5.523-4.477-10-10-10zm0 1.25c4.832 0 8.75 3.918 8.75 8.75 0 3.826-2.454 7.08-5.883 8.243l-.936-2.61a2.393 2.393 0 0 1 .069-.533 2.395 2.395 0 0 1-4.79 0c0-.184.02-.363.059-.536l-.968-2.702A4.79 4.79 0 0 0 12 3.25zM12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 1.25a2.75 2.75 0 1 1 0 5.5 2.75 2.75 0 0 1 0-5.5zm0 .75a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm0 .75a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5z" /></svg>;
+      default:
+        return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4.5 w-4.5"><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg>;
+    }
+  };
+
   return (
     <InteractiveCard className="social-card-container flex flex-col p-6 w-full text-left">
       <div className="social-header flex items-center gap-4 opacity-80 w-full mb-4">
@@ -662,216 +859,67 @@ function SocialWidget() {
       </div>
 
       <div className="social-grid grid grid-cols-2 gap-3 w-full">
-        <ScrambleLink
-          href="https://github.com/Camilo404"
-          label="GitHub"
-          title="GitHub"
-          icon={
-            <svg className="h-4.5 w-4.5 fill-current" viewBox="0 0 24 24">
-              <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
-            </svg>
-          }
-        />
-        <ScrambleLink
-          href="https://www.youtube.com/channel/UChzlaSE1adSPVGYBBOQ1ibg"
-          label="YouTube"
-          title="YouTube"
-          icon={
-            <svg className="h-4.5 w-4.5 fill-current" viewBox="0 0 24 24">
-              <path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.518 3.545 12 3.545 12 3.545s-7.518 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.87.508 9.388.508 9.388.508s7.518 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-            </svg>
-          }
-        />
-        <ScrambleLink
-          href="https://www.instagram.com/camiloxtz/"
-          label="Instagram"
-          title="Instagram"
-          icon={
-            <svg className="h-4.5 w-4.5 fill-none stroke-current stroke-2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
-            </svg>
-          }
-        />
-        <ScrambleLink
-          href="https://steamcommunity.com/profiles/76561198832154348/"
-          label="Steam"
-          title="Steam"
-          icon={
-            <svg className="h-4.5 w-4.5 fill-current" viewBox="0 0 24 24">
-              <path d="M12 2C6.477 2 2 6.477 2 12c0 4.54 3.03 8.375 7.153 9.605l.937-2.612a2.385 2.385 0 0 1-.09-.597 2.395 2.395 0 1 1 4.79 0c0 .416-.107.807-.294 1.15l.904 2.523C18.847 20.672 22 16.71 22 12c0-5.523-4.477-10-10-10zm0 1.25c4.832 0 8.75 3.918 8.75 8.75 0 3.826-2.454 7.08-5.883 8.243l-.936-2.61a2.393 2.393 0 0 1 .069-.533 2.395 2.395 0 0 1-4.79 0c0-.184.02-.363.059-.536l-.968-2.702A4.79 4.79 0 0 0 12 3.25zM12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 1.25a2.75 2.75 0 1 1 0 5.5 2.75 2.75 0 0 1 0-5.5zm0 .75a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm0 .75a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5z" />
-            </svg>
-          }
-        />
+        {links.map((link, idx) => (
+          <ScrambleLink
+            key={idx}
+            href={link.url}
+            label={link.title}
+            title={link.title}
+            icon={renderIcon(link.iconType)}
+          />
+        ))}
       </div>
     </InteractiveCard>
   );
 }
 
 // ========================================
-// Tech Stack Infinite Marquee Slider
+// Badges Showcase Card (replaces Tech Stack)
 // ========================================
-interface TechItem {
-  name: string;
-  color: string;
-  icon: React.ReactNode;
-}
+function BadgesShowcase({ activeBadges }: { activeBadges?: string[] }) {
+  const badgesToShow = activeBadges && activeBadges.length > 0 ? activeBadges : [];
 
-function TechStackMarquee() {
-  const techs: TechItem[] = [
-    {
-      name: 'React',
-      color: '#61dafb',
-      icon: (
-        <svg className="w-7 h-7" viewBox="-11.5 -10.23174 23 20.46348" fill="currentColor">
-          <circle r="2.05" fill="currentColor"/>
-          <g fill="none" stroke="currentColor" strokeWidth="1">
-            <ellipse rx="11" ry="4.2"/>
-            <ellipse rx="11" ry="4.2" transform="rotate(60)"/>
-            <ellipse rx="11" ry="4.2" transform="rotate(120)"/>
-          </g>
-        </svg>
-      )
-    },
-    {
-      name: 'Angular',
-      color: '#dd0031',
-      icon: (
-        <svg className="w-7 h-7" viewBox="0 0 250 250" fill="currentColor">
-          <polygon points="125,30 125,30 125,30 31.9,63.2 46.1,186.3 125,230 125,230 125,230 203.9,186.3 218.1,63.2" />
-          <polygon fill="#FFFFFF" points="125,52.2 125,52.2 125,52.2 125,95.1 125,95.1 146.6,143.4 125,143.4" />
-          <polygon fill="#FFFFFF" points="125,153.8 125,153.8 163.6,153.8 125,52.2" />
-          <polygon fill="#B3B3B3" points="125,52.2 86.4,153.8 125,153.8 125,143.4 103.4,143.4 125,95.1" />
-        </svg>
-      )
-    },
-    {
-      name: 'Bootstrap',
-      color: '#7952b3',
-      icon: (
-        <svg className="w-7 h-7" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm3.76 13.06c0 .79-.31 1.43-.93 1.9-.62.48-1.49.72-2.61.72H9.06V6.36h3.11c1.01 0 1.8.21 2.37.64.57.43.86 1.02.86 1.77 0 .58-.17 1.07-.5 1.48-.33.4-.82.68-1.45.83v.1c.8.12 1.42.44 1.84.96.43.52.64 1.16.64 1.92zm-5.26-6.18V10.7h1.6c.45 0 .8-.1 1.05-.3.26-.2.38-.49.38-.86 0-.36-.12-.64-.37-.84-.24-.2-.59-.3-1.04-.3H10.5zm0 4.67v2.64h1.79c.47 0 .84-.11 1.1-.34.26-.23.4-.55.4-.97 0-.41-.13-.73-.39-.96-.26-.23-.63-.34-1.12-.34H10.5z" />
-        </svg>
-      )
-    },
-    {
-      name: 'Python',
-      color: '#3776ab',
-      icon: (
-        <svg className="w-7 h-7" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M11.93 2C6.39 2 6.55 4.39 6.55 4.39l.01 2.05h5.45v.77H6.56S4 6.84 4 12.07c0 5.24 2.23 5.09 2.23 5.09l1.32-.01v-1.87s-.06-2.22 2.18-2.22h5.45c2.24 0 2.08-2.12 2.08-2.12V5.72S17.56 2 11.93 2zm-2.2 1.47a.91.91 0 1 1 0 1.82.91.91 0 0 1 0-1.82zm4.34 16.03c5.54 0 5.38-2.39 5.38-2.39l-.01-2.05h-5.46v-.77h5.46s2.56.37 2.56-4.86c0-5.23-2.23-5.09-2.23-5.09l-1.32.01v1.87s.06 2.22-2.18 2.22h-5.45c-2.24 0-2.08 2.12-2.08 2.12v5.39S6.44 22 12.07 22zm2.2-1.47a.91.91 0 1 1 0-1.82.91.91 0 0 1 0 1.82z" />
-        </svg>
-      )
-    },
-    {
-      name: 'JavaScript',
-      color: '#f0db4f',
-      icon: (
-        <svg className="w-7 h-7" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M3 3h18v18H3V3zm12.54 13.064c-.11-.478-.445-.885-.826-1.127-.457-.282-1.026-.412-1.68-.412-.456 0-.853.076-1.114.217-.37.217-.61.5-.61.94 0 .43.239.73.71.93.38.163.953.282 1.625.385l.89.14c1.196.185 2.011.49 2.506.994.576.57.859 1.348.859 2.32 0 1.25-.49 2.222-1.446 2.87-1 .684-2.424 1.01-4.228 1.01-2.109 0-3.663-.6-4.522-1.74-.478-.63-.71-1.391-.77-2.315l3.19-.19c.07.61.321 1.05.69 1.33.472.35 1.25.5 2.18.5 1.15 0 1.837-.32 1.837-1.06 0-.3-.157-.55-.478-.71-.282-.14-.77-.25-1.353-.34l-1.065-.17c-1.358-.22-2.228-.54-2.734-1.033-.598-.59-.875-1.385-.875-2.358 0-1.22.46-2.15 1.348-2.74C10.15 10.22 11.45 9.9 12.98 9.9c1.69 0 3.016.4 3.864 1.2.73.68 1.092 1.58 1.114 2.56l-3.418.4zm-7.662-.163h3.532v9.645c0 1.24-.315 2.15-.968 2.69-.64.54-1.61.81-2.92.81-1.43 0-2.43-.37-2.94-1.1-.38-.54-.53-1.26-.53-2.12h3.31v.09c0 .41.09.7.27.87.19.17.5.25.96.25.43 0 .71-.12.87-.36.19-.24.27-.63.27-1.18V15.9zm0 0" />
-        </svg>
-      )
-    },
-    {
-      name: 'TypeScript',
-      color: '#3178c6',
-      icon: (
-        <svg className="w-7 h-7" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M3 3h18v18H3V3zm12.54 13.064c-.11-.478-.445-.885-.826-1.127-.457-.282-1.026-.412-1.68-.412-.456 0-.853.076-1.114.217-.37.217-.61.5-.61.94 0 .43.239.73.71.93.38.163.953.282 1.625.385l.89.14c1.196.185 2.011.49 2.506.994.576.57.859 1.348.859 2.32 0 1.25-.49 2.222-1.446 2.87-1 .684-2.424 1.01-4.228 1.01-2.109 0-3.663-.6-4.522-1.74-.478-.63-.71-1.391-.77-2.315l3.19-.19c.07.61.321 1.05.69 1.33.472.35 1.25.5 2.18.5 1.15 0 1.837-.32 1.837-1.06 0-.3-.157-.55-.478-.71-.282-.14-.77-.25-1.353-.34l-1.065-.17c-1.358-.22-2.228-.54-2.734-1.033-.598-.59-.875-1.385-.875-2.358 0-1.22.46-2.15 1.348-2.74C10.15 10.22 11.45 9.9 12.98 9.9c1.69 0 3.016.4 3.864 1.2.73.68 1.092 1.58 1.114 2.56l-3.418.4zm-7.662-.163h3.532v9.645c0 1.24-.315 2.15-.968 2.69-.64.54-1.61.81-2.92.81-1.43 0-2.43-.37-2.94-1.1-.38-.54-.53-1.26-.53-2.12h3.31v.09c0 .41.09.7.27.87.19.17.5.25.96.25.43 0 .71-.12.87-.36.19-.24.27-.63.27-1.18V15.9zm0 0" />
-        </svg>
-      )
-    },
-    {
-      name: 'Sass',
-      color: '#cc6699',
-      icon: (
-        <svg className="w-7 h-7" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12.01 22c-5.52 0-9.99-4.48-9.99-10S6.49 2 12.01 2s10 4.48 10 10-4.48 10-10 10zm-1.87-8.08c-.7-.5-1.27-1.12-1.27-2.1 0-1.46 1.15-2.26 2.82-2.26 1.55 0 2.53.64 2.89 1.77l-1.74.5c-.18-.55-.61-.83-1.18-.83-.67 0-1.06.31-1.06.84 0 .42.34.69.96 1.09l1.19.78c1 .66 1.72 1.34 1.72 2.5 0 1.59-1.23 2.45-3.08 2.45-1.92 0-2.88-.82-3.23-2.09l1.79-.53c.2.64.67 1.03 1.4 1.03.79 0 1.21-.37 1.21-.92 0-.49-.3-.8-1.04-1.27l-1.61-1.18z" />
-        </svg>
-      )
-    },
-    {
-      name: 'HTML5',
-      color: '#e34f26',
-      icon: (
-        <svg className="w-7 h-7" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M1.5 0h21l-1.9 21.2L12 24l-8.6-2.8L1.5 0zm10.5 17.8l3.7-1.2.4-4.4H8.3l-.2-2.4h8.2l.2-2.4H5.6l.6 7 5.8 2v1z" />
-        </svg>
-      )
-    },
-    {
-      name: 'CSS3',
-      color: '#264de4',
-      icon: (
-        <svg className="w-7 h-7" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M1.5 0h21l-1.9 21.2L12 24l-8.6-2.8L1.5 0zm5.6 15.6l.4-4.4h6.4L13.7 9H6.7l.2-2.4h9.6l-.6 7H9.2l.2 2 4.4-1.4.3-3.2h2.5l-.6 6.8L12 19l-4.9-3.4z" />
-        </svg>
-      )
-    },
-    {
-      name: 'Node.js',
-      color: '#339933',
-      icon: (
-        <svg className="w-7 h-7" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 2L2 7.75v11.5L12 25l10-5.75v-11.5L12 2zm-1.25 18.25L4.5 16.5v-7.5l6.25 3.75v7.5zm1.25-8.25L5.75 8.25 12 4.75l6.25 3.5L12 12zm7.5 4.5l-6.25 3.75v-7.5l6.25-3.75v7.5z" />
-        </svg>
-      )
-    },
-    {
-      name: 'Git',
-      color: '#f05032',
-      icon: (
-        <svg className="w-7 h-7" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M23.3 10.9L13.1.7C12.7.3 12 .3 11.6.7L8.7 3.6l3.3 3.3c.4-.1.8 0 1.1.3.4.4.4 1 0 1.4-.4.4-1 .4-1.4 0-.3-.3-.4-.7-.3-1.1l-3.3-3.3v7.4c.1.3.3.6.6.7.4.4.4 1 0 1.4-.4.4-1 .4-1.4 0-.4-.4-.4-1 0-1.4.3-.3.6-.4.9-.3V7.2c-.3-.1-.6-.3-.9-.6L5 9.4c-.4.4-.4 1.1 0 1.5l10.2 10.2c.4.4 1.1.4 1.5 0l6.6-6.6c.4-.4.4-1.2 0-1.6z" />
-        </svg>
-      )
-    },
-    {
-      name: 'Docker',
-      color: '#2496ed',
-      icon: (
-        <svg className="w-7 h-7" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M13.983 11.078h2.119c.102 0 .186-.083.186-.185V8.99c0-.101-.084-.186-.186-.186h-2.119c-.103 0-.186.085-.186.186v1.903c0 .102.083.185.186.185zM11.261 11.078h2.119c.102 0 .185-.083.185-.185V8.99c0-.101-.083-.186-.185-.186h-2.119c-.101 0-.186.085-.186.186v1.903c0 .102.085.185.186.185zM8.539 11.078h2.12c.101 0 .185-.083.185-.185V8.99c0-.101-.084-.186-.185-.186h-2.12c-.102 0-.186.085-.186.186v1.903c0 .102.084.185.186.185zM5.817 11.078h2.118c.102 0 .187-.083.187-.185V8.99c0-.101-.085-.186-.187-.186H5.817c-.101 0-.185.085-.185.186v1.903c0 .102.084.185.185.185zM11.261 8.214h2.119c.102 0 .185-.083.185-.185V6.126c0-.101-.083-.186-.185-.186h-2.119c-.101 0-.186.085-.186.186V8.03c0 .101.085.184.186.184zM8.539 8.214h2.12c.101 0 .185-.083.185-.185V6.126c0-.101-.084-.186-.185-.186h-2.12c-.102 0-.186.085-.186.186V8.03c0 .101.084.184.186.184zM5.817 8.214h2.118c.102 0 .187-.083.187-.185V6.126c0-.101-.085-.186-.187-.186H5.817c-.101 0-.185.085-.185.186V8.03c0 .101.084.184.185.184zM8.539 5.352h2.12c.101 0 .185-.083.185-.186V3.264c0-.101-.084-.186-.185-.186h-2.12c-.102 0-.186.085-.186.186V5.16c0 .103.084.186.186.186zM23.99 11.28c-.5-.544-1.246-.838-2.03-.838H19.43v2.852h1.614c.264 0 .524-.047.772-.14.254-.096.485-.24.685-.43a2.53 2.53 0 0 0 .61-.926c.15-.373.226-.773.226-1.188c0-.126-.013-.25-.037-.369l-.31.04zm-.507-.367c.007.037.01.077.01.116c0 .546-.101 1.071-.295 1.558a3.52 3.52 0 0 1-.82 1.258c-.287.27-.619.48-1 .62c-.378.143-.775.215-1.185.215h-1.687V17.5h-1.109v-7.262H12.98v1.905c0 .101-.083.185-.185.185H10.68v-1.9c0-.103-.083-.186-.185-.186H5.568v1.9c0 .102-.083.185-.185.185H2.404v-1.9c0-.103-.083-.186-.186-.186H.1h-.1c0 2.23.61 4.12 1.9 5.762C3.12 19.34 4.887 20.5 7.46 20.5c5.3 0 9.75-3.8 11.56-8.835a7.3 7.3 0 0 0 3.73-1.026c.39-.234.737-.532 1.028-.887l-.3-.04z" />
-        </svg>
-      )
-    }
-  ];
+  if (badgesToShow.length === 0) return null;
 
-  const repeatedTechs = [...techs, ...techs, ...techs];
+  // Repeat badges enough times for a smooth infinite scroll
+  const repeatedBadges = [...badgesToShow, ...badgesToShow, ...badgesToShow, ...badgesToShow, ...badgesToShow, ...badgesToShow];
 
   return (
-    <InteractiveCard className="tech-stack-card flex items-center w-full min-h-[70px] py-3.5">
+    <InteractiveCard className="badges-showcase-card flex flex-col w-full py-4">
       <style>{`
-        @keyframes marqueeScroll {
+        @keyframes badgeMarquee {
           0% { transform: translateX(0); }
-          100% { transform: translateX(calc(-100% / 3)); }
+          100% { transform: translateX(calc(-100% / 6)); }
         }
-        .marquee-track {
+        @keyframes badgeShimmer {
+          0% { background-position: 200% center; }
+          100% { background-position: -200% center; }
+        }
+        .badge-marquee-track {
           display: flex;
-          gap: 3rem;
+          gap: 1.25rem;
           width: max-content;
-          animation: marqueeScroll 20s linear infinite;
+          animation: badgeMarquee 14s linear infinite;
         }
-        .marquee-track:hover {
+        .badge-marquee-track:hover {
           animation-play-state: paused;
         }
       `}</style>
-      <div className="w-full overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)] [-webkit-mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)] z-10">
-        <div className="marquee-track">
-          {repeatedTechs.map((tech, index) => (
-            <div
-              key={index}
-              className="tech-item flex justify-center items-center select-none"
-              title={tech.name}
-            >
-              <span
-                style={{ color: tech.color } as React.CSSProperties}
-                className="grayscale-[100%] opacity-60 brightness-[0.7] dark:brightness-[0.7] hover:grayscale-0 hover:opacity-100 hover:brightness-[1.2] hover:scale-120 hover:drop-shadow-[0_0_8px_currentColor] transition-all duration-300 transform cursor-pointer"
-              >
-                {tech.icon}
-              </span>
-            </div>
+
+      {/* Header */}
+      <div className="badges-header flex items-center gap-4 opacity-80 w-full mb-3 px-5">
+        <span className="line flex-grow h-[1px] bg-gradient-to-r from-transparent via-stone-300 dark:via-white/20 to-transparent" />
+        <span className="font-sans text-[10px] tracking-[4px] uppercase text-stone-500 dark:text-stone-400 font-bold select-none">
+          Badges
+        </span>
+        <span className="line flex-grow h-[1px] bg-gradient-to-r from-transparent via-stone-300 dark:via-white/20 to-transparent" />
+      </div>
+
+      {/* Marquee track with edge-fade masking */}
+      <div className="w-full overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)] [-webkit-mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
+        <div className="badge-marquee-track">
+          {repeatedBadges.map((badgeId, index) => (
+            <BadgeChip key={`${badgeId}-${index}`} badgeId={badgeId} />
           ))}
         </div>
       </div>
@@ -888,6 +936,8 @@ interface DiscordProfileCardProps {
     username: string;
     email: string;
     created_at: string;
+    discord_id?: string;
+    active_badges?: string[];
   };
   discordData: DiscordData | null;
   lanyardData: LanyardPresence | null;
@@ -979,8 +1029,10 @@ function DiscordProfileCard({ user, discordData, lanyardData }: DiscordProfileCa
   ];
 
   const badges = discordData?.badges && discordData.badges.length > 0
-    ? discordData.badges
-    : fallbackBadges;
+    ? [...discordData.badges]
+    : [...fallbackBadges];
+    
+
 
   const displayName = discordData?.user?.global_name || discordData?.user?.username || user.username || "404";
   const userTag = discordData?.user?.username || user.username || "camilo404";
@@ -1019,7 +1071,7 @@ function DiscordProfileCard({ user, discordData, lanyardData }: DiscordProfileCa
               )}
               {discordData?.user?.avatar && user.discord_id ? (
                 <img
-                  className="w-full h-full rounded-full object-cover shadow-inner border-4 border-stone-200 dark:border-[#050505] relative z-10"
+                  className="w-full h-full rounded-full object-cover shadow-inner border-4 border-stone-200 dark:border-[#0A0A0A] relative z-10"
                   src={`https://redroseapi.vercel.app/v1/avatar/${user.discord_id}`}
                   onError={(e) => {
                     (e.target as HTMLImageElement).src = "/assets/images/no-image-found.jpg";
@@ -1027,7 +1079,7 @@ function DiscordProfileCard({ user, discordData, lanyardData }: DiscordProfileCa
                   alt="Avatar"
                 />
               ) : (
-                <div className="w-full h-full rounded-full bg-stone-700 border-4 border-stone-200 dark:border-[#050505]" />
+                <div className="w-full h-full rounded-full bg-stone-700 border-4 border-stone-200 dark:border-[#0A0A0A]" />
               )}
             </div>
 
@@ -1080,28 +1132,28 @@ function DiscordProfileCard({ user, discordData, lanyardData }: DiscordProfileCa
               </div>
             </div>
 
-            {/* Badges */}
-            <div className="badges-list flex flex-wrap gap-1.5 pt-2">
-              {badges.map((badge, idx) => (
-                <a
-                  key={idx}
-                  href={badge.link || '#'}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="badge-item h-[22px] w-[22px] hover:scale-115 transition-transform duration-200"
-                  title={badge.description}
-                >
-                  <img
-                    src={`/assets/images/badges/${badge.icon}.svg`}
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = `https://camilo404.azurewebsites.net/v1/badge/${badge.icon}.png`;
-                    }}
-                    alt={badge.id}
-                    className="h-full w-full object-contain"
-                  />
-                </a>
-              ))}
-            </div>
+            {/* Discord Profile Badges */}
+            {badges.length > 0 && (
+              <div className="discord-badges flex flex-wrap gap-1.5 pt-2">
+                {badges.map((badge, idx) => (
+                  <div
+                    key={idx}
+                    className="group/badge relative flex h-7 w-7 items-center justify-center rounded-lg bg-stone-100/50 dark:bg-white/5 border border-stone-200/30 dark:border-white/5 hover:bg-stone-200 dark:hover:bg-white/10 hover:border-stone-400/40 dark:hover:border-white/15 transition-all duration-200 cursor-default hover:-translate-y-0.5"
+                    title={badge.description}
+                  >
+                    <img
+                      src={`https://cdn.discordapp.com/badge-icons/${badge.icon}.png`}
+                      alt={badge.description}
+                      className="h-5 w-5 select-none"
+                      draggable={false}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -1184,6 +1236,10 @@ interface ClientProfileProps {
     email: string;
     created_at: string;
     discord_id?: string;
+    typewriter_heading?: string;
+    typewriter_quotes?: string[];
+    custom_links?: any[];
+    active_badges?: string[];
   };
 }
 
@@ -1326,7 +1382,7 @@ export default function ClientProfile({ user }: ClientProfileProps) {
   };
 
   return (
-    <div className="relative min-h-screen bg-[#F5F5F5] dark:bg-[#050505] text-stone-900 dark:text-[#F5F1E8] font-sans flex items-center justify-center overflow-x-hidden transition-colors duration-500 z-10">
+    <div className="relative min-h-screen bg-[#F5F5F5] dark:bg-[#0A0A0A] text-stone-900 dark:text-[#F5F1E8] font-sans flex items-center justify-center overflow-x-hidden transition-colors duration-500 z-10">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Roboto:wght@300;400;500;700&display=swap');
 
@@ -1368,27 +1424,27 @@ export default function ClientProfile({ user }: ClientProfileProps) {
         }
 
         .dark {
-          --bg-primary: #050505;
-          --bg-secondary: #0D0D0D;
-          --bg-card: rgba(13, 13, 13, 0.6);
-          --bg-card-hover: rgba(149, 0, 0, 0.08);
-          --bg-card-solid: #0D0D0D;
-          --bg-glass: rgba(13, 13, 13, 0.5);
-          --bg-glass-strong: rgba(13, 13, 13, 0.85);
-          --bg-overlay: rgba(0, 0, 0, 0.7);
-          --bg-input: rgba(0, 0, 0, 0.3);
-          --bg-input-focus: rgba(0, 0, 0, 0.5);
+          --bg-primary: #0A0A0A;
+          --bg-secondary: #0F0F0F;
+          --bg-card: rgba(15, 15, 15, 0.45);
+          --bg-card-hover: rgba(149, 0, 0, 0.05);
+          --bg-card-solid: #0F0F0F;
+          --bg-glass: rgba(10, 10, 10, 0.4);
+          --bg-glass-strong: rgba(10, 10, 10, 0.80);
+          --bg-overlay: rgba(0, 0, 0, 0.6);
+          --bg-input: rgba(0, 0, 0, 0.25);
+          --bg-input-focus: rgba(0, 0, 0, 0.45);
           --text-primary: #ffffff;
-          --text-secondary: rgba(245, 241, 232, 0.7);
-          --text-muted: rgba(245, 241, 232, 0.4);
-          --text-inverse: #0D0D0D;
+          --text-secondary: rgba(245, 241, 232, 0.75);
+          --text-muted: rgba(245, 241, 232, 0.45);
+          --text-inverse: #0A0A0A;
           --text-on-image: #ffffff;
-          --border-primary: rgba(255, 255, 255, 0.08);
-          --border-hover: rgba(149, 0, 0, 0.3);
-          --border-glass: rgba(255, 255, 255, 0.1);
-          --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-          --shadow-md: 0 4px 24px rgba(0, 0, 0, 0.4);
-          --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.4);
+          --border-primary: rgba(255, 255, 255, 0.05);
+          --border-hover: rgba(149, 0, 0, 0.25);
+          --border-glass: rgba(255, 255, 255, 0.08);
+          --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+          --shadow-md: 0 4px 24px rgba(0, 0, 0, 0.3);
+          --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.35);
           --shadow-card: 0 4px 24px -1px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
           --shadow-card-hover: 0 20px 40px -5px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(149, 0, 0, 0.15) inset;
           --accent-glow: rgba(149, 0, 0, 0.2);
@@ -1409,8 +1465,8 @@ export default function ClientProfile({ user }: ClientProfileProps) {
           width: 100%;
           transform-style: preserve-3d;
           background: var(--bg-card);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
+          backdrop-filter: blur(28px);
+          -webkit-backdrop-filter: blur(28px);
           border: 1px solid var(--border-primary);
           border-radius: 16px;
           overflow: hidden;
@@ -1447,8 +1503,8 @@ export default function ClientProfile({ user }: ClientProfileProps) {
           position: relative;
           width: 400px;
           background: var(--bg-card-solid);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
+          backdrop-filter: blur(28px);
+          -webkit-backdrop-filter: blur(28px);
           border: 1px solid var(--border-primary);
           border-radius: 24px;
           overflow: hidden;
@@ -1537,7 +1593,7 @@ export default function ClientProfile({ user }: ClientProfileProps) {
             exit={{ opacity: 0, scale: 1.08 }}
             transition={{ duration: 0.55, ease: "easeInOut" }}
             onClick={handleEnterChamber}
-            className="absolute inset-0 z-40 bg-[#F5F5F5] dark:bg-[#050505] flex flex-col items-center justify-center cursor-pointer p-6 transition-colors duration-500 select-none z-30"
+            className="absolute inset-0 z-40 bg-[#F5F5F5] dark:bg-[#0A0A0A] flex flex-col items-center justify-center cursor-pointer p-6 transition-colors duration-500 select-none z-30"
           >
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
               <div className="absolute left-1/2 top-1/2 h-[300px] w-[300px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-red-600/10 blur-[100px] animate-pulse" />
@@ -1604,9 +1660,9 @@ export default function ClientProfile({ user }: ClientProfileProps) {
               {/* Right Column: Stacked Bento Widgets */}
               <div className="flex flex-col gap-[0.9rem] w-full max-w-[400px] mx-auto lg:mx-0">
                 <ClockWidget />
-                <ShadowWidget />
-                <SocialWidget />
-                <TechStackMarquee />
+                <ShadowWidget heading={user.typewriter_heading} quotesProp={user.typewriter_quotes} />
+                <SocialWidget customLinks={user.custom_links} />
+                <BadgesShowcase activeBadges={user.active_badges} />
               </div>
             </div>
 

@@ -14,7 +14,7 @@ export default async function UserProfilePage({ params }: PageProps) {
   let user = null;
   try {
     const users = await sql`
-      SELECT id, username, email, discord_id, created_at 
+      SELECT id, username, email, discord_id, created_at, typewriter_heading, typewriter_quotes, custom_links, active_badges 
       FROM users 
       WHERE LOWER(username) = LOWER(${username})
       LIMIT 1
@@ -29,7 +29,7 @@ export default async function UserProfilePage({ params }: PageProps) {
   // If user does not exist in Neon DB, trigger a custom aesthetic 404 identity screen
   if (!user) {
     return (
-      <div className="relative flex min-h-screen flex-col items-center justify-center bg-[#050505] text-[#F5F1E8] px-6">
+      <div className="relative flex min-h-screen flex-col items-center justify-center bg-[#0A0A0A] text-[#F5F1E8] px-6">
         <div className="absolute left-1/2 top-1/2 h-[350px] w-[350px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-red-600/5 blur-[120px] pointer-events-none" />
         <div className="text-center relative z-10 space-y-4 max-w-sm">
           <div className="flex h-16 w-16 mx-auto items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/10">
@@ -57,6 +57,10 @@ export default async function UserProfilePage({ params }: PageProps) {
     username: user.username,
     email: user.email,
     discord_id: user.discord_id,
-    created_at: user.created_at ? new Date(user.created_at).toLocaleDateString("en-US", { month: "long", year: "numeric" }) : "May 2026"
+    created_at: user.created_at ? new Date(user.created_at).toLocaleDateString("en-US", { month: "long", year: "numeric" }) : "May 2026",
+    typewriter_heading: user.typewriter_heading,
+    typewriter_quotes: user.typewriter_quotes,
+    custom_links: user.custom_links,
+    active_badges: user.active_badges
   }} />;
 }

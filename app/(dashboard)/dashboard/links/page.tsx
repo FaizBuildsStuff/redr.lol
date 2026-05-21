@@ -74,6 +74,14 @@ const Eye = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const Github = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -104,10 +112,37 @@ const Twitter = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+const Instagram = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+  </svg>
+);
+
+const Steam = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    {...props}
+  >
+    <path d="M12 2C6.477 2 2 6.477 2 12c0 4.54 3.03 8.375 7.153 9.605l.937-2.612a2.385 2.385 0 0 1-.09-.597 2.395 2.395 0 1 1 4.79 0c0 .416-.107.807-.294 1.15l.904 2.523C18.847 20.672 22 16.71 22 12c0-5.523-4.477-10-10-10zm0 1.25c4.832 0 8.75 3.918 8.75 8.75 0 3.826-2.454 7.08-5.883 8.243l-.936-2.61a2.393 2.393 0 0 1 .069-.533 2.395 2.395 0 0 1-4.79 0c0-.184.02-.363.059-.536l-.968-2.702A4.79 4.79 0 0 0 12 3.25zM12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 1.25a2.75 2.75 0 1 1 0 5.5 2.75 2.75 0 0 1 0-5.5zm0 .75a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm0 .75a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5z" />
+  </svg>
+);
+
 interface UserProfile {
   id: number;
   username: string;
   email: string;
+  custom_links?: CustomLink[];
 }
 
 interface CustomLink {
@@ -145,6 +180,9 @@ export default function LinksPage() {
         const data = await res.json();
         if (data.user) {
           setUser(data.user);
+          if (data.user.custom_links && data.user.custom_links.length > 0) {
+            setLinks(data.user.custom_links);
+          }
         } else {
           router.push("/signin");
         }
@@ -187,13 +225,25 @@ export default function LinksPage() {
     );
   };
 
-  const handleSaveChanges = () => {
+  const handleSaveChanges = async () => {
     setSaving(true);
-    setTimeout(() => {
+    setSaveSuccess(false);
+
+    try {
+      const res = await fetch("/api/user/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ custom_links: links })
+      });
+      if (res.ok) {
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 2000);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
       setSaving(false);
-      setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 2000);
-    }, 800);
+    }
   };
 
   if (loading) {
@@ -232,6 +282,10 @@ export default function LinksPage() {
         );
       case "youtube":
         return <Youtube className="h-4.5 w-4.5 text-red-500" />;
+      case "instagram":
+        return <Instagram className="h-4.5 w-4.5 text-pink-500" />;
+      case "steam":
+        return <Steam className="h-4.5 w-4.5 text-white" />;
       default:
         return <Globe className="h-4.5 w-4.5 text-neutral-400" />;
     }
@@ -260,13 +314,80 @@ export default function LinksPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            <Button
-              onClick={() => setAdding(!adding)}
-              variant="outline"
-              className="h-11 px-5 rounded-xl border-white/10 bg-white/[0.02] text-xs text-white hover:bg-white/[0.06] transition-all duration-300"
-            >
-              <Plus className="h-4 w-4 mr-1.5 text-red-500" /> Add New Button
-            </Button>
+            <Dialog open={adding} onOpenChange={setAdding}>
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="h-11 px-5 rounded-xl border-white/10 bg-white/[0.02] text-xs text-white hover:bg-white/[0.06] transition-all duration-300"
+                >
+                  <Plus className="h-4 w-4 mr-1.5 text-red-500" /> Add New Button
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="bg-[#050505] border-white/10 text-white sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle className="text-sm font-semibold text-red-400 uppercase tracking-widest">New Social Button</DialogTitle>
+                  <DialogDescription className="text-[#8C8C8C] text-xs">
+                    Create a custom social button or web link.
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleAddLink} className="space-y-4 pt-2">
+                  <div className="space-y-4">
+                    {/* Button Title */}
+                    <div>
+                      <label className="block text-[10px] uppercase tracking-wider text-[#666] mb-1.5 font-semibold">Title</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. My Website"
+                        value={newTitle}
+                        onChange={(e) => setNewTitle(e.target.value)}
+                        required
+                        className="h-11 w-full rounded-xl border border-white/5 bg-[#0A0A0A] px-3.5 text-xs text-white placeholder-[#333] transition-all focus:border-red-500/30 focus:outline-none"
+                      />
+                    </div>
+
+                    {/* Destination URL */}
+                    <div>
+                      <label className="block text-[10px] uppercase tracking-wider text-[#666] mb-1.5 font-semibold">URL Destination</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. mysite.com"
+                        value={newUrl}
+                        onChange={(e) => setNewUrl(e.target.value)}
+                        required
+                        className="h-11 w-full rounded-xl border border-white/5 bg-[#0A0A0A] px-3.5 text-xs text-white placeholder-[#333] transition-all focus:border-red-500/30 focus:outline-none"
+                      />
+                    </div>
+
+                    {/* Icon Selector */}
+                    <div>
+                      <label className="block text-[10px] uppercase tracking-wider text-[#666] mb-1.5 font-semibold">Icon Style</label>
+                      <select
+                        value={newIconType}
+                        onChange={(e) => setNewIconType(e.target.value)}
+                        className="h-11 w-full rounded-xl border border-white/5 bg-[#0A0A0A] px-3.5 text-xs text-[#8C8C8C] transition-all focus:border-red-500/30 focus:outline-none"
+                      >
+                        <option value="globe">Globe (Custom URL)</option>
+                        <option value="twitter">Twitter</option>
+                        <option value="discord">Discord</option>
+                        <option value="github">GitHub</option>
+                        <option value="youtube">YouTube</option>
+                        <option value="instagram">Instagram</option>
+                        <option value="steam">Steam</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end pt-2">
+                    <Button
+                      type="submit"
+                      className="h-9 px-4 rounded-lg bg-red-600 hover:bg-red-500 text-[10px] uppercase font-bold text-white shadow-[0_4px_15px_rgba(239,68,68,0.2)]"
+                    >
+                      Add Button
+                    </Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
 
             <Button
               onClick={handleSaveChanges}
@@ -284,83 +405,6 @@ export default function LinksPage() {
             </Button>
           </div>
         </div>
-
-        {/* ADD LINK POP PANEL */}
-        <AnimatePresence>
-          {adding && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="overflow-hidden mb-8"
-            >
-              <form onSubmit={handleAddLink} className="rounded-3xl border border-red-500/10 bg-[#0F0404]/40 p-6 backdrop-blur-3xl space-y-4">
-                <h3 className="text-sm font-semibold text-red-400 uppercase tracking-widest">New Social Button</h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Button Title */}
-                  <div className="md:col-span-1">
-                    <label className="block text-[10px] uppercase tracking-wider text-[#666] mb-1.5 font-semibold">Title</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. My Website"
-                      value={newTitle}
-                      onChange={(e) => setNewTitle(e.target.value)}
-                      required
-                      className="h-11 w-full rounded-xl border border-white/5 bg-[#0A0A0A] px-3.5 text-xs text-white placeholder-[#333] transition-all focus:border-red-500/30 focus:outline-none"
-                    />
-                  </div>
-
-                  {/* Destination URL */}
-                  <div className="md:col-span-1">
-                    <label className="block text-[10px] uppercase tracking-wider text-[#666] mb-1.5 font-semibold">URL Destination</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. mysite.com"
-                      value={newUrl}
-                      onChange={(e) => setNewUrl(e.target.value)}
-                      required
-                      className="h-11 w-full rounded-xl border border-white/5 bg-[#0A0A0A] px-3.5 text-xs text-white placeholder-[#333] transition-all focus:border-red-500/30 focus:outline-none"
-                    />
-                  </div>
-
-                  {/* Icon Selector */}
-                  <div className="md:col-span-1">
-                    <label className="block text-[10px] uppercase tracking-wider text-[#666] mb-1.5 font-semibold">Icon Style</label>
-                    <select
-                      value={newIconType}
-                      onChange={(e) => setNewIconType(e.target.value)}
-                      className="h-11 w-full rounded-xl border border-white/5 bg-[#0A0A0A] px-3.5 text-xs text-[#8C8C8C] transition-all focus:border-red-500/30 focus:outline-none"
-                    >
-                      <option value="globe">Globe (Default)</option>
-                      <option value="twitter">Twitter</option>
-                      <option value="discord">Discord</option>
-                      <option value="github">GitHub</option>
-                      <option value="youtube">YouTube</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="flex justify-end gap-3 pt-2">
-                  <Button
-                    type="button"
-                    onClick={() => setAdding(false)}
-                    variant="outline"
-                    className="h-9 px-4 rounded-lg border-white/5 bg-[#0A0A0A] text-[10px] uppercase font-bold text-[#8C8C8C]"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    className="h-9 px-4 rounded-lg bg-red-600 hover:bg-red-500 text-[10px] uppercase font-bold text-white"
-                  >
-                    Add Button
-                  </Button>
-                </div>
-              </form>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
         {/* LINKS LISTING */}
         <div className="rounded-[26px] border border-white/5 bg-[#0A0A0A]/80 p-6 backdrop-blur-3xl space-y-4">

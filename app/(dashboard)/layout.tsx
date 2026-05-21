@@ -46,7 +46,7 @@ export default function DashboardLayout({
 
   if (loading) {
     return (
-      <div className="relative flex min-h-screen items-center justify-center bg-[#050505] text-[#F5F1E8]">
+      <div className="relative flex min-h-screen items-center justify-center bg-[#0A0A0A] text-[#F5F1E8]">
         <div className="absolute left-1/2 top-1/2 h-[350px] w-[350px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-red-600/10 blur-[120px]" />
         <div className="flex flex-col items-center gap-4 text-center">
           <motion.div
@@ -67,7 +67,7 @@ export default function DashboardLayout({
   if (!user) return null;
 
   return (
-    <div className="relative flex min-h-screen bg-[#050505] text-[#F5F1E8] font-['Satoshi'] antialiased">
+    <div className="relative flex min-h-screen bg-[#0A0A0A] text-[#F5F1E8] font-['Satoshi'] antialiased">
       
       {/* BACKGROUND MESH */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">

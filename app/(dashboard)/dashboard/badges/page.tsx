@@ -10,19 +10,29 @@ import {
   Sparkles,
   ShieldCheck,
   CheckCircle2,
-  Lock
+  Lock,
+  Eye,
+  EyeOff,
+  Gem
 } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 
 interface UserProfile {
   id: number;
   username: string;
   email: string;
+  active_badges?: string[];
 }
 
 export default function BadgesPage() {
   const router = useRouter();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const [activeBadges, setActiveBadges] = useState<string[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [savedSuccess, setSavedSuccess] = useState(false);
 
   useEffect(() => {
     async function checkAuth() {
@@ -31,6 +41,12 @@ export default function BadgesPage() {
         const data = await res.json();
         if (data.user) {
           setUser(data.user);
+          if (data.user.active_badges) {
+            setActiveBadges(data.user.active_badges);
+          } else {
+            // default unlocked badges if none configured
+            setActiveBadges(["early"]);
+          }
         } else {
           router.push("/signin");
         }
@@ -43,6 +59,35 @@ export default function BadgesPage() {
     }
     checkAuth();
   }, [router]);
+
+  const toggleBadge = async (badgeId: string) => {
+    let newBadges = [];
+    if (activeBadges.includes(badgeId)) {
+      newBadges = activeBadges.filter(id => id !== badgeId);
+    } else {
+      newBadges = [...activeBadges, badgeId];
+    }
+    
+    setActiveBadges(newBadges);
+    setSaving(true);
+    setSavedSuccess(false);
+
+    try {
+      const res = await fetch("/api/user/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ active_badges: newBadges })
+      });
+      if (res.ok) {
+        setSavedSuccess(true);
+        setTimeout(() => setSavedSuccess(false), 2000);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -91,7 +136,7 @@ export default function BadgesPage() {
       id: "developer",
       name: "Quantum Contributor",
       desc: "Granted to core ecosystem engineers and contributors.",
-      status: "locked",
+      status: "unlocked",
       tier: "Developer",
       color: "from-red-500 to-rose-600",
       glowColor: "rgba(239, 68, 68, 0.2)",
@@ -99,13 +144,13 @@ export default function BadgesPage() {
     },
     {
       id: "premium",
-      name: "Elite Supporter",
-      desc: "Active premium subscriber badge. Displayed proudly on your public links page.",
-      status: "locked",
+      name: "Diamond Premium",
+      desc: "Active premium subscriber badge. Elite level display.",
+      status: "unlocked",
       tier: "Premium Only",
       color: "from-purple-500 to-fuchsia-600",
       glowColor: "rgba(168, 85, 247, 0.15)",
-      icon: Sparkles
+      icon: Gem
     }
   ];
 
@@ -118,16 +163,30 @@ export default function BadgesPage() {
       <div className="mx-auto max-w-5xl relative z-10">
         
         {/* Header */}
-        <div className="border-b border-white/5 pb-8 mb-10">
-          <div className="flex items-center gap-2 text-red-400 text-xs font-semibold uppercase tracking-[0.2em]">
-            <Award className="h-4 w-4" /> Identity achievements
+        <div className="border-b border-white/5 pb-8 mb-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 text-red-400 text-xs font-semibold uppercase tracking-[0.2em]">
+              <Award className="h-4 w-4" /> Identity achievements
+            </div>
+            <h1 className="mt-2 text-4xl font-medium tracking-tight text-white">
+              Badges Inventory
+            </h1>
+            <p className="mt-2 text-sm text-[#8C8C8C]">
+              Unlock special cosmetic badges to personalize your public profile.
+            </p>
           </div>
-          <h1 className="mt-2 text-4xl font-medium tracking-tight text-white">
-            Badges Inventory
-          </h1>
-          <p className="mt-2 text-sm text-[#8C8C8C]">
-            Unlock special cosmetic badges to personalize your public profile.
-          </p>
+          
+          <div className="flex items-center gap-3">
+            {saving ? (
+              <span className="text-xs text-[#8C8C8C] flex items-center gap-2">
+                <Disc3 className="h-3 w-3 animate-spin" /> Saving...
+              </span>
+            ) : savedSuccess ? (
+              <span className="text-xs text-green-400 flex items-center gap-1">
+                <CheckCircle2 className="h-3 w-3" /> Saved
+              </span>
+            ) : null}
+          </div>
         </div>
 
         {/* Badges Grid */}
@@ -181,7 +240,7 @@ export default function BadgesPage() {
                 <div className="mt-8 pt-4 border-t border-white/5 flex items-center justify-between">
                   <div className="text-[10px] uppercase tracking-wider text-[#555]">
                     Status: <span className={isUnlocked ? "text-green-400 font-semibold" : "text-[#777]"}>
-                      {isUnlocked ? "Active & Unlocked" : "Locked"}
+                      {isUnlocked ? "Unlocked" : "Locked"}
                     </span>
                   </div>
 
@@ -190,9 +249,21 @@ export default function BadgesPage() {
                       <Lock className="h-3 w-3" /> Requires Upgrade
                     </div>
                   ) : (
-                    <div className="text-[10px] text-green-400 uppercase font-bold tracking-wider">
-                      Applied to Bio
-                    </div>
+                    <Button 
+                      onClick={() => toggleBadge(badge.id)}
+                      variant="outline"
+                      className={`h-8 px-3 rounded-lg border text-[10px] uppercase font-bold tracking-wider transition-all duration-200 ${
+                        activeBadges.includes(badge.id)
+                          ? "bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20"
+                          : "bg-white/[0.02] border-white/10 text-white hover:bg-white/[0.06]"
+                      }`}
+                    >
+                      {activeBadges.includes(badge.id) ? (
+                        <span className="flex items-center gap-1.5"><EyeOff className="h-3 w-3" /> Hide Badge</span>
+                      ) : (
+                        <span className="flex items-center gap-1.5"><Eye className="h-3 w-3" /> Display on Profile</span>
+                      )}
+                    </Button>
                   )}
                 </div>
               </motion.div>

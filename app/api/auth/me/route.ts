@@ -13,9 +13,9 @@ export async function GET() {
       return NextResponse.json({ user: null });
     }
 
-    // Fetch the latest user info from the database to include discord_id
+    // Fetch the latest user info from the database including all customization fields
     const [dbUser] = await sql`
-      SELECT username, email, discord_id
+      SELECT username, email, discord_id, typewriter_heading, typewriter_quotes, active_badges
       FROM users
       WHERE id = ${user.userId}
     `;
@@ -27,7 +27,10 @@ export async function GET() {
     return NextResponse.json({ 
       user: { 
         ...user, 
-        discord_id: dbUser.discord_id 
+        discord_id: dbUser.discord_id,
+        typewriter_heading: dbUser.typewriter_heading,
+        typewriter_quotes: dbUser.typewriter_quotes,
+        active_badges: dbUser.active_badges
       } 
     });
   } catch (error) {
