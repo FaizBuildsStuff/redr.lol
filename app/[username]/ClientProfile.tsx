@@ -844,7 +844,7 @@ function DiscordProfileCard({ user, discordData, connections }: DiscordProfileCa
     || discordData?.user?.username
     || user.username || "Unknown";
   const userTag = discordData?.user?.username || user.username || "unknown";
-  const bio = discordData?.user?.bio || "";
+  const bio = discordData?.user_profile?.bio || "";
   const pronouns = discordData?.user_profile?.pronouns || "";
 
   // Guild tag from discord data (primary_guild fallback as per Camilo404)
