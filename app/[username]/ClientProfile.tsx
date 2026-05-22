@@ -6,8 +6,9 @@ import { useTheme } from "next-themes";
 import {
   Award, ShieldCheck, CheckCircle2, Gem, Crown, Shield, ShieldAlert,
   Code, Palette, Heart, HeartHandshake, Gift, Image as ImageIcon,
-  Globe, Rocket, Bug, Snowflake, Trophy, Medal, TestTube, Star, Sparkles,
+  Globe, Rocket, Bug, Snowflake, Trophy, Medal, TestTube, Star, Sparkles, Tv
 } from "lucide-react";
+import { useLanyard } from "@/hooks/use-lanyard";
 
 // ========================================
 // Inline SVG Controls
@@ -701,11 +702,10 @@ function DiscordBadgeIcon({ badge }: { badge: { id: string; icon: string; descri
         className="flex h-7 w-7 items-center justify-center rounded-lg bg-stone-100/50 dark:bg-white/5 border border-stone-200/30 dark:border-white/5 hover:bg-stone-200 dark:hover:bg-white/10 transition-all duration-200 cursor-default hover:-translate-y-0.5"
         style={{ transition: 'transform 0.18s cubic-bezier(0.34,1.56,0.64,1), background 0.18s ease' }}
       >
-        <img
-          src={`https://redroseapi.vercel.app/v1/badge/${badge.icon}.png`}
-          alt={badge.description}
-          className="h-5 w-5 select-none"
-          draggable={false}
+        <img 
+          src={`https://cdn.discordapp.com/badge-icons/${badge.icon}.png`} 
+          alt={badge.id}
+          className="h-5 w-5 object-contain drop-shadow-sm"
           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
         />
       </div>
@@ -753,7 +753,15 @@ interface DiscordProfileCardProps {
     active_badges?: string[];
   };
   discordData: DiscordData | null;
-  lanyardData: LanyardPresence | null;
+  connections: OAuthConnection[];
+}
+
+interface OAuthConnection {
+  type: string;
+  name: string;
+  id?: string;
+  verified?: boolean;
+  visibility?: number;
 }
 
 interface DiscordData {
@@ -765,6 +773,7 @@ interface DiscordData {
     banner?: string;
     collectibles?: { nameplate?: { asset?: string } };
     clan?: { tag?: string; badge?: string; identity_guild_id?: string };
+    primary_guild?: { tag?: string; badge?: string; identity_guild_id?: string };
     profile_effect?: { id?: string };
   };
   user_profile?: {
@@ -778,20 +787,8 @@ interface DiscordData {
   connected_accounts?: Array<{ type: string; name: string }>;
 }
 
-interface LanyardPresence {
-  discord_status?: 'online' | 'idle' | 'dnd' | 'offline';
-  active_on_discord_desktop?: boolean;
-  active_on_discord_web?: boolean;
-  active_on_discord_mobile?: boolean;
-  discord_user?: {
-    id?: string;
-    username?: string;
-    global_name?: string;
-    avatar?: string;
-    avatar_decoration_data?: { asset?: string };
-    clan?: { tag?: string; badge?: string; identity_guild_id?: string };
-  };
-  activities?: Array<{
+// Placeholder interface — kept for backwards-compat in activities type
+interface _ActivityEntry {
     name: string;
     type?: number;
     state?: string;
@@ -805,7 +802,6 @@ interface LanyardPresence {
     };
     application_id?: string;
     timestamps?: { start?: number; end?: number };
-  }>;
 }
 
 const statusColors: Record<string, string> = {
@@ -816,7 +812,8 @@ const statusColors: Record<string, string> = {
   offline: "#747f8d",
 };
 
-function DiscordProfileCard({ user, discordData, lanyardData }: DiscordProfileCardProps) {
+function DiscordProfileCard({ user, discordData, connections }: DiscordProfileCardProps) {
+  const { data: lanyard } = useLanyard(user.discord_id || "");
   const [message, setMessage] = useState('');
   const [bannerError, setBannerError] = useState(false);
   const [bannerLoaded, setBannerLoaded] = useState(false);
@@ -828,10 +825,9 @@ function DiscordProfileCard({ user, discordData, lanyardData }: DiscordProfileCa
     setMessage('');
   };
 
-  const status = lanyardData?.discord_status || 'offline';
-  const statusColor = statusColors[status] || statusColors.offline;
-
-  const customStatusActivity = lanyardData?.activities?.find(act => act.name === 'Custom Status');
+  // Real-time presence via Lanyard
+  const status = lanyard?.discord_status || 'offline';
+  const statusColor = statusColors[status];
 
   const themeColors = discordData?.user_profile?.theme_colors || [];
   const primaryAccent = themeColors.length > 0
@@ -841,38 +837,36 @@ function DiscordProfileCard({ user, discordData, lanyardData }: DiscordProfileCa
     ? '#' + themeColors[1].toString(16).padStart(6, '0').toUpperCase()
     : primaryAccent;
 
-  const connections = discordData?.connected_accounts || [];
   const badges = discordData?.badges || [];
 
-  // Name resolution: prefer Lanyard real-time data
-  const displayName = lanyardData?.discord_user?.global_name
-    || discordData?.user?.global_name
-    || lanyardData?.discord_user?.username
+  // Name resolution from proxy API
+  const displayName = discordData?.user?.global_name
     || discordData?.user?.username
     || user.username || "Unknown";
-  const userTag = lanyardData?.discord_user?.username || discordData?.user?.username || user.username || "unknown";
-  const bio = discordData?.user_profile?.bio || "";
+  const userTag = discordData?.user?.username || user.username || "unknown";
+  const bio = discordData?.user?.bio || "";
   const pronouns = discordData?.user_profile?.pronouns || "";
 
-  // Guild tag from lanyard first, then discord data
-  const guildTag = lanyardData?.discord_user?.clan?.tag || discordData?.user?.clan?.tag;
-  const guildBadge = lanyardData?.discord_user?.clan?.badge || discordData?.user?.clan?.badge;
+  // Guild tag from discord data (primary_guild fallback as per Camilo404)
+  const guildTag = discordData?.user?.clan?.tag || discordData?.user?.primary_guild?.tag;
+  const guildBadge = discordData?.user?.clan?.badge || discordData?.user?.primary_guild?.badge;
+  const guildId = discordData?.user?.clan?.identity_guild_id || discordData?.user?.primary_guild?.identity_guild_id;
 
-  // Avatar decoration — prefer lanyard real-time
-  const avatarDecoration = lanyardData?.discord_user?.avatar_decoration_data?.asset
-    || discordData?.user?.avatar_decoration_data?.asset;
+  // Avatar decoration
+  const avatarDecoration = discordData?.user?.avatar_decoration_data?.asset;
 
   // Profile effect
   const profileEffectId = discordData?.user_profile?.profile_effect?.id
     || discordData?.user?.profile_effect?.id;
 
-  // Banner URL (Using redroseapi proxy strictly as per Camilo404-Site)
-  const bannerUrl = user.discord_id ? `https://redroseapi.vercel.app/v1/banner/${user.discord_id}` : null;
+  // Banner URL — use discord CDN
+  const bannerHash = discordData?.user?.banner;
+  const bannerUrl = bannerHash && user.discord_id ? `https://cdn.discordapp.com/banners/${user.discord_id}/${bannerHash}.png?size=512` : null;
 
-  // Activities (non-custom-status)
-  const activities = lanyardData?.activities?.filter(a => a.type !== 4) || [];
+  // OAuth connections (from Discord API via access token)
+  const oauthConnections = connections || [];
 
-  if (!discordData && !lanyardData) {
+  if (!discordData) {
     return (
       <InteractiveCard isProfile={true} className="text-left w-[400px]">
         <div className="w-full h-[140px] bg-stone-200/50 dark:bg-stone-800/50 animate-pulse rounded-t-2xl"></div>
@@ -937,11 +931,11 @@ function DiscordProfileCard({ user, discordData, lanyardData }: DiscordProfileCa
         <div className="header-section flex flex-col gap-3 mb-5">
           <div className="avatar-wrapper flex items-end justify-between relative">
             {/* Avatar */}
-            <div className="avatar-container relative h-[90px] w-[90px]">
+            <div className="avatar-container relative h-[90px] w-[90px] overflow-visible">
               {discordData?.user?.avatar && user.discord_id ? (
                 <img
                   className="w-full h-full rounded-full object-cover border-[5px] border-white/10 dark:border-[#0A0A0A]/95 relative z-10"
-                  src={`https://redroseapi.vercel.app/v1/avatar/${user.discord_id}`}
+                  src={`https://cdn.discordapp.com/avatars/${user.discord_id}/${discordData.user.avatar}.png?size=512`}
                   onError={(e) => { (e.target as HTMLImageElement).src = "/assets/images/no-image-found.jpg"; }}
                   alt="Avatar"
                 />
@@ -952,10 +946,16 @@ function DiscordProfileCard({ user, discordData, lanyardData }: DiscordProfileCa
               {/* Avatar Decoration / PFP Effect */}
               {avatarDecoration && (
                 <img
-                  src={`https://cdn.discordapp.com/avatar-decoration-presets/${avatarDecoration}.png?size=96&passthrough=true`}
-                  alt="Avatar Decoration"
+                  src={`https://cdn.discordapp.com/avatar-decoration-presets/${avatarDecoration}.png?size=256&passthrough=true`}
+                  alt=""
                   className="absolute pointer-events-none select-none z-20"
-                  style={{ width: '163%', height: '163%', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
+                  style={{
+                    width: '148px',
+                    height: 'auto',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                  }}
                   onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                 />
               )}
@@ -977,36 +977,30 @@ function DiscordProfileCard({ user, discordData, lanyardData }: DiscordProfileCa
                 <span className="uppercase text-[9px] tracking-wider font-mono">{status}</span>
               </div>
 
-              {/* Guild Tag */}
-              {guildTag && (
-                <div
-                  className="flex items-center gap-1 px-2 py-1 rounded-full select-none border border-white/10"
-                  style={{ background: "rgba(0,0,0,0.52)", backdropFilter: "blur(12px)" }}
-                >
-                  {guildBadge && (
-                    <img
-                      src={`https://cdn.discordapp.com/clan-badges/${guildBadge}.png?size=16`}
-                      alt="Guild Badge"
-                      className="h-3 w-3 object-contain"
-                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                    />
-                  )}
-                  <span className="text-[9px] font-black uppercase tracking-widest text-white/80">{guildTag}</span>
-                </div>
-              )}
             </div>
           </div>
 
           <div className="user-info space-y-1">
             <div className="name-row flex items-center gap-2 flex-wrap">
               <h1 className="display-name text-xl font-bold tracking-tight text-stone-900 dark:text-white leading-none">
-                {displayName}
+                {lanyard?.discord_user?.global_name || lanyard?.discord_user?.username || displayName}
               </h1>
-              <div className="flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-white shadow-[0_0_8px_rgba(239,68,68,0.4)] flex-shrink-0">
-                <svg className="h-2.5 w-2.5 stroke-[3px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-              </div>
+              {guildTag && (
+                <div
+                  className="flex items-center gap-1 px-2 py-0.5 rounded-full select-none border border-stone-200/50 dark:border-white/10"
+                  style={{ background: "rgba(0,0,0,0.05)" }}
+                >
+                  {guildBadge && guildId && (
+                    <img
+                      src={`https://cdn.discordapp.com/clan-badges/${guildId}/${guildBadge}.png?size=16`}
+                      alt="Guild Badge"
+                      className="h-3 w-3 object-contain"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    />
+                  )}
+                  <span className="text-[9px] font-black uppercase tracking-widest text-stone-600 dark:text-white/80">{guildTag}</span>
+                </div>
+              )}
             </div>
 
             <div className="username-row flex items-center gap-1.5 text-xs text-stone-500 dark:text-stone-400 font-medium flex-wrap">
@@ -1017,25 +1011,10 @@ function DiscordProfileCard({ user, discordData, lanyardData }: DiscordProfileCa
                   <span className="pronouns text-red-500/80 dark:text-red-400/80 font-bold">{pronouns}</span>
                 </>
               )}
-              {/* Platform indicators */}
-              <div className="platform-indicators flex items-center gap-1 ml-1">
-                {lanyardData?.active_on_discord_desktop && (
-                  <i className="platform-icon text-[#d3f258] opacity-75 hover:opacity-100 transition-opacity" title="Desktop">
-                    <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24"><path d="M4 2.5c-1.103 0-2 .897-2 2v11c0 1.104.897 2 2 2h7v2H7v2h10v-2h-4v-2h7c1.103 0 2-.896 2-2v-11c0-1.103-.897-2-2-2H4Zm16 2v9H4v-9h16Z" /></svg>
-                  </i>
-                )}
-                {lanyardData?.active_on_discord_web && (
-                  <i className="platform-icon text-[#00A8FC] opacity-75 hover:opacity-100 transition-opacity" title="Web">
-                    <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2Zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93Zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39Z" /></svg>
-                  </i>
-                )}
-                {lanyardData?.active_on_discord_mobile && (
-                  <i className="platform-icon text-[#3BA55D] opacity-75 hover:opacity-100 transition-opacity" title="Mobile">
-                    <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24"><path d="M15.5 1h-8A2.5 2.5 0 0 0 5 3.5v17A2.5 2.5 0 0 0 7.5 23h8a2.5 2.5 0 0 0 2.5-2.5v-17A2.5 2.5 0 0 0 15.5 1zm-4 21c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5-4H7V4h9v14z" /></svg>
-                  </i>
-                )}
-              </div>
+              {/* Platform indicators — hidden until bot gateway */}
+              <div className="platform-indicators flex items-center gap-1 ml-1" />
             </div>
+          </div>
 
             {/* Discord Badges — icon only */}
             {badges.length > 0 && (
@@ -1045,27 +1024,29 @@ function DiscordProfileCard({ user, discordData, lanyardData }: DiscordProfileCa
                 ))}
               </div>
             )}
-          </div>
         </div>
 
         <div className="scrollable-content flex flex-col gap-4 pt-4 border-t border-stone-250/20 dark:border-white/5">
+
           {/* Custom Status */}
-          {customStatusActivity && customStatusActivity.state && (
-            <div className="custom-status-card flex items-center gap-2.5 bg-stone-100/50 dark:bg-black/25 border border-stone-250/20 dark:border-white/5 px-3.5 py-2.5 rounded-xl text-xs text-stone-750 dark:text-stone-300">
-              {customStatusActivity.emoji && (
-                customStatusActivity.emoji.id ? (
-                  <img
-                    src={`https://cdn.discordapp.com/emojis/${customStatusActivity.emoji.id}.${customStatusActivity.emoji.animated ? 'gif' : 'png'}?size=24&quality=lossless`}
-                    alt="Status Emoji"
-                    className="status-emoji h-5 w-5"
+          {lanyard?.activities?.find((a: any) => a.type === 4) && (() => {
+            const customStatus = lanyard.activities.find((a: any) => a.type === 4);
+            return (
+              <div className="text-xs pb-3 border-b border-stone-200/50 dark:border-white/5 flex items-center gap-2 text-stone-700 dark:text-stone-300">
+                {customStatus.emoji && (
+                  <img 
+                    src={customStatus.emoji.id 
+                      ? `https://cdn.discordapp.com/emojis/${customStatus.emoji.id}.${customStatus.emoji.animated ? 'gif' : 'png'}?size=24`
+                      : ""
+                    } 
+                    alt="" 
+                    className="w-4 h-4 object-contain"
                   />
-                ) : (
-                  <span className="status-emoji-text text-base select-none">{customStatusActivity.emoji.name}</span>
-                )
-              )}
-              <span className="status-text italic font-medium">{customStatusActivity.state}</span>
-            </div>
-          )}
+                )}
+                <span>{customStatus.state}</span>
+              </div>
+            );
+          })()}
 
           {/* Bio */}
           {bio && (
@@ -1075,42 +1056,54 @@ function DiscordProfileCard({ user, discordData, lanyardData }: DiscordProfileCa
             </section>
           )}
 
-          {/* Activities */}
-          {activities.length > 0 && (
-            <section className="section activity-section">
-              <h3 className="section-title text-[10px] font-bold text-stone-400 dark:text-stone-400 uppercase tracking-widest mb-2">
-                {activities[0].type === 2 ? "Listening to Spotify" : activities[0].type === 0 ? "Playing a Game" : activities[0].type === 3 ? "Watching" : "Activity"}
+          {/* Activities / Rich Presence */}
+          {lanyard?.activities?.filter((a: any) => a.type !== 4).map((activity: any, idx: number) => (
+            <div key={idx} className="section activity-section mt-2">
+              <h3 className="section-title text-[10px] font-bold uppercase text-stone-400 dark:text-stone-400 tracking-widest mb-2">
+                {activity.type === 0 ? "Playing a game" : activity.type === 2 ? "Listening to Spotify" : activity.type === 3 ? "Watching" : "Activity"}
               </h3>
-              {activities.slice(0, 1).map((activity, idx) => (
-                <div key={idx} className="flex items-center gap-3 bg-stone-100/50 dark:bg-black/20 border border-stone-200/30 dark:border-white/5 rounded-xl p-3">
-                  {activity.assets?.large_image && (
-                    <img
-                      src={
-                        activity.assets.large_image.startsWith('spotify:')
-                          ? `https://i.scdn.co/image/${activity.assets.large_image.replace('spotify:', '')}`
-                          : `https://cdn.discordapp.com/app-assets/${activity.application_id}/${activity.assets.large_image}.png`
-                      }
-                      alt={activity.assets.large_text || activity.name}
-                      className="h-12 w-12 rounded-lg object-cover flex-shrink-0"
-                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+              <div className="flex gap-3 items-center p-2 rounded-xl bg-stone-50 dark:bg-white/5 border border-stone-100 dark:border-white/5">
+                <div className="w-14 h-14 rounded-lg bg-stone-200 dark:bg-neutral-800 flex-shrink-0 overflow-hidden relative">
+                  {activity.assets?.large_image ? (
+                    <img 
+                      src={activity.assets.large_image.startsWith("spotify:") 
+                        ? `https://i.scdn.co/image/${activity.assets.large_image.replace("spotify:", "")}`
+                        : activity.assets.large_image.startsWith("mp:")
+                        ? `https://media.discordapp.net/${activity.assets.large_image.replace("mp:", "")}`
+                        : `https://cdn.discordapp.com/app-assets/${activity.application_id}/${activity.assets.large_image}.png`}
+                      alt={activity.assets?.large_text || activity.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-black/10 dark:bg-black/40">
+                       <Tv className="w-5 h-5 text-stone-400 dark:text-white/20" />
+                    </div>
+                  )}
+                  {activity.assets?.small_image && (
+                    <img 
+                      src={activity.assets.small_image.startsWith("mp:")
+                        ? `https://media.discordapp.net/${activity.assets.small_image.replace("mp:", "")}`
+                        : `https://cdn.discordapp.com/app-assets/${activity.application_id}/${activity.assets.small_image}.png`}
+                      alt={activity.assets?.small_text}
+                      className="absolute bottom-[-2px] right-[-2px] w-5 h-5 rounded-full border-2 border-stone-50 dark:border-[#111214] bg-stone-100 dark:bg-[#111214]"
                     />
                   )}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-xs text-stone-900 dark:text-white truncate">{activity.name}</p>
-                    {activity.details && <p className="text-[10px] text-stone-500 dark:text-stone-400 truncate mt-0.5">{activity.details}</p>}
-                    {activity.state && activity.type !== 4 && <p className="text-[10px] text-stone-500 dark:text-stone-400 truncate">{activity.state}</p>}
-                  </div>
                 </div>
-              ))}
-            </section>
-          )}
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold text-xs text-stone-900 dark:text-white truncate">{activity.name}</div>
+                  {activity.details && <div className="text-xs text-stone-500 dark:text-[#b5bac1] truncate">{activity.details}</div>}
+                  {activity.state && <div className="text-xs text-stone-500 dark:text-[#b5bac1] truncate">{activity.state}</div>}
+                </div>
+              </div>
+            </div>
+          ))}
 
-          {/* Connections */}
-          {connections.length > 0 && (
+          {/* OAuth Connections — shown if user connected via Discord OAuth */}
+          {oauthConnections.length > 0 && (
             <section className="section connections-section">
               <h3 className="section-title text-[10px] font-bold text-stone-400 dark:text-stone-400 uppercase tracking-widest mb-2">Connections</h3>
               <div className="connections-grid flex flex-wrap gap-2">
-                {connections.map((account, idx) => (
+                {oauthConnections.map((account, idx) => (
                   <a
                     key={idx}
                     href="#"
@@ -1143,7 +1136,9 @@ function DiscordProfileCard({ user, discordData, lanyardData }: DiscordProfileCa
           </div>
         </div>
       </div>
+      
     </InteractiveCard>
+      
   );
 }
 
@@ -1163,10 +1158,10 @@ interface ClientProfileProps {
     active_badges?: string[];
   };
   initialDiscordData?: DiscordData | null;
-  initialLanyardData?: LanyardPresence | null;
+  initialConnections?: OAuthConnection[];
 }
 
-export default function ClientProfile({ user, initialDiscordData, initialLanyardData }: ClientProfileProps) {
+export default function ClientProfile({ user, initialDiscordData, initialConnections }: ClientProfileProps) {
   const [entered, setEntered] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.3);
@@ -1178,72 +1173,12 @@ export default function ClientProfile({ user, initialDiscordData, initialLanyard
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const [discordData, setDiscordData] = useState<DiscordData | null>(initialDiscordData || null);
-  const [lanyardData, setLanyardData] = useState<LanyardPresence | null>(initialLanyardData || null);
+  const [connections] = useState<OAuthConnection[]>(initialConnections || []);
 
   useEffect(() => { setMounted(true); }, []);
 
-  // Fetch Discord profile + setup realtime Lanyard WS
-  useEffect(() => {
-    if (!user.discord_id) return;
-
-    const fetchDiscord = async () => {
-      if (initialDiscordData) return;
-      try {
-        const res = await fetch(`https://redroseapi.vercel.app/v1/user/${user.discord_id}`);
-        if (res.ok) setDiscordData(await res.json());
-      } catch (e) { console.error("Failed to fetch Discord proxy:", e); }
-    };
-
-    const fetchLanyard = async () => {
-      if (initialLanyardData) return;
-      try {
-        const res = await fetch(`https://api.lanyard.rest/v1/users/${user.discord_id}`);
-        if (res.ok) {
-          const json = await res.json();
-          if (json.success) setLanyardData(json.data);
-        }
-      } catch (e) { console.error("Failed to fetch Lanyard data:", e); }
-    };
-
-    fetchDiscord();
-    fetchLanyard();
-
-    // Lanyard WebSocket with heartbeat
-    const ws = new WebSocket("wss://api.lanyard.rest/socket");
-    let heartbeatInterval: ReturnType<typeof setInterval> | null = null;
-
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data.op === 1) {
-          // Hello — subscribe and start heartbeat
-          ws.send(JSON.stringify({ op: 2, d: { subscribe_to_id: user.discord_id } }));
-          const interval = data.d?.heartbeat_interval ?? 30000;
-          heartbeatInterval = setInterval(() => {
-            if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ op: 3 }));
-          }, interval);
-        } else if (data.t === "INIT_STATE" || data.t === "PRESENCE_UPDATE") {
-          setLanyardData((prev) => {
-            if (!prev) return data.d;
-            // Merge carefully to not lose discord_user when PRESENCE_UPDATE is partial
-            return {
-              ...prev,
-              ...data.d,
-              discord_user: {
-                ...prev.discord_user,
-                ...data.d?.discord_user
-              }
-            };
-          });
-        }
-      } catch (err) { console.error("Lanyard socket error:", err); }
-    };
-
-    return () => {
-      if (heartbeatInterval) clearInterval(heartbeatInterval);
-      ws.close();
-    };
-  }, [user.discord_id]);
+  // Note: We've removed the redroseapi client-side fallback. 
+  // We rely exclusively on the data passed via initialDiscordData from the server.
 
   // Initialize Audio
   useEffect(() => {
@@ -1631,7 +1566,7 @@ export default function ClientProfile({ user, initialDiscordData, initialLanyard
             <div className="grid grid-cols-1 lg:grid-cols-[400px_400px] gap-6 justify-center items-start w-fit mx-auto">
               {/* Left Column: Discord Profile Card */}
               <div className="flex justify-center w-full">
-                <DiscordProfileCard user={user} discordData={discordData} lanyardData={lanyardData} />
+                <DiscordProfileCard user={user} discordData={discordData} connections={connections} />
               </div>
 
               {/* Right Column: Stacked Bento Widgets */}

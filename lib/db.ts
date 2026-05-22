@@ -25,6 +25,8 @@ export async function initDb() {
     await sql`
       ALTER TABLE users 
       ADD COLUMN IF NOT EXISTS discord_id VARCHAR(255),
+      ADD COLUMN IF NOT EXISTS discord_access_token TEXT,
+      ADD COLUMN IF NOT EXISTS discord_refresh_token TEXT,
       ADD COLUMN IF NOT EXISTS typewriter_heading VARCHAR(255),
       ADD COLUMN IF NOT EXISTS typewriter_quotes JSONB,
       ADD COLUMN IF NOT EXISTS custom_links JSONB,

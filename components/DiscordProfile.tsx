@@ -17,13 +17,13 @@ export function DiscordProfile({ discordId }: DiscordProfileProps) {
     async function fetchDiscordProfile() {
       try {
         setLoading(true);
-        const res = await fetch(`https://redroseapi.vercel.app/v1/user/${discordId}`);
+        const res = await fetch(`https://dcdn.dstn.to/profile/${discordId}`);
         if (res.ok) {
           const data = await res.json();
           setProfileData(data);
         }
       } catch (error) {
-        console.error("Failed to fetch Discord profile from redroseapi:", error);
+        console.error("Failed to fetch Discord profile from proxy:", error);
       } finally {
         setLoading(false);
       }
@@ -54,7 +54,9 @@ export function DiscordProfile({ discordId }: DiscordProfileProps) {
     ? `https://cdn.discordapp.com/avatars/${discordId}/${lanyard.discord_user.avatar}.png?size=256` 
     : null;
     
-  const bannerUrl = `https://redroseapi.vercel.app/v1/banner/${discordId}`;
+  const bannerUrl = lanyard?.discord_user?.banner 
+    ? `https://cdn.discordapp.com/banners/${discordId}/${lanyard.discord_user.banner}.png?size=512`
+    : null;
 
   const statusColorMap: Record<string, string> = {
     online: "#23a559",
@@ -73,7 +75,7 @@ export function DiscordProfile({ discordId }: DiscordProfileProps) {
         className="h-[120px] w-full bg-cover bg-center"
         style={{ 
           backgroundColor: accentColor,
-          backgroundImage: `url(${bannerUrl})` 
+          backgroundImage: bannerUrl ? `url(${bannerUrl})` : undefined
         }}
       />
       
@@ -110,10 +112,11 @@ export function DiscordProfile({ discordId }: DiscordProfileProps) {
             {profileData.badges.map((badge: any, idx: number) => (
               <img 
                 key={idx}
-                src={`https://redroseapi.vercel.app/v1/badge/${badge.icon}.png`}
+                src={`https://cdn.discordapp.com/badge-icons/${badge.icon}.png`}
                 alt={badge.id}
                 title={badge.description}
                 className="w-5 h-5 object-contain"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
               />
             ))}
           </div>
@@ -123,13 +126,10 @@ export function DiscordProfile({ discordId }: DiscordProfileProps) {
         <div className="mt-14 space-y-3">
           <div className="leading-none">
             <h1 className="text-xl font-bold text-white tracking-tight">
-              {lanyard?.discord_user?.global_name || lanyard?.discord_user?.username || profileData?.user?.global_name || profileData?.user?.username || "Loading..."}
+              {lanyard?.discord_user?.global_name || lanyard?.discord_user?.username || "Loading..."}
             </h1>
             <p className="text-sm font-medium text-[#b5bac1] mt-1">
-              {lanyard?.discord_user?.username || profileData?.user?.username}
-              {profileData?.user_profile?.pronouns && (
-                <span className="ml-2 text-xs opacity-70">• {profileData.user_profile.pronouns}</span>
-              )}
+              {lanyard?.discord_user?.username}
             </p>
           </div>
 
@@ -151,11 +151,11 @@ export function DiscordProfile({ discordId }: DiscordProfileProps) {
           )}
 
           {/* Bio */}
-          {profileData?.user_profile?.bio && (
+          {(profileData?.user_profile?.bio || profileData?.user?.bio) && (
             <div className="text-sm">
               <h3 className="text-xs font-bold uppercase text-[#b5bac1] mb-2 tracking-wider">About Me</h3>
               <div className="text-[#dbdee1] whitespace-pre-wrap text-[13px] leading-relaxed opacity-90">
-                {profileData.user_profile.bio}
+                {profileData.user_profile?.bio || profileData.user?.bio}
               </div>
             </div>
           )}
@@ -172,6 +172,8 @@ export function DiscordProfile({ discordId }: DiscordProfileProps) {
                     <img 
                       src={activity.assets.large_image.startsWith("spotify:") 
                         ? `https://i.scdn.co/image/${activity.assets.large_image.replace("spotify:", "")}`
+                        : activity.assets.large_image.startsWith("mp:")
+                        ? `https://media.discordapp.net/${activity.assets.large_image.replace("mp:", "")}`
                         : `https://cdn.discordapp.com/app-assets/${activity.application_id}/${activity.assets.large_image}.png`}
                       alt={activity.assets?.large_text || activity.name}
                       className="w-full h-full object-cover"
@@ -183,7 +185,9 @@ export function DiscordProfile({ discordId }: DiscordProfileProps) {
                   )}
                   {activity.assets?.small_image && (
                     <img 
-                      src={`https://cdn.discordapp.com/app-assets/${activity.application_id}/${activity.assets.small_image}.png`}
+                      src={activity.assets.small_image.startsWith("mp:")
+                        ? `https://media.discordapp.net/${activity.assets.small_image.replace("mp:", "")}`
+                        : `https://cdn.discordapp.com/app-assets/${activity.application_id}/${activity.assets.small_image}.png`}
                       alt={activity.assets?.small_text}
                       className="absolute bottom-[-4px] right-[-4px] w-6 h-6 rounded-full border-[3px] border-[#111214] bg-[#111214]"
                     />

@@ -14,7 +14,7 @@ export default async function UserProfilePage({ params }: PageProps) {
   let user = null;
   try {
     const users = await sql`
-      SELECT id, username, email, discord_id, created_at, typewriter_heading, typewriter_quotes, custom_links, active_badges 
+      SELECT id, username, email, discord_id, discord_access_token, created_at, typewriter_heading, typewriter_quotes, custom_links, active_badges 
       FROM users 
       WHERE LOWER(username) = LOWER(${username})
       LIMIT 1
@@ -52,19 +52,26 @@ export default async function UserProfilePage({ params }: PageProps) {
     );
   }
 
-  // Fetch initial Discord and Lanyard data
+  // Fetch initial Discord data and connections
   let initialDiscordData = null;
-  let initialLanyardData = null;
+  let initialConnections = [];
+
   if (user && user.discord_id) {
     try {
-      const [discordRes, lanyardRes] = await Promise.all([
-        fetch(`https://redroseapi.vercel.app/v1/user/${user.discord_id}`, { cache: 'no-store' }),
-        fetch(`https://api.lanyard.rest/v1/users/${user.discord_id}`, { cache: 'no-store' })
-      ]);
-      if (discordRes.ok) initialDiscordData = await discordRes.json();
-      if (lanyardRes.ok) {
-        const json = await lanyardRes.json();
-        if (json.success) initialLanyardData = json.data;
+      // Use dcdn.dstn.to proxy because official Discord API does not expose bio or pronouns via OAuth
+      const profileRes = await fetch(`https://dcdn.dstn.to/profile/${user.discord_id}`, {
+        cache: 'no-store'
+      });
+      if (profileRes.ok) {
+        initialDiscordData = await profileRes.json();
+      }
+
+      if (user.discord_access_token) {
+        const connRes = await fetch("https://discord.com/api/v10/users/@me/connections", {
+          headers: { Authorization: `Bearer ${user.discord_access_token}` },
+          cache: 'no-store'
+        });
+        if (connRes.ok) initialConnections = await connRes.json();
       }
     } catch (e) {
       console.error("Serverside fetch error:", e);
@@ -81,5 +88,5 @@ export default async function UserProfilePage({ params }: PageProps) {
     typewriter_quotes: user.typewriter_quotes,
     custom_links: user.custom_links,
     active_badges: user.active_badges
-  }} initialDiscordData={initialDiscordData} initialLanyardData={initialLanyardData} />;
+  }} initialDiscordData={initialDiscordData} initialConnections={initialConnections} />;
 }

@@ -186,38 +186,27 @@ export default function CustomizePage() {
                 <h3 className="text-sm font-semibold text-white uppercase tracking-wider text-[#7A7A7A]">Discord Integration</h3>
                 <p className="mt-1 text-xs text-[#8C8C8C]">Connect your Discord to show live status on your profile.</p>
               </div>
-              <Dialog open={isDiscordDialogOpen} onOpenChange={setIsDiscordDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" className="border-white/10 bg-white/[0.02] hover:bg-white/[0.05] text-xs font-semibold uppercase tracking-wider">
-                    {user.discord_id ? "Edit Connection" : "Connect Discord"}
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="bg-[#0A0A0A] border-white/10 text-white sm:max-w-[425px]">
-                  <DialogHeader>
-                    <DialogTitle>Connect Discord Account</DialogTitle>
-                    <DialogDescription className="text-[#8C8C8C]">
-                      Enter your Discord User ID to fetch your live Lanyard status and profile data.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="py-4">
-                    <Input
-                      placeholder="e.g. 203574366745657345"
-                      value={inputDiscordId}
-                      onChange={(e) => setInputDiscordId(e.target.value)}
-                      className="bg-black border-white/10 text-white placeholder:text-[#555]"
-                    />
-                  </div>
-                  <div className="flex justify-end">
-                    <Button
-                      onClick={handleSaveDiscord}
-                      disabled={savingDiscord}
-                      className="bg-indigo-600 hover:bg-indigo-500 text-white"
+              <div className="flex items-center gap-4">
+                {user.discord_id ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-green-400">Connected</span>
+                    <Button 
+                      onClick={() => window.location.href = '/api/auth/discord/login'}
+                      variant="outline" 
+                      className="border-white/10 bg-white/[0.02] hover:bg-white/[0.05] text-xs font-semibold uppercase tracking-wider"
                     >
-                      {savingDiscord ? "Saving..." : "Save Connection"}
+                      Reconnect
                     </Button>
                   </div>
-                </DialogContent>
-              </Dialog>
+                ) : (
+                  <Button 
+                    onClick={() => window.location.href = '/api/auth/discord/login'}
+                    className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold uppercase tracking-wider"
+                  >
+                    Connect Discord
+                  </Button>
+                )}
+              </div>
             </div>
 
             {/* TYPEWRITER WIDGET CONTROLS */}
