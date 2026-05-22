@@ -52,6 +52,25 @@ export default async function UserProfilePage({ params }: PageProps) {
     );
   }
 
+  // Fetch initial Discord and Lanyard data
+  let initialDiscordData = null;
+  let initialLanyardData = null;
+  if (user && user.discord_id) {
+    try {
+      const [discordRes, lanyardRes] = await Promise.all([
+        fetch(`https://redroseapi.vercel.app/v1/user/${user.discord_id}`, { cache: 'no-store' }),
+        fetch(`https://api.lanyard.rest/v1/users/${user.discord_id}`, { cache: 'no-store' })
+      ]);
+      if (discordRes.ok) initialDiscordData = await discordRes.json();
+      if (lanyardRes.ok) {
+        const json = await lanyardRes.json();
+        if (json.success) initialLanyardData = json.data;
+      }
+    } catch (e) {
+      console.error("Serverside fetch error:", e);
+    }
+  }
+
   return <ClientProfile user={{
     id: user.id,
     username: user.username,
@@ -62,5 +81,5 @@ export default async function UserProfilePage({ params }: PageProps) {
     typewriter_quotes: user.typewriter_quotes,
     custom_links: user.custom_links,
     active_badges: user.active_badges
-  }} />;
+  }} initialDiscordData={initialDiscordData} initialLanyardData={initialLanyardData} />;
 }

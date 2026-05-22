@@ -6,13 +6,8 @@ import { motion } from "framer-motion";
 import {
   Disc3,
   Palette,
-  Sparkles,
-  Music,
   CheckCircle2,
-  Undo2,
-  Tv,
   Type,
-  Plug
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,17 +34,11 @@ export default function CustomizePage() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Customization States
-  const [selectedTheme, setSelectedTheme] = useState("crimson-dither");
-  const [musicActive, setMusicActive] = useState(false);
-  const [sparklesActive, setSparklesActive] = useState(true);
-  const [customFont, setCustomFont] = useState("Satoshi");
-  
   const [typewriterHeading, setTypewriterHeading] = useState("Web Designer & Developer");
   const [typewriterQuotes, setTypewriterQuotes] = useState<string[]>([
-    "The world doesn't need heroes, it needs someone to pull the strings from the shadows."
+    "The world doesn't need heroes, it needs someone to pull the strings from the shadows.",
   ]);
-  
+
   const [saving, setSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
@@ -65,12 +54,8 @@ export default function CustomizePage() {
         const data = await res.json();
         if (data.user) {
           setUser(data.user);
-          if (data.user.discord_id) {
-            setInputDiscordId(data.user.discord_id);
-          }
-          if (data.user.typewriter_heading) {
-            setTypewriterHeading(data.user.typewriter_heading);
-          }
+          if (data.user.discord_id) setInputDiscordId(data.user.discord_id);
+          if (data.user.typewriter_heading) setTypewriterHeading(data.user.typewriter_heading);
           if (data.user.typewriter_quotes && data.user.typewriter_quotes.length > 0) {
             setTypewriterQuotes(data.user.typewriter_quotes);
           }
@@ -90,17 +75,15 @@ export default function CustomizePage() {
   const handleSave = async () => {
     setSaving(true);
     setSavedSuccess(false);
-    
     try {
       const res = await fetch("/api/user/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           typewriter_heading: typewriterHeading,
-          typewriter_quotes: typewriterQuotes
-        })
+          typewriter_quotes: typewriterQuotes,
+        }),
       });
-      
       if (res.ok) {
         setSavedSuccess(true);
         setTimeout(() => setSavedSuccess(false), 2000);
@@ -121,7 +104,7 @@ export default function CustomizePage() {
         body: JSON.stringify({ discord_id: inputDiscordId }),
       });
       if (res.ok) {
-        setUser((prev) => prev ? { ...prev, discord_id: inputDiscordId } : prev);
+        setUser((prev) => (prev ? { ...prev, discord_id: inputDiscordId } : prev));
         setIsDiscordDialogOpen(false);
       }
     } catch (error) {
@@ -144,7 +127,7 @@ export default function CustomizePage() {
             <Disc3 className="h-7 w-7 text-red-500" />
           </motion.div>
           <p className="text-sm font-medium tracking-[0.15em] uppercase text-[#8A8A8A] animate-pulse">
-            Powering creative shaders...
+            Loading customizer...
           </p>
         </div>
       </div>
@@ -153,13 +136,6 @@ export default function CustomizePage() {
 
   if (!user) return null;
 
-  const themes = [
-    { id: "crimson-dither", name: "Crimson Dither", desc: "Aggressive cyber red with heavy noise", bg: "bg-red-950/20 border-red-500/30" },
-    { id: "quantum-purple", name: "Quantum Violet", desc: "Smooth futuristic deep violet and space glow", bg: "bg-purple-950/20 border-purple-500/20" },
-    { id: "neon-emerald", name: "Neon Emerald", desc: "Dystopian tactical green console layout", bg: "bg-green-950/20 border-green-500/20" },
-    { id: "void-mono", name: "Void Monochrome", desc: "Stealth charcoal grid without accents", bg: "bg-neutral-900/40 border-neutral-700/20" }
-  ];
-
   return (
     <section className="relative min-h-screen overflow-hidden bg-[#0A0A0A] px-4 md:px-10 pb-20 pt-8 md:pt-12">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -167,7 +143,7 @@ export default function CustomizePage() {
       </div>
 
       <div className="mx-auto max-w-6xl relative z-10">
-        
+
         {/* Header */}
         <div className="border-b border-white/5 pb-8 mb-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
@@ -202,10 +178,8 @@ export default function CustomizePage() {
 
         {/* WORKSPACE GRID */}
         <div className="max-w-3xl mx-auto space-y-6">
-          
-          {/* CONTROL SUITE */}
           <div className="space-y-6">
-            
+
             {/* DISCORD INTEGRATION */}
             <div className="rounded-[24px] border border-white/5 bg-[#0A0A0A]/80 p-6 backdrop-blur-3xl flex items-center justify-between">
               <div>
@@ -245,100 +219,13 @@ export default function CustomizePage() {
                 </DialogContent>
               </Dialog>
             </div>
-            
-            {/* THEME SELECTION */}
-            <div className="rounded-[24px] border border-white/5 bg-[#0A0A0A]/80 p-6 backdrop-blur-3xl">
-              <h3 className="text-sm font-semibold text-white uppercase tracking-wider text-[#7A7A7A] mb-4">Choose Theme</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {themes.map((t) => {
-                  const isSelected = selectedTheme === t.id;
-                  return (
-                    <button
-                      key={t.id}
-                      onClick={() => setSelectedTheme(t.id)}
-                      className={`text-left p-4 rounded-2xl border transition-all duration-300 flex flex-col justify-between ${
-                        isSelected
-                          ? "bg-red-500/10 border-red-500/40 shadow-inner"
-                          : "bg-white/[0.01] border-white/5 hover:border-white/10"
-                      }`}
-                    >
-                      <div>
-                        <h4 className="text-sm font-medium text-white">{t.name}</h4>
-                        <p className="mt-1 text-[11px] leading-relaxed text-[#8C8C8C]">{t.desc}</p>
-                      </div>
-                      <div className="mt-4 flex justify-end">
-                        <div className={`h-4.5 w-4.5 rounded-full border flex items-center justify-center ${
-                          isSelected ? "border-red-500 bg-red-600 text-white" : "border-[#333]"
-                        }`}>
-                          {isSelected && <div className="h-2 w-2 rounded-full bg-white" />}
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* EFFECT ACCENTS */}
-            <div className="rounded-[24px] border border-white/5 bg-[#0A0A0A]/80 p-6 backdrop-blur-3xl">
-              <h3 className="text-sm font-semibold text-white uppercase tracking-wider text-[#7A7A7A] mb-4">Cosmetic Shaders</h3>
-              <div className="space-y-4">
-                
-                {/* Background music toggle */}
-                <div className="flex items-center justify-between p-3.5 rounded-xl bg-white/[0.01] border border-white/5">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-red-500/10 text-red-400">
-                      <Music className="h-4.5 w-4.5" />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium text-white">Autoplay Background Audio</h4>
-                      <p className="text-[10px] text-[#7A7A7A]">Loads custom MP3 music instantly upon entry.</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setMusicActive(!musicActive)}
-                    className={`relative h-6 w-11 rounded-full transition-all duration-300 ${
-                      musicActive ? "bg-red-600" : "bg-neutral-800"
-                    }`}
-                  >
-                    <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all duration-300 ${
-                      musicActive ? "left-5.5" : "left-0.5"
-                    }`} />
-                  </button>
-                </div>
-
-                {/* Cursor sparkles */}
-                <div className="flex items-center justify-between p-3.5 rounded-xl bg-white/[0.01] border border-white/5">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-red-500/10 text-red-400">
-                      <Sparkles className="h-4.5 w-4.5" />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium text-white">Sparkle Tail Effect</h4>
-                      <p className="text-[10px] text-[#7A7A7A]">Interactive particles following user cursor sweeps.</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setSparklesActive(!sparklesActive)}
-                    className={`relative h-6 w-11 rounded-full transition-all duration-300 ${
-                      sparklesActive ? "bg-red-600" : "bg-neutral-800"
-                    }`}
-                  >
-                    <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all duration-300 ${
-                      sparklesActive ? "left-5.5" : "left-0.5"
-                    }`} />
-                  </button>
-                </div>
-
-              </div>
-            </div>
 
             {/* TYPEWRITER WIDGET CONTROLS */}
             <div className="rounded-[24px] border border-white/5 bg-[#0A0A0A]/80 p-6 backdrop-blur-3xl">
               <h3 className="text-sm font-semibold text-white uppercase tracking-wider text-[#7A7A7A] mb-4 flex items-center gap-2">
                 <Type className="h-4 w-4" /> Typewriter Settings
               </h3>
-              
+
               <div className="space-y-4">
                 <div>
                   <label className="block text-[10px] uppercase tracking-wider text-[#666] mb-1.5 font-semibold">Heading</label>
@@ -350,7 +237,7 @@ export default function CustomizePage() {
                     className="h-11 w-full rounded-xl border-white/10 bg-[#0A0A0A] text-xs text-white placeholder-[#333] transition-all focus:border-red-500/30"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-[10px] uppercase tracking-wider text-[#666] mb-1.5 font-semibold">Animated Quotes</label>
                   <div className="space-y-3">
@@ -389,28 +276,6 @@ export default function CustomizePage() {
                     </Button>
                   </div>
                 </div>
-              </div>
-            </div>
-
-            {/* FONT SELECTOR */}
-            <div className="rounded-[24px] border border-white/5 bg-[#0A0A0A]/80 p-6 backdrop-blur-3xl">
-              <h3 className="text-sm font-semibold text-white uppercase tracking-wider text-[#7A7A7A] mb-4">Typography Core</h3>
-              <div className="grid grid-cols-3 gap-3">
-                {["Satoshi", "Outfit", "Space Mono"].map((font) => (
-                  <button
-                    key={font}
-                    onClick={() => setCustomFont(font)}
-                    className={`py-3 rounded-xl border text-center font-medium text-xs transition-all duration-300 ${
-                      customFont === font
-                        ? "bg-red-500/10 border-red-500/40 text-white font-bold"
-                        : "bg-white/[0.01] border-white/5 text-[#8C8C8C] hover:text-white"
-                    }`}
-                  >
-                    <span style={{ fontFamily: font === "Satoshi" ? "Satoshi" : font === "Outfit" ? "Outfit" : "monospace" }}>
-                      {font}
-                    </span>
-                  </button>
-                ))}
               </div>
             </div>
 
