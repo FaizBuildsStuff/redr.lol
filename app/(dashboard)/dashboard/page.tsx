@@ -80,7 +80,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="relative flex min-h-screen items-center justify-center bg-[#050505] text-[#F5F1E8]">
+      <div className="relative flex min-h-screen items-center justify-center bg-[#0A0A0A] text-[#F5F1E8]">
         {/* Glowing Orbs */}
         <div className="absolute left-1/2 top-1/2 h-[350px] w-[350px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-red-600/10 blur-[120px]" />
         
@@ -103,7 +103,7 @@ export default function DashboardPage() {
   if (!user) return null;
 
   return (
-    <section className="relative min-h-screen overflow-hidden bg-[#050505] px-4 md:px-10 pb-20 pt-8 md:pt-12">
+    <section className="relative min-h-screen overflow-hidden bg-[#0A0A0A] px-4 md:px-10 pb-20 pt-8 md:pt-12">
       {/* Background aesthetics */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         {/* Glow */}

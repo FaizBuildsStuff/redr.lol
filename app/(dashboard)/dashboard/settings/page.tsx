@@ -74,7 +74,7 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="relative flex min-h-screen items-center justify-center bg-[#050505] text-[#F5F1E8]">
+      <div className="relative flex min-h-screen items-center justify-center bg-[#0A0A0A] text-[#F5F1E8]">
         <div className="absolute left-1/2 top-1/2 h-[350px] w-[350px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-red-600/10 blur-[120px]" />
         <div className="flex flex-col items-center gap-4 text-center">
           <motion.div
@@ -95,7 +95,7 @@ export default function SettingsPage() {
   if (!user) return null;
 
   return (
-    <section className="relative min-h-screen overflow-hidden bg-[#050505] px-4 md:px-10 pb-20 pt-8 md:pt-12">
+    <section className="relative min-h-screen overflow-hidden bg-[#0A0A0A] px-4 md:px-10 pb-20 pt-8 md:pt-12">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute left-1/4 top-0 h-[500px] w-[500px] rounded-full bg-red-600/5 blur-[150px]" />
       </div>

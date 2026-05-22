@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
-import { Award, ShieldCheck, CheckCircle2, Gem } from "lucide-react";
+import { Award, ShieldCheck, CheckCircle2, Gem, Crown, Shield, ShieldAlert, Code, Palette, Heart, HeartHandshake, Gift, Image as ImageIcon, Globe, Rocket, Bug, Snowflake, Trophy, Medal, TestTube, Star, Sparkles } from "lucide-react";
 
 // ========================================
 // Inline SVG Controls
@@ -113,7 +113,7 @@ const spriteSets: Record<SpriteDirection, number[][]> = {
 
 function NekoTracker() {
   const onekoRef = useRef<HTMLDivElement>(null);
-  
+
   const nekoPosX = useRef(32);
   const nekoPosY = useRef(32);
   const mousePosX = useRef(0);
@@ -122,7 +122,7 @@ function NekoTracker() {
   const idleTime = useRef(0);
   const idleAnimation = useRef<string | null>(null);
   const idleAnimationFrame = useRef(0);
-  
+
   const nekoSpeed = 10;
 
   useEffect(() => {
@@ -188,7 +188,7 @@ function NekoTracker() {
       const currNekoY = nekoPosY.current;
       const currMouseX = mousePosX.current;
       const currMouseY = mousePosY.current;
-      
+
       const diffX = currNekoX - currMouseX;
       const diffY = currNekoY - currMouseY;
       const distance = Math.sqrt(diffX ** 2 + diffY ** 2);
@@ -212,7 +212,7 @@ function NekoTracker() {
       direction += diffY / distance < -0.5 ? 'S' : '';
       direction += diffX / distance > 0.5 ? 'W' : '';
       direction += diffX / distance < -0.5 ? 'E' : '';
-      
+
       setSprite(direction as SpriteDirection, frameCount.current);
 
       nekoPosX.current -= (diffX / distance) * nekoSpeed;
@@ -550,7 +550,7 @@ function ShadowWidget({ heading, quotesProp }: { heading?: string, quotesProp?: 
         }}
       />
       <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/20 to-black/10 z-[1] dark:from-black/80 dark:via-black/50 dark:to-black/30 pointer-events-none" />
-      
+
       <div className="shadow-content relative z-10 p-6 flex flex-col justify-center h-full">
         <div className="shadow-role flex items-center gap-2 mb-3">
           <svg className="w-4 h-4 text-stone-900 dark:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
@@ -575,69 +575,75 @@ function ShadowWidget({ heading, quotesProp }: { heading?: string, quotesProp?: 
 // Badge Registry & BadgeChip Component
 // ========================================
 const BADGE_REGISTRY = {
-  early: {
-    name: "Early Adopter",
-    desc: "Granted to users who joined redr.lol during the alpha registration phase.",
-    tier: "Legendary",
-    gradient: "linear-gradient(135deg, #f59e0b, #d97706)",
-    glow: "rgba(245, 158, 11, 0.55)",
-    bg: "rgba(245, 158, 11, 0.10)",
-    border: "rgba(245, 158, 11, 0.30)",
-    Icon: Award,
-    color: "#f59e0b",
-  },
-  verified: {
-    name: "Verified Profile",
-    desc: "Proof of verified identity. Ensures account authenticity.",
-    tier: "Elite",
-    gradient: "linear-gradient(135deg, #3b82f6, #4f46e5)",
-    glow: "rgba(59, 130, 246, 0.55)",
-    bg: "rgba(59, 130, 246, 0.10)",
-    border: "rgba(59, 130, 246, 0.30)",
-    Icon: ShieldCheck,
-    color: "#3b82f6",
-  },
-  developer: {
-    name: "Quantum Contributor",
-    desc: "Granted to core ecosystem engineers and contributors.",
-    tier: "Developer",
-    gradient: "linear-gradient(135deg, #ef4444, #e11d48)",
-    glow: "rgba(239, 68, 68, 0.55)",
-    bg: "rgba(239, 68, 68, 0.10)",
-    border: "rgba(239, 68, 68, 0.30)",
-    Icon: CheckCircle2,
-    color: "#ef4444",
-  },
-  premium: {
-    name: "Diamond Premium",
-    desc: "Active premium subscriber badge. Elite level display.",
-    tier: "Premium Only",
-    gradient: "linear-gradient(135deg, #a855f7, #d946ef)",
-    glow: "rgba(168, 85, 247, 0.55)",
-    bg: "rgba(168, 85, 247, 0.10)",
-    border: "rgba(168, 85, 247, 0.30)",
-    Icon: Gem,
-    color: "#a855f7",
-  },
-} as const;
+  owner: { name: "Owner", desc: "Creator and Owner of redr.lol.", tier: "Creator", gradient: "linear-gradient(135deg, #facc15, #ca8a04)", glow: "rgba(250, 204, 21, 0.55)", bg: "rgba(250, 204, 21, 0.10)", border: "rgba(250, 204, 21, 0.30)", Icon: Crown, color: "#facc15" },
+  admin: { name: "Admin", desc: "System Administrator.", tier: "Admin", gradient: "linear-gradient(135deg, #ef4444, #b91c1c)", glow: "rgba(239, 68, 68, 0.55)", bg: "rgba(239, 68, 68, 0.10)", border: "rgba(239, 68, 68, 0.30)", Icon: Shield, color: "#ef4444" },
+  staff: { name: "Staff", desc: "Be a part of the redr.lol staff team.", tier: "Staff", gradient: "linear-gradient(135deg, #3b82f6, #1d4ed8)", glow: "rgba(59, 130, 246, 0.55)", bg: "rgba(59, 130, 246, 0.10)", border: "rgba(59, 130, 246, 0.30)", Icon: ShieldAlert, color: "#3b82f6" },
+  moderator: { name: "Moderator", desc: "Community Moderator.", tier: "Moderator", gradient: "linear-gradient(135deg, #22c55e, #15803d)", glow: "rgba(34, 197, 94, 0.55)", bg: "rgba(34, 197, 94, 0.10)", border: "rgba(34, 197, 94, 0.30)", Icon: ShieldCheck, color: "#22c55e" },
+  developer: { name: "Developer", desc: "Core contributor to the redr.lol codebase.", tier: "Developer", gradient: "linear-gradient(135deg, #6366f1, #4338ca)", glow: "rgba(99, 102, 241, 0.55)", bg: "rgba(99, 102, 241, 0.10)", border: "rgba(99, 102, 241, 0.30)", Icon: Code, color: "#6366f1" },
+  designer: { name: "Designer", desc: "Creator of redr.lol aesthetics.", tier: "Designer", gradient: "linear-gradient(135deg, #ec4899, #be185d)", glow: "rgba(236, 72, 153, 0.55)", bg: "rgba(236, 72, 153, 0.10)", border: "rgba(236, 72, 153, 0.30)", Icon: Palette, color: "#ec4899" },
+  helper: { name: "Helper", desc: "Be active and help users in the community.", tier: "Helper", gradient: "linear-gradient(135deg, #fb7185, #e11d48)", glow: "rgba(244, 63, 94, 0.55)", bg: "rgba(244, 63, 94, 0.10)", border: "rgba(244, 63, 94, 0.30)", Icon: Heart, color: "#fb7185" },
+  premium: { name: "Premium", desc: "Purchase the premium package.", tier: "Premium", gradient: "linear-gradient(135deg, #a855f7, #c026d3)", glow: "rgba(168, 85, 247, 0.55)", bg: "rgba(168, 85, 247, 0.10)", border: "rgba(168, 85, 247, 0.30)", Icon: Gem, color: "#a855f7" },
+  verified: { name: "Verified", desc: "Purchase or be a known content creator.", tier: "Verified", gradient: "linear-gradient(135deg, #38bdf8, #2563eb)", glow: "rgba(56, 189, 248, 0.55)", bg: "rgba(56, 189, 248, 0.10)", border: "rgba(56, 189, 248, 0.30)", Icon: CheckCircle2, color: "#38bdf8" },
+  donor: { name: "Donor", desc: "Donate at least 10€ to redr.lol.", tier: "Donor", gradient: "linear-gradient(135deg, #34d399, #059669)", glow: "rgba(52, 211, 153, 0.55)", bg: "rgba(52, 211, 153, 0.10)", border: "rgba(52, 211, 153, 0.30)", Icon: HeartHandshake, color: "#34d399" },
+  gifter: { name: "Gifter", desc: "Gift a redr.lol product to another user.", tier: "Gifter", gradient: "linear-gradient(135deg, #e879f9, #c026d3)", glow: "rgba(232, 121, 249, 0.55)", bg: "rgba(232, 121, 249, 0.10)", border: "rgba(232, 121, 249, 0.30)", Icon: Gift, color: "#e879f9" },
+  image_host: { name: "Image Host", desc: "Purchase the Image Host.", tier: "User", gradient: "linear-gradient(135deg, #22d3ee, #0891b2)", glow: "rgba(34, 211, 238, 0.55)", bg: "rgba(34, 211, 238, 0.10)", border: "rgba(34, 211, 238, 0.30)", Icon: ImageIcon, color: "#22d3ee" },
+  domain_legend: { name: "Domain Legend", desc: "Add a public custom domain to redr.lol Image Host.", tier: "Legend", gradient: "linear-gradient(135deg, #60a5fa, #4f46e5)", glow: "rgba(96, 165, 250, 0.55)", bg: "rgba(96, 165, 250, 0.10)", border: "rgba(96, 165, 250, 0.30)", Icon: Globe, color: "#60a5fa" },
+  og: { name: "OG", desc: "Be an early supporter of redr.lol.", tier: "OG", gradient: "linear-gradient(135deg, #f59e0b, #d97706)", glow: "rgba(245, 158, 11, 0.55)", bg: "rgba(245, 158, 11, 0.10)", border: "rgba(245, 158, 11, 0.30)", Icon: Award, color: "#f59e0b" },
+  server_booster: { name: "Server Booster", desc: "Boost the redr.lol discord server.", tier: "Booster", gradient: "linear-gradient(135deg, #a78bfa, #7c3aed)", glow: "rgba(167, 139, 250, 0.55)", bg: "rgba(167, 139, 250, 0.10)", border: "rgba(167, 139, 250, 0.30)", Icon: Rocket, color: "#a78bfa" },
+  bug_hunter: { name: "Bug Hunter", desc: "Report a bug to the redr.lol team.", tier: "Hunter", gradient: "linear-gradient(135deg, #f87171, #dc2626)", glow: "rgba(248, 113, 113, 0.55)", bg: "rgba(248, 113, 113, 0.10)", border: "rgba(248, 113, 113, 0.30)", Icon: Bug, color: "#f87171" },
+  easter_2026: { name: "Easter 2026", desc: "Exclusive badge from the 2026 easter sale.", tier: "Event", gradient: "linear-gradient(135deg, #f9a8d4, #ec4899)", glow: "rgba(249, 168, 212, 0.55)", bg: "rgba(249, 168, 212, 0.10)", border: "rgba(249, 168, 212, 0.30)", Icon: Sparkles, color: "#f9a8d4" },
+  christmas_2025: { name: "Christmas 2025", desc: "Exclusive badge from the 2025 winter sale.", tier: "Event", gradient: "linear-gradient(135deg, #a5f3fc, #06b6d4)", glow: "rgba(165, 243, 252, 0.55)", bg: "rgba(165, 243, 252, 0.10)", border: "rgba(165, 243, 252, 0.30)", Icon: Snowflake, color: "#a5f3fc" },
+  easter_2025: { name: "Easter 2025", desc: "Exclusive badge from the 2025 easter sale.", tier: "Event", gradient: "linear-gradient(135deg, #f472b6, #db2777)", glow: "rgba(244, 114, 182, 0.55)", bg: "rgba(244, 114, 182, 0.10)", border: "rgba(244, 114, 182, 0.30)", Icon: Sparkles, color: "#f472b6" },
+  christmas_2024: { name: "Christmas 2024", desc: "Exclusive badge from the 2024 winter sale.", tier: "Event", gradient: "linear-gradient(135deg, #bfdbfe, #3b82f6)", glow: "rgba(191, 219, 254, 0.55)", bg: "rgba(191, 219, 254, 0.10)", border: "rgba(191, 219, 254, 0.30)", Icon: Snowflake, color: "#bfdbfe" },
+  the_million: { name: "The Million", desc: "Celebration badge for 1M users.", tier: "Event", gradient: "linear-gradient(135deg, #fde047, #eab308)", glow: "rgba(253, 224, 71, 0.55)", bg: "rgba(253, 224, 71, 0.10)", border: "rgba(253, 224, 71, 0.30)", Icon: Crown, color: "#fde047" },
+  winner: { name: "Winner", desc: "Win a guns.lol event.", tier: "Event", gradient: "linear-gradient(135deg, #facc15, #ca8a04)", glow: "rgba(250, 204, 21, 0.55)", bg: "rgba(250, 204, 21, 0.10)", border: "rgba(250, 204, 21, 0.30)", Icon: Trophy, color: "#facc15" },
+  second_place: { name: "Second Place", desc: "Get second place in a redr.lol event.", tier: "Event", gradient: "linear-gradient(135deg, #cbd5e1, #64748b)", glow: "rgba(203, 213, 225, 0.55)", bg: "rgba(203, 213, 225, 0.10)", border: "rgba(203, 213, 225, 0.30)", Icon: Medal, color: "#cbd5e1" },
+  third_place: { name: "Third Place", desc: "Get third place in a redr.lol event.", tier: "Event", gradient: "linear-gradient(135deg, #fb923c, #ea580c)", glow: "rgba(251, 146, 60, 0.55)", bg: "rgba(251, 146, 60, 0.10)", border: "rgba(251, 146, 60, 0.30)", Icon: Medal, color: "#fb923c" },
+  beta_tester: { name: "Beta Tester", desc: "Helped test unreleased features.", tier: "Tester", gradient: "linear-gradient(135deg, #2dd4bf, #0f766e)", glow: "rgba(45, 212, 191, 0.55)", bg: "rgba(45, 212, 191, 0.10)", border: "rgba(45, 212, 191, 0.30)", Icon: TestTube, color: "#2dd4bf" },
+  vip: { name: "VIP", desc: "Very Important Person.", tier: "VIP", gradient: "linear-gradient(135deg, #fbbf24, #d97706)", glow: "rgba(251, 191, 36, 0.55)", bg: "rgba(251, 191, 36, 0.10)", border: "rgba(251, 191, 36, 0.30)", Icon: Star, color: "#fbbf24" },
+};
 
-function BadgeChip({ badgeId }: { badgeId: string }) {
+interface BadgeChipProps {
+  badgeId: string;
+}
+
+function BadgeChip({ badgeId }: BadgeChipProps) {
+  const badge = BADGE_REGISTRY[badgeId as keyof typeof BADGE_REGISTRY];
+
+  if (!badge) return null;
+
+  const {
+    name,
+    desc,
+    tier,
+    gradient,
+    glow,
+    bg,
+    border,
+    Icon,
+    color,
+  } = badge;
+
   const [hovered, setHovered] = useState(false);
+
+  const [tooltipPos, setTooltipPos] = useState({
+    x: 0,
+    y: 0,
+  });
+
   const chipRef = useRef<HTMLDivElement>(null);
-  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
-  const meta = BADGE_REGISTRY[badgeId as keyof typeof BADGE_REGISTRY];
-  if (!meta) return null;
-  const { Icon, name, desc, tier, gradient, glow, bg, border, color } = meta;
 
   const handleMouseEnter = () => {
+    setHovered(true);
+
     if (chipRef.current) {
       const rect = chipRef.current.getBoundingClientRect();
+
       setTooltipPos({
         x: rect.left + rect.width / 2,
         y: rect.top,
       });
     }
-    setHovered(true);
   };
 
   return (
@@ -807,7 +813,7 @@ function ScrambleLink({ href, label, icon, title }: ScrambleLinkProps) {
       title={title}
     >
       <div className="item-bg absolute inset-0 bg-gradient-to-r from-stone-200/30 to-transparent dark:from-white/[0.04] dark:to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-0 pointer-events-none" />
-      
+
       <span className="relative z-10 scale-110 group-hover:scale-120 group-hover:text-stone-955 dark:group-hover:text-white transition-all duration-250 text-[1.1rem]">
         {icon}
       </span>
@@ -836,7 +842,7 @@ function SocialWidget({ customLinks }: { customLinks?: any[] }) {
       case "github":
         return <svg className="h-4.5 w-4.5 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" /></svg>;
       case "discord":
-        return <svg className="h-4.5 w-4.5 fill-current" viewBox="0 0 127.14 96.36"><path d="M107.7,8.07A105.15,105.15,0,0,0,77.26,0a77.19,77.19,0,0,0-3.3,6.83A96.67,96.67,0,0,0,53.22,6.83,77.19,77.19,0,0,0,49.88,0,105.15,105.15,0,0,0,19.44,8.07C3.66,31.58-1.86,54.65,1,77.53A105.73,105.73,0,0,0,32,96.36a77.7,77.7,0,0,0,6.63-10.85,68.43,68.43,0,0,1-10.5-5c1-.73,2-1.51,2.94-2.31A75.52,75.52,0,0,0,96,78.2c1,.8,1.94,1.58,2.94,2.31a68.17,68.17,0,0,1-10.5,5A77.7,77.7,0,0,0,95.12,96.36a105.73,105.73,0,0,0,31.06-18.83C129.87,50.7,123.36,27.83,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53S36.18,40.36,42.45,40.36,53.83,46,53.83,53,48.72,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.24,60,73.24,53S78.41,40.36,84.69,40.36,96.07,46,96.07,53,91,65.69,84.69,65.69Z"/></svg>;
+        return <svg className="h-4.5 w-4.5 fill-current" viewBox="0 0 127.14 96.36"><path d="M107.7,8.07A105.15,105.15,0,0,0,77.26,0a77.19,77.19,0,0,0-3.3,6.83A96.67,96.67,0,0,0,53.22,6.83,77.19,77.19,0,0,0,49.88,0,105.15,105.15,0,0,0,19.44,8.07C3.66,31.58-1.86,54.65,1,77.53A105.73,105.73,0,0,0,32,96.36a77.7,77.7,0,0,0,6.63-10.85,68.43,68.43,0,0,1-10.5-5c1-.73,2-1.51,2.94-2.31A75.52,75.52,0,0,0,96,78.2c1,.8,1.94,1.58,2.94,2.31a68.17,68.17,0,0,1-10.5,5A77.7,77.7,0,0,0,95.12,96.36a105.73,105.73,0,0,0,31.06-18.83C129.87,50.7,123.36,27.83,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53S36.18,40.36,42.45,40.36,53.83,46,53.83,53,48.72,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.24,60,73.24,53S78.41,40.36,84.69,40.36,96.07,46,96.07,53,91,65.69,84.69,65.69Z" /></svg>;
       case "youtube":
         return <svg className="h-4.5 w-4.5 fill-current" viewBox="0 0 24 24"><path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.518 3.545 12 3.545 12 3.545s-7.518 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.87.508 9.388.508 9.388.508s7.518 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" /></svg>;
       case "instagram":
@@ -1000,13 +1006,13 @@ function DiscordProfileCard({ user, discordData, lanyardData }: DiscordProfileCa
 
   const status = lanyardData?.discord_status || 'offline';
   const statusColor = statusColors[status] || statusColors.offline;
-  
+
   // Custom status
   const customStatusActivity = lanyardData?.activities?.find(act => act.name === 'Custom Status');
-  
+
   // Theme color from profile
   const themeColors = discordData?.user_profile?.theme_colors || [];
-  const primaryAccent = themeColors.length > 0 
+  const primaryAccent = themeColors.length > 0
     ? '#' + themeColors[0].toString(16).padStart(6, '0').toUpperCase()
     : '#950000';
 
@@ -1031,7 +1037,7 @@ function DiscordProfileCard({ user, discordData, lanyardData }: DiscordProfileCa
   const badges = discordData?.badges && discordData.badges.length > 0
     ? [...discordData.badges]
     : [...fallbackBadges];
-    
+
 
 
   const displayName = discordData?.user?.global_name || discordData?.user?.username || user.username || "404";
@@ -1247,7 +1253,7 @@ export default function ClientProfile({ user }: ClientProfileProps) {
   const [entered, setEntered] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.3);
-  
+
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -1365,7 +1371,7 @@ export default function ClientProfile({ user }: ClientProfileProps) {
     const currentTheme = theme === "system" ? "dark" : theme;
     const nextTheme = currentTheme === "dark" ? "light" : "dark";
     const doc = document as any;
-    
+
     if (!doc.startViewTransition) {
       setTheme(nextTheme);
       return;
@@ -1533,7 +1539,7 @@ export default function ClientProfile({ user }: ClientProfileProps) {
 
       {/* Ethereal Shadow Background */}
       <EtherealShadow />
-      
+
       {/* Oneko Cursor Tracker */}
       <NekoTracker />
 
@@ -1600,7 +1606,7 @@ export default function ClientProfile({ user }: ClientProfileProps) {
             </div>
 
             <div className="relative z-10 text-center space-y-8 flex flex-col items-center">
-              
+
               {/* Pulsating Chamber Logo */}
               <motion.div
                 animate={{
@@ -1611,7 +1617,7 @@ export default function ClientProfile({ user }: ClientProfileProps) {
                 className="flex h-24 w-24 items-center justify-center rounded-full border border-red-500/20 bg-[#0A0303] shadow-[0_0_40px_rgba(239,68,68,0.1)] relative"
               >
                 <Disc3 className="h-10 w-10 text-red-500 animate-spin" style={{ animationDuration: "8s" }} />
-                
+
                 {/* Tech rings decoration */}
                 <div className="absolute -inset-2 rounded-full border border-dashed border-red-500/5 animate-spin" style={{ animationDuration: "12s" }} />
               </motion.div>

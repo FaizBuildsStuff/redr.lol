@@ -248,7 +248,7 @@ export default function LinksPage() {
 
   if (loading) {
     return (
-      <div className="relative flex min-h-screen items-center justify-center bg-[#050505] text-[#F5F1E8]">
+      <div className="relative flex min-h-screen items-center justify-center bg-[#0A0A0A] text-[#F5F1E8]">
         <div className="absolute left-1/2 top-1/2 h-[350px] w-[350px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-red-600/10 blur-[120px]" />
         <div className="flex flex-col items-center gap-4 text-center">
           <motion.div
@@ -292,7 +292,7 @@ export default function LinksPage() {
   };
 
   return (
-    <section className="relative min-h-screen overflow-hidden bg-[#050505] px-4 md:px-10 pb-20 pt-8 md:pt-12">
+    <section className="relative min-h-screen overflow-hidden bg-[#0A0A0A] px-4 md:px-10 pb-20 pt-8 md:pt-12">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute left-1/4 top-0 h-[500px] w-[500px] rounded-full bg-red-600/5 blur-[150px]" />
       </div>
@@ -323,7 +323,7 @@ export default function LinksPage() {
                   <Plus className="h-4 w-4 mr-1.5 text-red-500" /> Add New Button
                 </Button>
               </DialogTrigger>
-              <DialogContent className="bg-[#050505] border-white/10 text-white sm:max-w-[425px]">
+              <DialogContent className="bg-[#0A0A0A] border-white/10 text-white sm:max-w-[425px]">
                 <DialogHeader>
                   <DialogTitle className="text-sm font-semibold text-red-400 uppercase tracking-widest">New Social Button</DialogTitle>
                   <DialogDescription className="text-[#8C8C8C] text-xs">
@@ -430,7 +430,7 @@ export default function LinksPage() {
                     className={`flex items-center justify-between p-4 rounded-2xl border transition-all duration-300 ${
                       link.active
                         ? "bg-[#0D0D0D] border-white/5"
-                        : "bg-[#050505] border-white/[0.02] opacity-50"
+                        : "bg-[#0A0A0A] border-white/[0.02] opacity-50"
                     }`}
                   >
                     <div className="flex items-center gap-4">

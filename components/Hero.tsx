@@ -6,11 +6,11 @@ import { ArrowRight } from "lucide-react";
 
 const Hero = () => {
   return (
-    <section className="relative min-h-screen overflow-hidden bg-[#050505] text-[#F5F1E8]">
+    <section className="relative min-h-screen overflow-hidden bg-[#0A0A0A] text-[#F5F1E8]">
       {/* Background */}
       <div className="absolute inset-0 overflow-hidden">
         {/* Base */}
-        <div className="absolute inset-0 bg-[#050505]" />
+        <div className="absolute inset-0 bg-[#0A0A0A]" />
 
         {/* Huge Center Glow */}
         <div className="absolute left-1/2 top-1/2 h-[950px] w-[950px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-red-600/10 blur-[190px]" />

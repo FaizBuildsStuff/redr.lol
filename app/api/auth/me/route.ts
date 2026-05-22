@@ -15,7 +15,7 @@ export async function GET() {
 
     // Fetch the latest user info from the database including all customization fields
     const [dbUser] = await sql`
-      SELECT username, email, discord_id, typewriter_heading, typewriter_quotes, active_badges
+      SELECT username, email, discord_id, typewriter_heading, typewriter_quotes, active_badges, owned_badges
       FROM users
       WHERE id = ${user.userId}
     `;
@@ -30,7 +30,8 @@ export async function GET() {
         discord_id: dbUser.discord_id,
         typewriter_heading: dbUser.typewriter_heading,
         typewriter_quotes: dbUser.typewriter_quotes,
-        active_badges: dbUser.active_badges
+        active_badges: dbUser.active_badges,
+        owned_badges: dbUser.owned_badges
       } 
     });
   } catch (error) {

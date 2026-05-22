@@ -5,7 +5,7 @@ import { ArrowRight } from "lucide-react";
 
 const FinalCTA = () => {
   return (
-    <section className="relative overflow-hidden bg-[#050505] px-6 pb-24 text-[#F5F1E8]">
+    <section className="relative overflow-hidden bg-[#0A0A0A] px-6 pb-24 text-[#F5F1E8]">
       {/* HANDDRAWN BACKGROUND ELEMENTS */}
 
       {/* Large Rose Scribble */}

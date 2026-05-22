@@ -41,7 +41,7 @@ const FAQSection = () => {
   const [active, setActive] = useState<number | null>(0);
 
   return (
-    <section className="relative overflow-hidden bg-[#050505] px-6 py-36 text-[#F5F1E8]">
+    <section className="relative overflow-hidden bg-[#0A0A0A] px-6 py-36 text-[#F5F1E8]">
 
       {/* Background */}
       <div className="absolute inset-0 overflow-hidden">

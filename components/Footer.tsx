@@ -54,7 +54,7 @@ const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 const Footer = () => {
   return (
-    <footer className="relative overflow-hidden border-t border-white/5 bg-[#050505] px-6 pb-10 pt-28 text-[#F5F1E8]">
+    <footer className="relative overflow-hidden border-t border-white/5 bg-[#0A0A0A] px-6 pb-10 pt-28 text-[#F5F1E8]">
 
       {/* Background */}
       <div className="absolute inset-0 overflow-hidden">

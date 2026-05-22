@@ -75,7 +75,7 @@ export default function DashboardLayout({
       </div>
 
       {/* MOBILE HEADER BAR */}
-      <div className="flex w-full items-center justify-between border-b border-white/5 bg-[#090909]/90 px-4 py-3 md:hidden absolute top-0 left-0 right-0 z-40 backdrop-blur-md">
+      <div className="flex w-full items-center justify-between border-b border-white/5 bg-[#0D0D0D]/90 px-4 py-3 md:hidden absolute top-0 left-0 right-0 z-40 backdrop-blur-md">
         <div className="flex items-center gap-2.5">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/10 border border-red-500/20">
             <span className="text-sm font-black text-red-500 font-serif">R</span>
@@ -91,7 +91,7 @@ export default function DashboardLayout({
       </div>
 
       {/* DESKTOP FIXED SIDEBAR */}
-      <aside className="fixed bottom-0 top-0 left-0 z-30 hidden w-[260px] border-r border-white/5 bg-[#090909]/80 p-6 md:flex md:flex-col backdrop-blur-xl shadow-[5px_0_30px_rgba(0,0,0,0.5)]">
+      <aside className="fixed bottom-0 top-0 left-0 z-30 hidden w-[260px] border-r border-white/5 bg-[#0D0D0D]/80 p-6 md:flex md:flex-col backdrop-blur-xl shadow-[5px_0_30px_rgba(0,0,0,0.5)]">
         <Sidebar user={user} />
       </aside>
 
@@ -113,7 +113,7 @@ export default function DashboardLayout({
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 220 }}
-              className="fixed bottom-0 top-0 left-0 z-50 w-[280px] bg-[#090909] p-6 shadow-2xl md:hidden flex flex-col"
+              className="fixed bottom-0 top-0 left-0 z-50 w-[280px] bg-[#0D0D0D] p-6 shadow-2xl md:hidden flex flex-col"
             >
               <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-4">
                 <div className="flex items-center gap-2">
