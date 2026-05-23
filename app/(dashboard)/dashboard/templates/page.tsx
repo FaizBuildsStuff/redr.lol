@@ -124,72 +124,322 @@ export default function TemplatesPage() {
           </p>
         </div>
 
-        {/* TEMPLATES GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {templates.map((template) => {
-            const isActive = activeTemplate === template.id;
-            
-            return (
-              <motion.div
-                key={template.id}
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className={`relative overflow-hidden rounded-[26px] border p-6 backdrop-blur-3xl transition-all duration-300 flex flex-col justify-between ${
-                  isActive
-                    ? "border-red-500/30 bg-[#0F0404]/50 shadow-[0_15px_30px_rgba(239,68,68,0.06)]"
-                    : "border-white/5 bg-[#0A0A0A] hover:border-white/10 hover:bg-[#0C0C0C]"
-                }`}
-              >
-                {/* Backdrop design decoration */}
-                <div
-                  className="absolute right-0 top-0 h-40 w-40 rounded-full opacity-10 blur-[50px] pointer-events-none"
-                  style={{ backgroundColor: template.accent }}
-                />
+        {/* TEMPLATE SHOWCASE */}
+<div className="space-y-8">
 
-                <div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#555] bg-white/[0.02] border border-white/5 px-3 py-1 rounded-full">
-                      {template.style}
-                    </span>
-                    {isActive && (
-                      <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-green-400 bg-green-500/10 border border-green-500/20 px-3 py-1 rounded-full">
-                        <Check className="h-3 w-3" /> Applied Theme
-                      </span>
-                    )}
+  {/* TOP FILTERS */}
+  <div className="flex flex-wrap items-center justify-between gap-4">
+
+    <div className="flex flex-wrap gap-3">
+
+      {[
+        "All Templates",
+        "Creator",
+        "Minimal",
+        "Cyberpunk",
+        "Glassmorphism",
+      ].map((item, i) => (
+        <button
+          key={i}
+          className={`
+          rounded-2xl
+          border
+          px-5
+          py-3
+          text-xs
+          font-semibold
+          uppercase
+          tracking-[0.15em]
+          transition-all
+          duration-300
+
+          ${
+            i === 0
+              ? "border-red-500/20 bg-red-500/10 text-red-400"
+              : "border-white/10 bg-white/[0.03] text-white/45 hover:bg-white/[0.06] hover:text-white"
+          }
+        `}
+        >
+          {item}
+        </button>
+      ))}
+
+    </div>
+
+    <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-3 text-xs font-semibold uppercase tracking-[0.15em] text-white/45 backdrop-blur-xl">
+      24 Premium Templates
+    </div>
+
+  </div>
+
+  {/* GRID */}
+  <div className="grid gap-6 lg:grid-cols-2">
+
+    {templates.map((template, index) => {
+      const isActive = activeTemplate === template.id;
+
+      return (
+        <motion.div
+          key={template.id}
+          initial={{ opacity: 0, y: 25 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{
+            delay: index * 0.08,
+          }}
+          whileHover={{
+            y: -6,
+            scale: 1.01,
+          }}
+          className={`
+          group
+          relative
+          overflow-hidden
+          rounded-[34px]
+          border
+          backdrop-blur-3xl
+          transition-all
+          duration-500
+
+          ${
+            isActive
+              ? "border-red-500/20 bg-red-500/[0.05] shadow-[0_0_50px_rgba(239,68,68,0.12)]"
+              : "border-white/10 bg-white/[0.03] hover:border-white/20 hover:bg-white/[0.05]"
+          }
+        `}
+        >
+
+          {/* Animated Background */}
+          <div
+            className="absolute inset-0 opacity-70"
+            style={{
+              background: `
+                radial-gradient(circle at top right, ${template.accent}20, transparent 30%),
+                radial-gradient(circle at bottom left, ${template.accent}15, transparent 30%)
+              `,
+            }}
+          />
+
+          {/* Glow */}
+          <div
+            className="absolute right-0 top-0 h-[220px] w-[220px] rounded-full opacity-20 blur-[100px]"
+            style={{
+              background: template.accent,
+            }}
+          />
+
+          {/* Grid Overlay */}
+          <div
+            className="absolute inset-0 opacity-[0.03]"
+            style={{
+              backgroundImage:
+                "linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)",
+              backgroundSize: "50px 50px",
+            }}
+          />
+
+          <div className="relative z-10 p-6 sm:p-7">
+
+            {/* TOP */}
+            <div className="flex items-start justify-between gap-4">
+
+              <div>
+
+                {/* STYLE BADGE */}
+                <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/30 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-white/50 backdrop-blur-xl">
+
+                  <div
+                    className="h-2 w-2 rounded-full"
+                    style={{
+                      backgroundColor: template.accent,
+                      boxShadow: `0 0 12px ${template.accent}`,
+                    }}
+                  />
+
+                  {template.style}
+
+                </div>
+
+                {/* NAME */}
+                <h3 className="mt-5 text-2xl font-semibold tracking-tight text-white">
+                  {template.name}
+                </h3>
+
+                {/* DESCRIPTION */}
+                <p className="mt-3 max-w-md text-sm leading-relaxed text-white/45">
+                  {template.desc}
+                </p>
+
+              </div>
+
+              {/* ACTIVE */}
+              {isActive && (
+                <div className="flex items-center gap-2 rounded-full border border-green-500/20 bg-green-500/10 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-green-400">
+
+                  <Check className="h-3.5 w-3.5" />
+
+                  Applied
+
+                </div>
+              )}
+
+            </div>
+
+            {/* TEMPLATE PREVIEW */}
+            <div className="relative mt-8 overflow-hidden rounded-[28px] border border-white/10 bg-black/40 p-5 backdrop-blur-3xl">
+
+              {/* Preview Glow */}
+              <div
+                className="absolute left-1/2 top-1/2 h-[160px] w-[160px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-20 blur-[80px]"
+                style={{
+                  background: template.accent,
+                }}
+              />
+
+              {/* Preview UI */}
+              <div className="relative z-10">
+
+                {/* Fake Header */}
+                <div className="flex items-center justify-between">
+
+                  <div className="flex items-center gap-3">
+
+                    <div
+                      className="h-12 w-12 rounded-2xl"
+                      style={{
+                        background: `linear-gradient(135deg, ${template.accent}, #ffffff20)`,
+                      }}
+                    />
+
+                    <div>
+                      <div className="h-3 w-24 rounded-full bg-white/10" />
+                      <div className="mt-2 h-2 w-16 rounded-full bg-white/5" />
+                    </div>
+
                   </div>
 
-                  <h3 className="mt-6 text-xl font-medium text-white tracking-tight">{template.name}</h3>
-                  <p className="mt-2.5 text-xs leading-relaxed text-[#8C8C8C]">
-                    {template.desc}
+                  <div className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[10px] uppercase tracking-[0.15em] text-white/40">
+                    Live
+                  </div>
+
+                </div>
+
+                {/* Fake Content */}
+                <div className="mt-6 space-y-3">
+
+                  <div className="h-14 rounded-2xl bg-white/[0.04]" />
+                  <div className="h-14 rounded-2xl bg-white/[0.03]" />
+                  <div className="h-14 rounded-2xl bg-white/[0.02]" />
+
+                </div>
+
+                {/* Fake Footer */}
+                <div className="mt-6 flex items-center justify-between">
+
+                  <div className="flex gap-2">
+
+                    <div className="h-9 w-9 rounded-xl bg-white/[0.05]" />
+                    <div className="h-9 w-9 rounded-xl bg-white/[0.05]" />
+                    <div className="h-9 w-9 rounded-xl bg-white/[0.05]" />
+
+                  </div>
+
+                  <div
+                    className="h-10 w-28 rounded-2xl"
+                    style={{
+                      background: `linear-gradient(90deg, ${template.accent}, #ffffff20)`,
+                    }}
+                  />
+
+                </div>
+
+              </div>
+            </div>
+
+            {/* BOTTOM */}
+            <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+              {/* CREATOR */}
+              <div className="flex items-center gap-3">
+
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-black/30 text-white backdrop-blur-xl">
+                  <Sparkles className="h-5 w-5" />
+                </div>
+
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/35">
+                    Creator
+                  </p>
+
+                  <p className="mt-1 text-sm font-medium text-white">
+                    @redrLabs
                   </p>
                 </div>
 
-                <div className="mt-8 pt-5 border-t border-white/5 flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-1 text-[10px] text-[#555] uppercase font-bold tracking-wider">
-                    Accent Color:
-                    <div className="h-3.5 w-3.5 rounded-full border border-white/15" style={{ backgroundColor: template.accent }} />
-                  </div>
+              </div>
 
-                  <div className="flex items-center gap-2">
-                    {/* Select theme button */}
-                    <Button
-                      onClick={() => setActiveTemplate(template.id)}
-                      disabled={isActive}
-                      className={`h-9 px-4 rounded-lg text-[10px] uppercase font-bold tracking-wider transition-all duration-300 ${
-                        isActive
-                          ? "bg-red-500/10 border border-red-500/20 text-red-400"
-                          : "bg-red-600 hover:bg-red-500 text-white shadow-md hover:shadow-lg"
-                      }`}
-                    >
-                      {isActive ? "Currently Applied" : "Apply Template"}
-                    </Button>
-                  </div>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
+              {/* BUTTONS */}
+              <div className="flex gap-3">
+
+                {/* PREVIEW */}
+                <Button
+                  className="
+                  h-12
+                  rounded-2xl
+                  border
+                  border-white/10
+                  bg-white/[0.03]
+                  px-5
+                  text-sm
+                  font-semibold
+                  text-white
+                  transition-all
+                  duration-300
+                  hover:bg-white/[0.06]
+                "
+                >
+                  <Eye className="mr-2 h-4 w-4" />
+                  Preview
+                </Button>
+
+                {/* APPLY */}
+                <Button
+                  onClick={() =>
+                    setActiveTemplate(template.id)
+                  }
+                  disabled={isActive}
+                  className={`
+                  h-12
+                  rounded-2xl
+                  px-6
+                  text-sm
+                  font-semibold
+                  text-white
+                  transition-all
+                  duration-300
+
+                  ${
+                    isActive
+                      ? "border border-red-500/20 bg-red-500/10 text-red-400"
+                      : "bg-gradient-to-r from-red-500 to-purple-600 hover:scale-[1.02] hover:shadow-[0_0_40px_rgba(239,68,68,0.35)]"
+                  }
+                `}
+                >
+
+                  {isActive
+                    ? "Currently Applied"
+                    : "Apply Template"}
+
+                </Button>
+
+              </div>
+
+            </div>
+          </div>
+        </motion.div>
+      );
+    })}
+  </div>
+</div>
 
       </div>
     </section>
