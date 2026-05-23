@@ -3,76 +3,6 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-const Disc3 = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <circle cx="12" cy="12" r="10" />
-    <path d="M12 12a0 0 0 1 0 0" />
-    <path d="M12 2a10 10 0 0 1 10 10" />
-  </svg>
-);
-
-const Link2 = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <path d="M9 17H7A5 5 0 0 1 7 7h2" />
-    <path d="M15 7h2a5 5 0 0 1 0 10h-2" />
-    <line x1="8" y1="12" x2="16" y2="12" />
-  </svg>
-);
-
-const Plus = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <line x1="12" y1="5" x2="12" y2="19" />
-    <line x1="5" y1="12" x2="19" y2="12" />
-  </svg>
-);
-
-const Trash2 = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <polyline points="3 6 5 6 21 6" />
-    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-    <line x1="10" y1="11" x2="10" y2="17" />
-    <line x1="14" y1="11" x2="14" y2="17" />
-  </svg>
-);
-
-const Globe = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <circle cx="12" cy="12" r="10" />
-    <line x1="2" y1="12" x2="22" y2="12" />
-    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-  </svg>
-);
-
-const Youtube = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 11.54a29 29 0 0 0 .46 5.12 2.78 2.78 0 0 0 1.95 1.96c1.71.46 8.59.46 8.59.46s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96 29 29 0 0 0 .46-5.12 29 29 0 0 0-.46-5.12z" />
-    <polygon points="9.75 15.02 15.5 11.54 9.75 8.07 9.75 15.02" />
-  </svg>
-);
-
-const CheckCircle2 = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
-    <path d="m9 12 2 2 4-4" />
-  </svg>
-);
-
-const EyeOff = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
-    <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
-    <path d="M6.61 6.61A13.52 13.52 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
-    <line x1="2" y1="2" x2="22" y2="22" />
-  </svg>
-);
-
-const Eye = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-    <circle cx="12" cy="12" r="3" />
-  </svg>
-);
-
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -83,164 +13,129 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-const Github = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    {...props}
-  >
-    <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
-    <path d="M9 18c-4.51 2-5-2-7-2" />
-  </svg>
-);
-
-const Twitter = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    {...props}
-  >
-    <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" />
-  </svg>
-);
-
-const Instagram = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    {...props}
-  >
-    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
-  </svg>
-);
-
-const Steam = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="currentColor"
-    {...props}
-  >
-    <path d="M12 2C6.477 2 2 6.477 2 12c0 4.54 3.03 8.375 7.153 9.605l.937-2.612a2.385 2.385 0 0 1-.09-.597 2.395 2.395 0 1 1 4.79 0c0 .416-.107.807-.294 1.15l.904 2.523C18.847 20.672 22 16.71 22 12c0-5.523-4.477-10-10-10zm0 1.25c4.832 0 8.75 3.918 8.75 8.75 0 3.826-2.454 7.08-5.883 8.243l-.936-2.61a2.393 2.393 0 0 1 .069-.533 2.395 2.395 0 0 1-4.79 0c0-.184.02-.363.059-.536l-.968-2.702A4.79 4.79 0 0 0 12 3.25zM12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 1.25a2.75 2.75 0 1 1 0 5.5 2.75 2.75 0 0 1 0-5.5zm0 .75a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm0 .75a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5z" />
-  </svg>
-);
-
-interface UserProfile {
-  id: number;
-  username: string;
-  email: string;
-  custom_links?: CustomLink[];
-}
-
 interface CustomLink {
   id: string;
   title: string;
   url: string;
-  iconType: string;
+  icon: string;
   active: boolean;
 }
 
+const socials = [
+  { id: "twitter", icon: "𝕏" },
+  { id: "youtube", icon: "▶" },
+  { id: "discord", icon: "◎" },
+  { id: "spotify", icon: "◉" },
+  { id: "instagram", icon: "◌" },
+  { id: "github", icon: "◈" },
+  { id: "tiktok", icon: "♪" },
+  { id: "telegram", icon: "✈" },
+  { id: "paypal", icon: "$" },
+  { id: "twitch", icon: "◍" },
+];
+
 export default function LinksPage() {
   const router = useRouter();
-  const [user, setUser] = useState<UserProfile | null>(null);
+
   const [loading, setLoading] = useState(true);
 
-  // Links List
   const [links, setLinks] = useState<CustomLink[]>([
-    { id: "1", title: "Official Twitter", url: "https://twitter.com", iconType: "twitter", active: true },
-    { id: "2", title: "Community Discord", url: "https://discord.gg", iconType: "discord", active: true },
-    { id: "3", title: "Ecosystem Source Code", url: "https://github.com", iconType: "github", active: false }
+    {
+      id: "1",
+      title: "Twitter",
+      url: "https://twitter.com",
+      icon: "𝕏",
+      active: true,
+    },
+    {
+      id: "2",
+      title: "Discord",
+      url: "https://discord.gg",
+      icon: "◎",
+      active: true,
+    },
+    {
+      id: "3",
+      title: "Github",
+      url: "https://github.com",
+      icon: "◈",
+      active: true,
+    },
   ]);
 
-  // Form inputs
+  const [adding, setAdding] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newUrl, setNewUrl] = useState("");
-  const [newIconType, setNewIconType] = useState("globe");
-  const [adding, setAdding] = useState(false);
+  const [newIcon, setNewIcon] = useState("𝕏");
+
   const [saving, setSaving] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
 
   useEffect(() => {
     async function checkAuth() {
       try {
         const res = await fetch("/api/auth/me");
         const data = await res.json();
-        if (data.user) {
-          setUser(data.user);
-          if (data.user.custom_links && data.user.custom_links.length > 0) {
-            setLinks(data.user.custom_links);
-          }
-        } else {
+
+        if (!data.user) {
           router.push("/signin");
         }
-      } catch (err) {
-        console.error("Auth check failed:", err);
+      } catch {
         router.push("/signin");
       } finally {
         setLoading(false);
       }
     }
+
     checkAuth();
   }, [router]);
 
-  const handleAddLink = (e: React.FormEvent) => {
+  const addLink = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTitle || !newUrl) return;
 
-    const newLink: CustomLink = {
+    const item = {
       id: Date.now().toString(),
       title: newTitle,
-      url: newUrl.startsWith("http") ? newUrl : `https://${newUrl}`,
-      iconType: newIconType,
-      active: true
+      url: newUrl.startsWith("http")
+        ? newUrl
+        : `https://${newUrl}`,
+      icon: newIcon,
+      active: true,
     };
 
-    setLinks([...links, newLink]);
+    setLinks([...links, item]);
+
     setNewTitle("");
     setNewUrl("");
-    setNewIconType("globe");
     setAdding(false);
   };
 
-  const handleDeleteLink = (id: string) => {
-    setLinks(links.filter((l) => l.id !== id));
+  const deleteLink = (id: string) => {
+    setLinks(links.filter((x) => x.id !== id));
   };
 
-  const handleToggleActive = (id: string) => {
+  const toggleLink = (id: string) => {
     setLinks(
-      links.map((l) => (l.id === id ? { ...l, active: !l.active } : l))
+      links.map((x) =>
+        x.id === id ? { ...x, active: !x.active } : x
+      )
     );
   };
 
-  const handleSaveChanges = async () => {
-    setSaving(true);
-    setSaveSuccess(false);
-
+  const saveLinks = async () => {
     try {
-      const res = await fetch("/api/user/profile", {
+      setSaving(true);
+
+      await fetch("/api/user/profile", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ custom_links: links })
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          custom_links: links,
+        }),
       });
-      if (res.ok) {
-        setSaveSuccess(true);
-        setTimeout(() => setSaveSuccess(false), 2000);
-      }
     } catch (e) {
-      console.error(e);
+      console.log(e);
     } finally {
       setSaving(false);
     }
@@ -248,231 +143,456 @@ export default function LinksPage() {
 
   if (loading) {
     return (
-      <div className="relative flex min-h-screen items-center justify-center bg-[#0A0A0A] text-[#F5F1E8]">
-        <div className="absolute left-1/2 top-1/2 h-[350px] w-[350px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-red-600/10 blur-[120px]" />
-        <div className="flex flex-col items-center gap-4 text-center">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-            className="flex h-16 w-16 items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/10"
-          >
-            <Disc3 className="h-7 w-7 text-red-500" />
-          </motion.div>
-          <p className="text-sm font-medium tracking-[0.15em] uppercase text-[#8A8A8A] animate-pulse">
-            Configuring link arrays...
-          </p>
-        </div>
+      <div className="flex min-h-screen items-center justify-center bg-black text-white">
+        Loading...
       </div>
     );
   }
 
-  if (!user) return null;
-
-  const renderIcon = (type: string) => {
-    switch (type) {
-      case "twitter":
-        return <Twitter className="h-4.5 w-4.5 text-sky-400" />;
-      case "github":
-        return <Github className="h-4.5 w-4.5 text-white" />;
-      case "discord":
-        return (
-          <svg className="h-4.5 w-4.5 fill-indigo-400" viewBox="0 0 127.14 96.36">
-            <path d="M107.7,8.07A105.15,105.15,0,0,0,77.26,0a77.19,77.19,0,0,0-3.3,6.83A96.67,96.67,0,0,0,53.22,6.83,77.19,77.19,0,0,0,49.88,0,105.15,105.15,0,0,0,19.44,8.07C3.66,31.58-1.86,54.65,1,77.53A105.73,105.73,0,0,0,32,96.36a77.7,77.7,0,0,0,6.63-10.85,68.43,68.43,0,0,1-10.5-5c1-.73,2-1.51,2.94-2.31A75.52,75.52,0,0,0,96,78.2c1,.8,1.94,1.58,2.94,2.31a68.17,68.17,0,0,1-10.5,5A77.7,77.7,0,0,0,95.12,96.36a105.73,105.73,0,0,0,31.06-18.83C129.87,50.7,123.36,27.83,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53S36.18,40.36,42.45,40.36,53.83,46,53.83,53,48.72,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.24,60,73.24,53S78.41,40.36,84.69,40.36,96.07,46,96.07,53,91,65.69,84.69,65.69Z"/>
-          </svg>
-        );
-      case "youtube":
-        return <Youtube className="h-4.5 w-4.5 text-red-500" />;
-      case "instagram":
-        return <Instagram className="h-4.5 w-4.5 text-pink-500" />;
-      case "steam":
-        return <Steam className="h-4.5 w-4.5 text-white" />;
-      default:
-        return <Globe className="h-4.5 w-4.5 text-neutral-400" />;
-    }
-  };
-
   return (
-    <section className="relative min-h-screen overflow-hidden bg-[#0A0A0A] px-4 md:px-10 pb-20 pt-8 md:pt-12">
+    <section className="relative min-h-screen overflow-hidden bg-black px-3 pb-20 pt-8 sm:px-6 lg:px-10">
+
+      {/* Background Effects */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute left-1/4 top-0 h-[500px] w-[500px] rounded-full bg-red-600/5 blur-[150px]" />
+        <div className="absolute left-20 top-20 h-72 w-72 rounded-full bg-white/5 blur-[120px]" />
+        <div className="absolute right-0 top-0 h-[500px] w-[500px] rounded-full bg-neutral-700/10 blur-[160px]" />
+        <div className="absolute bottom-0 left-1/3 h-[400px] w-[400px] rounded-full bg-white/5 blur-[150px]" />
+
+        <div
+          className="absolute inset-0 opacity-[0.04]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px)",
+            backgroundSize: "80px 80px",
+          }}
+        />
       </div>
 
-      <div className="mx-auto max-w-4xl relative z-10">
-        
-        {/* Header */}
-        <div className="border-b border-white/5 pb-8 mb-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 text-red-400 text-xs font-semibold uppercase tracking-[0.2em]">
-              <Link2 className="h-4 w-4" /> Link router
+      <div className="relative z-10 mx-auto max-w-7xl">
+
+        {/* TOP */}
+<div className="relative mb-12 overflow-hidden rounded-[32px] border border-white/10 bg-white/[0.03] p-6 backdrop-blur-3xl sm:p-8">
+
+  {/* BACKGROUND GLOWS */}
+  <div className="pointer-events-none absolute inset-0 overflow-hidden">
+    <div className="absolute left-0 top-0 h-[250px] w-[250px] rounded-full bg-red-500/10 blur-[120px]" />
+    <div className="absolute right-0 top-0 h-[300px] w-[300px] rounded-full bg-white/5 blur-[140px]" />
+    <div className="absolute bottom-0 left-1/2 h-[200px] w-[200px] -translate-x-1/2 rounded-full bg-red-500/10 blur-[100px]" />
+  </div>
+
+  <div className="relative z-10 flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
+
+    {/* LEFT */}
+    <div className="max-w-2xl">
+
+      <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-red-500/20 bg-red-500/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-red-400 backdrop-blur-xl">
+        <div className="h-2 w-2 rounded-full bg-red-400 shadow-[0_0_12px_rgba(248,113,113,0.8)]" />
+        Creator Link Hub
+      </div>
+
+      <h1 className="text-3xl font-semibold leading-tight tracking-tight text-white sm:text-5xl">
+        Link your social media profiles
+      </h1>
+
+      <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/45 sm:text-base">
+        Connect all your socials, communities, products and external platforms
+        inside one modern creator profile experience.
+      </p>
+
+    </div>
+
+    {/* RIGHT BUTTONS */}
+    <div className="flex flex-wrap items-center gap-3">
+
+      {/* ADD LINK BUTTON */}
+      <Dialog open={adding} onOpenChange={setAdding}>
+        <DialogTrigger asChild>
+          <Button
+            className="
+            group
+            relative
+            h-12
+            overflow-hidden
+            rounded-2xl
+            border
+            border-red-500/20
+            bg-red-500/10
+            px-5
+            text-sm
+            font-semibold
+            text-red-400
+            backdrop-blur-xl
+            transition-all
+            duration-300
+            hover:scale-[1.02]
+            hover:border-red-500/40
+            hover:bg-red-500/20
+            hover:text-white
+            hover:shadow-[0_0_40px_rgba(239,68,68,0.25)]
+          "
+          >
+
+            <div className="absolute inset-0 bg-gradient-to-r from-red-500/0 via-red-500/10 to-red-500/0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+
+            <span className="relative z-10 flex items-center gap-2">
+              +
+              Add Link
+            </span>
+
+          </Button>
+        </DialogTrigger>
+
+        {/* DIALOG */}
+        <DialogContent
+          className="
+          overflow-hidden
+          border
+          border-white/10
+          bg-[#070707]
+          text-white
+          backdrop-blur-3xl
+          sm:max-w-[480px]
+        "
+        >
+
+          {/* GLOW */}
+          <div className="pointer-events-none absolute left-1/2 top-0 h-[250px] w-[250px] -translate-x-1/2 rounded-full bg-white/10 blur-[120px]" />
+
+          <DialogHeader className="relative z-10">
+            <DialogTitle className="text-2xl font-semibold tracking-tight">
+              Create New Link
+            </DialogTitle>
+
+            <DialogDescription className="mt-2 text-sm leading-relaxed text-white/40">
+              Connect socials, portfolios, communities and external platforms beautifully.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form
+            onSubmit={addLink}
+            className="relative z-10 mt-6 space-y-5"
+          >
+
+            {/* TITLE */}
+            <div>
+              <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-white/40">
+                Link Title
+              </label>
+
+              <input
+                required
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                placeholder="Twitter"
+                className="
+                h-12
+                w-full
+                rounded-2xl
+                border
+                border-white/10
+                bg-white/[0.03]
+                px-4
+                text-sm
+                text-white
+                outline-none
+                transition-all
+                focus:border-red-500/30
+                focus:bg-white/[0.05]
+              "
+              />
             </div>
-            <h1 className="mt-2 text-4xl font-medium tracking-tight text-white">
-              Buttons & Social Links
-            </h1>
-            <p className="mt-2 text-sm text-[#8C8C8C]">
-              Configure interactive buttons that sit inside your bio canvas cards.
-            </p>
+
+            {/* URL */}
+            <div>
+              <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-white/40">
+                Destination URL
+              </label>
+
+              <input
+                required
+                value={newUrl}
+                onChange={(e) => setNewUrl(e.target.value)}
+                placeholder="https://"
+                className="
+                h-12
+                w-full
+                rounded-2xl
+                border
+                border-white/10
+                bg-white/[0.03]
+                px-4
+                text-sm
+                text-white
+                outline-none
+                transition-all
+                focus:border-red-500/30
+                focus:bg-white/[0.05]
+              "
+              />
+            </div>
+
+            {/* PLATFORM SELECT */}
+<div>
+  <label className="mb-3 block text-xs font-semibold uppercase tracking-[0.18em] text-white/35">
+    Platform Type
+  </label>
+
+  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+
+    {[
+      { id: "𝕏", name: "Twitter" },
+      { id: "◎", name: "Discord" },
+      { id: "◈", name: "Github" },
+      { id: "▶", name: "YouTube" },
+      { id: "◌", name: "Instagram" },
+      { id: "🌐", name: "Custom URL" },
+    ].map((platform) => (
+      <button
+        type="button"
+        key={platform.name}
+        onClick={() => setNewIcon(platform.id)}
+        className={`
+        group
+        relative
+        overflow-hidden
+        rounded-3xl
+        border
+        p-4
+        text-left
+        transition-all
+        duration-300
+
+        ${
+          newIcon === platform.id
+            ? "border-red-500/40 bg-red-500/10 shadow-[0_0_40px_rgba(239,68,68,0.15)]"
+            : "border-white/10 bg-white/[0.03] hover:border-white/20 hover:bg-white/[0.05]"
+        }
+      `}
+      >
+
+        {/* Glow */}
+        <div className="absolute inset-0 bg-gradient-to-b from-white/[0.04] to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
+        {/* Content */}
+        <div className="relative z-10">
+
+          {/* Icon */}
+          <div
+            className={`
+            mb-4
+            flex
+            h-14
+            w-14
+            items-center
+            justify-center
+            rounded-2xl
+            border
+            text-2xl
+            backdrop-blur-xl
+            transition-all
+            duration-300
+
+            ${
+              newIcon === platform.id
+                ? "border-red-500/30 bg-red-500/10 text-red-400"
+                : "border-white/10 bg-black/30 text-white"
+            }
+          `}
+          >
+            {platform.id}
           </div>
 
-          <div className="flex items-center gap-3">
-            <Dialog open={adding} onOpenChange={setAdding}>
-              <DialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="h-11 px-5 rounded-xl border-white/10 bg-white/[0.02] text-xs text-white hover:bg-white/[0.06] transition-all duration-300"
-                >
-                  <Plus className="h-4 w-4 mr-1.5 text-red-500" /> Add New Button
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="bg-[#0A0A0A] border-white/10 text-white sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle className="text-sm font-semibold text-red-400 uppercase tracking-widest">New Social Button</DialogTitle>
-                  <DialogDescription className="text-[#8C8C8C] text-xs">
-                    Create a custom social button or web link.
-                  </DialogDescription>
-                </DialogHeader>
-                <form onSubmit={handleAddLink} className="space-y-4 pt-2">
-                  <div className="space-y-4">
-                    {/* Button Title */}
-                    <div>
-                      <label className="block text-[10px] uppercase tracking-wider text-[#666] mb-1.5 font-semibold">Title</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. My Website"
-                        value={newTitle}
-                        onChange={(e) => setNewTitle(e.target.value)}
-                        required
-                        className="h-11 w-full rounded-xl border border-white/5 bg-[#0A0A0A] px-3.5 text-xs text-white placeholder-[#333] transition-all focus:border-red-500/30 focus:outline-none"
-                      />
-                    </div>
+          {/* Text */}
+          <h4 className="text-sm font-semibold text-white">
+            {platform.name}
+          </h4>
 
-                    {/* Destination URL */}
-                    <div>
-                      <label className="block text-[10px] uppercase tracking-wider text-[#666] mb-1.5 font-semibold">URL Destination</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. mysite.com"
-                        value={newUrl}
-                        onChange={(e) => setNewUrl(e.target.value)}
-                        required
-                        className="h-11 w-full rounded-xl border border-white/5 bg-[#0A0A0A] px-3.5 text-xs text-white placeholder-[#333] transition-all focus:border-red-500/30 focus:outline-none"
-                      />
-                    </div>
+          <p className="mt-1 text-xs leading-relaxed text-white/40">
+            {platform.name === "Custom URL"
+              ? "Use your own website or custom external link."
+              : `Connect your ${platform.name} profile.`}
+          </p>
 
-                    {/* Icon Selector */}
-                    <div>
-                      <label className="block text-[10px] uppercase tracking-wider text-[#666] mb-1.5 font-semibold">Icon Style</label>
-                      <select
-                        value={newIconType}
-                        onChange={(e) => setNewIconType(e.target.value)}
-                        className="h-11 w-full rounded-xl border border-white/5 bg-[#0A0A0A] px-3.5 text-xs text-[#8C8C8C] transition-all focus:border-red-500/30 focus:outline-none"
-                      >
-                        <option value="globe">Globe (Custom URL)</option>
-                        <option value="twitter">Twitter</option>
-                        <option value="discord">Discord</option>
-                        <option value="github">GitHub</option>
-                        <option value="youtube">YouTube</option>
-                        <option value="instagram">Instagram</option>
-                        <option value="steam">Steam</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end pt-2">
-                    <Button
-                      type="submit"
-                      className="h-9 px-4 rounded-lg bg-red-600 hover:bg-red-500 text-[10px] uppercase font-bold text-white shadow-[0_4px_15px_rgba(239,68,68,0.2)]"
-                    >
-                      Add Button
-                    </Button>
-                  </div>
-                </form>
-              </DialogContent>
-            </Dialog>
-
-            <Button
-              onClick={handleSaveChanges}
-              disabled={saving}
-              className="h-11 px-5 rounded-xl bg-red-600 hover:bg-red-500 text-xs font-bold uppercase tracking-wider text-white shadow-[0_4px_15px_rgba(239,68,68,0.2)] transition-all duration-300 flex items-center gap-2"
-            >
-              {saving ? (
-                <Disc3 className="h-4 w-4 animate-spin" />
-              ) : saveSuccess ? (
-                <CheckCircle2 className="h-4 w-4 text-green-300" />
-              ) : (
-                <Link2 className="h-4 w-4" />
-              )}
-              {saveSuccess ? "Saved Successfully" : "Save Configuration"}
-            </Button>
-          </div>
         </div>
 
-        {/* LINKS LISTING */}
-        <div className="rounded-[26px] border border-white/5 bg-[#0A0A0A]/80 p-6 backdrop-blur-3xl space-y-4">
-          <div className="flex items-center justify-between border-b border-white/5 pb-4">
-            <h3 className="text-sm font-semibold text-white">Public Links</h3>
-            <span className="text-[10px] text-[#555] font-semibold">{links.length} configure items active</span>
+        {/* Active Dot */}
+        <div
+          className={`
+          absolute
+          right-4
+          top-4
+          h-3
+          w-3
+          rounded-full
+          transition-all
+          duration-300
+
+          ${
+            newIcon === platform.id
+              ? "bg-red-400 shadow-[0_0_20px_rgba(248,113,113,0.9)]"
+              : "bg-white/10"
+          }
+        `}
+        />
+
+      </button>
+    ))}
+  </div>
+</div>
+
+            {/* WHITE BUTTON */}
+            <Button
+              type="submit"
+              className="
+              h-12
+              w-full
+              rounded-2xl
+              bg-white
+              text-sm
+              font-semibold
+              text-black
+              transition-all
+              duration-300
+              hover:scale-[1.01]
+              hover:bg-neutral-200
+              shadow-[0_10px_40px_rgba(255,255,255,0.15)]
+            "
+            >
+              Create Link
+            </Button>
+
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* SAVE BUTTON */}
+      <Button
+        onClick={saveLinks}
+        disabled={saving}
+        className="
+        group
+        relative
+        h-12
+        overflow-hidden
+        rounded-2xl
+        border
+        border-red-500/20
+        bg-red-500
+        px-6
+        text-sm
+        font-semibold
+        text-white
+        transition-all
+        duration-300
+        hover:scale-[1.02]
+        hover:bg-red-400
+        hover:shadow-[0_0_50px_rgba(239,68,68,0.45)]
+      "
+      >
+
+        <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+
+        <span className="relative z-10">
+          {saving ? "Saving..." : "Save Changes"}
+        </span>
+
+      </Button>
+
+    </div>
+  </div>
+</div>
+
+        {/* MAIN GLASS PANEL */}
+        <div className="rounded-[36px] border border-white/10 bg-white/[0.03] p-5 backdrop-blur-3xl sm:p-8">
+
+          <div className="mb-8 flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-semibold text-white">
+                Social Links
+              </h2>
+
+              <p className="mt-1 text-sm text-white/40">
+                Manage all profile connections
+              </p>
+            </div>
+
+            <div className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-xs font-medium text-white/50">
+              {links.length} active links
+            </div>
           </div>
 
-          <div className="space-y-3">
-            <AnimatePresence initial={false}>
-              {links.length === 0 ? (
-                <div className="text-center py-10">
-                  <p className="text-xs text-[#555] uppercase font-bold tracking-wider">No active link buttons</p>
-                  <p className="text-xs text-[#8C8C8C] mt-1">Click "Add New Button" to construct profile layout links.</p>
-                </div>
-              ) : (
-                links.map((link) => (
-                  <motion.div
-                    key={link.id}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 10 }}
-                    className={`flex items-center justify-between p-4 rounded-2xl border transition-all duration-300 ${
-                      link.active
-                        ? "bg-[#0D0D0D] border-white/5"
-                        : "bg-[#0A0A0A] border-white/[0.02] opacity-50"
-                    }`}
-                  >
-                    <div className="flex items-center gap-4">
-                      {/* Brand Icon Container */}
-                      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/[0.03] border border-white/5">
-                        {renderIcon(link.iconType)}
-                      </div>
-                      
-                      <div>
-                        <h4 className="text-sm font-medium text-white">{link.title}</h4>
-                        <p className="text-[10px] text-[#666] font-mono mt-0.5 truncate max-w-[250px] sm:max-w-xs">{link.url}</p>
-                      </div>
+          {/* GRID */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+
+            <AnimatePresence>
+              {links.map((link) => (
+                <motion.div
+                  key={link.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  whileHover={{ y: -4, scale: 1.02 }}
+                  className={`group relative overflow-hidden rounded-[28px] border p-5 transition-all duration-300 ${
+                    link.active
+                      ? "border-white/10 bg-white/[0.03] hover:border-white/20 hover:bg-white/[0.05]"
+                      : "border-white/5 bg-white/[0.01] opacity-40"
+                  }`}
+                >
+
+                  {/* Glow */}
+                  <div className="absolute inset-0 bg-gradient-to-b from-white/[0.04] to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+
+                  <div className="relative z-10">
+
+                    {/* Icon */}
+                    <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-black/40 text-2xl text-white backdrop-blur-xl">
+                      {link.icon}
                     </div>
 
-                    <div className="flex items-center gap-3">
-                      {/* Active Toggle */}
+                    {/* Text */}
+                    <h3 className="text-sm font-semibold text-white">
+                      {link.title}
+                    </h3>
+
+                    <p className="mt-1 truncate text-xs text-white/40">
+                      {link.url}
+                    </p>
+
+                    {/* Bottom */}
+                    <div className="mt-5 flex items-center justify-between">
+
                       <button
-                        onClick={() => handleToggleActive(link.id)}
-                        className={`flex h-8 w-8 items-center justify-center rounded-lg border transition-all duration-200 ${
+                        onClick={() =>
+                          toggleLink(link.id)
+                        }
+                        className={`rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-wider transition-all ${
                           link.active
-                            ? "bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20"
-                            : "bg-white/[0.01] border-white/5 text-[#444] hover:text-[#888]"
+                            ? "bg-white text-black"
+                            : "bg-white/10 text-white/50"
                         }`}
                       >
-                        {link.active ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                        {link.active
+                          ? "Active"
+                          : "Hidden"}
                       </button>
 
-                      {/* Delete link */}
                       <button
-                        onClick={() => handleDeleteLink(link.id)}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/5 bg-white/[0.01] text-[#444] hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 transition-all duration-200"
+                        onClick={() =>
+                          deleteLink(link.id)
+                        }
+                        className="text-xs text-white/30 transition-all hover:text-red-400"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        Delete
                       </button>
+
                     </div>
-                  </motion.div>
-                ))
-              )}
+                  </div>
+                </motion.div>
+              ))}
             </AnimatePresence>
+
           </div>
         </div>
-
       </div>
     </section>
   );
