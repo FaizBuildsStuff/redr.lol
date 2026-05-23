@@ -76,94 +76,266 @@ export default function PremiumPage() {
   ];
 
   return (
-    <section className="relative min-h-screen overflow-hidden bg-[#0A0A0A] px-4 md:px-10 pb-20 pt-8 md:pt-12">
-      {/* Dynamic backdrop glows for Premium */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute left-1/3 top-0 h-[600px] w-[600px] rounded-full bg-red-600/5 blur-[160px]" />
-        <div className="absolute right-1/4 bottom-0 h-[500px] w-[500px] rounded-full bg-purple-600/5 blur-[150px]" />
-      </div>
+  <section className="relative min-h-screen overflow-hidden bg-black px-3 pb-20 pt-6 sm:px-6 lg:px-10">
 
-      <div className="mx-auto max-w-5xl relative z-10">
-        
-        {/* Header */}
-        <div className="border-b border-white/5 pb-8 mb-10">
-          <div className="flex items-center gap-2 text-red-400 text-xs font-semibold uppercase tracking-[0.2em]">
-            <Gem className="h-4 w-4" /> Elite Upgrade
-          </div>
-          <h1 className="mt-2 text-4xl font-medium tracking-tight text-white">
-            redr<span className="text-red-500 font-bold">.lol</span> Premium
-          </h1>
-          <p className="mt-2 text-sm text-[#8C8C8C]">
-            Unlock creative freedom with premium styling options, audio uplinks, and custom domains.
-          </p>
-        </div>
+    {/* BACKGROUND */}
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
 
-        {/* PRICING GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-8 items-start">
-          
-          {/* PERKS DESCRIPTION (LEFT) */}
-          <div className="md:col-span-3 space-y-6">
-            <h3 className="text-lg font-medium text-white tracking-tight">Unlock Premium Perks</h3>
-            
-            <div className="space-y-4">
-              {premiumPerks.map((perk, i) => {
-                const Icon = perk.icon;
-                return (
-                  <div key={i} className="flex gap-4 p-4 rounded-2xl border border-white/5 bg-[#0A0A0A]/50 backdrop-blur-md">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-500/10 text-red-400">
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-semibold text-white">{perk.name}</h4>
-                      <p className="mt-1 text-xs text-[#8C8C8C] leading-relaxed">{perk.desc}</p>
-                    </div>
-                  </div>
-                );
-              })}
+      {/* Main Red Glow */}
+      <motion.div
+        animate={{
+          x: [0, 40, 0],
+          y: [0, -20, 0],
+        }}
+        transition={{
+          duration: 12,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+        className="absolute left-[-10%] top-[-10%] h-[500px] w-[500px] rounded-full bg-red-500/10 blur-[140px]"
+      />
+
+      {/* Purple Orb */}
+      <motion.div
+        animate={{
+          x: [0, -40, 0],
+          y: [0, 30, 0],
+        }}
+        transition={{
+          duration: 14,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+        className="absolute bottom-[-10%] right-[-10%] h-[550px] w-[550px] rounded-full bg-purple-500/10 blur-[160px]"
+      />
+
+      {/* White Glow */}
+      <div className="absolute left-1/2 top-1/3 h-[350px] w-[350px] -translate-x-1/2 rounded-full bg-white/[0.03] blur-[120px]" />
+
+      {/* GRID */}
+      <div
+        className="absolute inset-0 opacity-[0.04]"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)",
+          backgroundSize: "80px 80px",
+        }}
+      />
+    </div>
+
+    <div className="relative z-10 mx-auto max-w-7xl">
+
+      {/* HERO */}
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7 }}
+        className="relative mb-10 overflow-hidden rounded-[36px] border border-white/10 bg-white/[0.03] p-6 backdrop-blur-3xl sm:p-8 lg:p-10"
+      >
+
+        {/* Glow */}
+        <div className="absolute left-0 top-0 h-[250px] w-[250px] rounded-full bg-red-500/10 blur-[120px]" />
+
+        <div className="relative z-10 flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
+
+          {/* LEFT */}
+          <div className="max-w-2xl">
+
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-red-500/20 bg-red-500/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-red-400 backdrop-blur-xl">
+              <Gem className="h-3.5 w-3.5" />
+              Premium Access
             </div>
+
+            <h1 className="text-4xl font-semibold leading-[0.95] tracking-tight text-white sm:text-6xl lg:text-7xl">
+              redr
+              <span className="bg-gradient-to-r from-red-400 via-red-500 to-purple-500 bg-clip-text text-transparent">
+                .lol
+              </span>
+              <br />
+              Premium
+            </h1>
+
+            <p className="mt-5 max-w-xl text-sm leading-relaxed text-white/45 sm:text-base">
+              Unlock animated themes, audio streaming, custom domains,
+              verified badges and elite creator customization tools.
+            </p>
+
           </div>
 
-          {/* CHECKOUT CARD (RIGHT) */}
-          <div className="md:col-span-2 relative group">
-            {/* Glowing border glow */}
-            <div className="absolute -inset-px rounded-[30px] bg-gradient-to-r from-red-600 to-purple-600 opacity-20 blur-lg transition-all group-hover:opacity-35" />
-            
-            <div className="relative rounded-[28px] border border-white/10 bg-[#080808]/90 p-8 backdrop-blur-2xl">
-              <div className="flex justify-between items-start">
-                <span className="rounded-full bg-red-500/10 border border-red-500/20 px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-widest text-red-400">
-                  LIFETIME ACCESS
-                </span>
-                <Star className="h-5 w-5 text-red-400 fill-red-400/25" />
+          {/* RIGHT CARD */}
+          <motion.div
+            whileHover={{
+              y: -5,
+              scale: 1.01,
+            }}
+            className="relative w-full max-w-md overflow-hidden rounded-[32px] border border-white/10 bg-black/40 p-7 backdrop-blur-3xl"
+          >
+
+            {/* Card Glow */}
+            <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 via-transparent to-purple-500/10" />
+
+            <div className="relative z-10">
+
+              {/* Badge */}
+              <div className="flex items-center justify-between">
+
+                <div className="rounded-full border border-red-500/20 bg-red-500/10 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-red-400">
+                  Lifetime Access
+                </div>
+
+                <Star className="h-5 w-5 fill-red-400/20 text-red-400" />
               </div>
 
-              <div className="mt-6">
-                <h3 className="text-2xl font-semibold text-white tracking-tight">Supporter Tier</h3>
-                <p className="mt-1.5 text-xs text-[#8C8C8C]">Single one-time charge. No subscription loops.</p>
+              {/* Pricing */}
+              <div className="mt-8">
+
+                <div className="flex items-end gap-2">
+
+                  <h2 className="text-5xl font-bold tracking-tight text-white">
+                    $4.99
+                  </h2>
+
+                  <span className="pb-1 text-xs font-semibold uppercase tracking-wider text-white/30">
+                    one-time
+                  </span>
+
+                </div>
+
+                <p className="mt-3 text-sm leading-relaxed text-white/45">
+                  One payment. Unlimited updates. No recurring subscriptions.
+                </p>
+
               </div>
 
-              <div className="mt-6 border-y border-white/5 py-5 flex items-baseline gap-1">
-                <span className="text-4xl font-extrabold text-white tracking-tight">$4.99</span>
-                <span className="text-xs text-[#555] uppercase font-bold tracking-wider">one-time charge</span>
-              </div>
+              {/* Features */}
+              <div className="mt-8 space-y-4">
 
-              <ul className="mt-6 space-y-3.5">
-                {["1x Verified Profile Badge", "Uncapped custom links", "1x Audio Stream Upload", "Lifetime core updates"].map((item) => (
-                  <li key={item} className="flex items-center gap-2.5 text-xs text-[#8C8C8C]">
-                    <Check className="h-4 w-4 text-green-400 shrink-0" />
-                    <span>{item}</span>
-                  </li>
+                {[
+                  "Verified premium badge",
+                  "Animated premium themes",
+                  "Custom domain support",
+                  "HD audio uploads",
+                  "Unlimited custom links",
+                  "Lifetime future updates",
+                ].map((item) => (
+                  <motion.div
+                    key={item}
+                    whileHover={{ x: 4 }}
+                    className="flex items-center gap-3"
+                  >
+
+                    <div className="flex h-8 w-8 items-center justify-center rounded-xl border border-green-500/20 bg-green-500/10">
+                      <Check className="h-4 w-4 text-green-400" />
+                    </div>
+
+                    <span className="text-sm text-white/70">
+                      {item}
+                    </span>
+
+                  </motion.div>
                 ))}
-              </ul>
 
-              <Button className="mt-8 w-full h-12 rounded-xl bg-gradient-to-r from-red-600 to-purple-600 text-xs font-bold uppercase tracking-wider text-white shadow-[0_4px_25px_rgba(239,68,68,0.25)] hover:shadow-[0_4px_30px_rgba(239,68,68,0.45)] hover:scale-[1.01] transition-all duration-300">
-                Purchase Lifetime Support
+              </div>
+
+              {/* CTA */}
+              <Button
+                className="
+                group
+                relative
+                mt-8
+                h-14
+                w-full
+                overflow-hidden
+                rounded-2xl
+                bg-gradient-to-r
+                from-red-500
+                via-red-600
+                to-purple-600
+                text-sm
+                font-semibold
+                uppercase
+                tracking-[0.15em]
+                text-white
+                transition-all
+                duration-500
+                hover:scale-[1.02]
+                hover:shadow-[0_0_60px_rgba(239,68,68,0.45)]
+              "
+              >
+
+                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+
+                <span className="relative z-10">
+                  Purchase Premium
+                </span>
+
               </Button>
+
             </div>
-          </div>
-
+          </motion.div>
         </div>
+      </motion.div>
 
+      {/* FEATURES */}
+      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+
+        {premiumPerks.map((perk, i) => {
+          const Icon = perk.icon;
+
+          return (
+            <motion.div
+              key={perk.name}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                delay: i * 0.08,
+                duration: 0.5,
+              }}
+              whileHover={{
+                y: -6,
+                scale: 1.02,
+              }}
+              className="
+              group
+              relative
+              overflow-hidden
+              rounded-[30px]
+              border
+              border-white/10
+              bg-white/[0.03]
+              p-6
+              backdrop-blur-3xl
+            "
+            >
+
+              {/* Glow */}
+              <div className="absolute inset-0 bg-gradient-to-b from-white/[0.03] to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+
+              <div className="relative z-10">
+
+                {/* Icon */}
+                <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/10 transition-all duration-500 group-hover:scale-110 group-hover:bg-red-500/20">
+
+                  <Icon className="h-6 w-6 text-red-400" />
+
+                </div>
+
+                {/* Text */}
+                <h3 className="text-lg font-semibold text-white">
+                  {perk.name}
+                </h3>
+
+                <p className="mt-3 text-sm leading-relaxed text-white/45">
+                  {perk.desc}
+                </p>
+
+              </div>
+
+            </motion.div>
+          );
+        })}
       </div>
-    </section>
-  );
+    </div>
+  </section>
+);
 }
