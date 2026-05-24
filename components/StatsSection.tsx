@@ -1,10 +1,45 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
+import Link from "next/link";
+
 
 const StatsSection = () => {
+
+  const [username, setUsername] = useState("");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+
+    const checkAuth = async () => {
+      try {
+
+        const res = await fetch("/api/auth/me");
+
+        const data = await res.json();
+
+        if (data?.user) {
+
+          setIsLoggedIn(true);
+
+          setUsername(
+            data.user.username || ""
+          );
+
+        }
+
+      } catch (error) {
+
+        console.error(error);
+
+      }
+    };
+
+    checkAuth();
+
+  }, []);
   return (
     <section className="relative overflow-hidden bg-[#0A0A0A] px-6 py-32 text-[#F5F1E8]">
 
@@ -340,55 +375,154 @@ const StatsSection = () => {
   </div>
 
   {/* Username Field */}
-  <div className="relative mt-12 flex w-full max-w-2xl flex-col gap-4 sm:flex-row">
+<motion.div
+  initial={{ opacity: 0, y: 25 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{
+    duration: 1,
+    delay: 0.35,
+  }}
+  className="relative mt-14 flex w-full max-w-3xl flex-col gap-4 sm:flex-row"
+>
 
-    {/* Input Wrapper */}
+  {/* INPUT CONTAINER */}
+  <motion.div
+    whileHover={{
+      scale: 1.01,
+    }}
+    className="
+    group
+    relative
+    flex
+    h-[68px]
+    flex-1
+    items-center
+    overflow-hidden
+    rounded-[24px]
+    border
+    border-white/10
+    bg-[#0A0A0A]/80
+    px-6
+    backdrop-blur-3xl
+    transition-all
+    duration-500
+    focus-within:border-red-500/30
+    focus-within:shadow-[0_0_40px_rgba(239,68,68,0.12)]
+  "
+  >
+
+    {/* Animated Glow */}
+    <div className="absolute inset-0 bg-gradient-to-r from-red-500/10 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-focus-within:opacity-100" />
+
+    {/* Floating Gradient */}
+    <div className="absolute inset-0 opacity-[0.04]">
+      <div
+        className="h-full w-full"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.08) 1px, transparent 1px)",
+          backgroundSize: "40px 40px",
+        }}
+      />
+    </div>
+
+    {/* DOMAIN */}
+    <span className="relative mr-2 whitespace-nowrap text-sm font-medium tracking-[0.04em] text-[#777]">
+      redr.lol/
+    </span>
+
+    {/* INPUT */}
+    <input
+      type="text"
+      value={username}
+      onChange={(e) =>
+        setUsername(e.target.value)
+      }
+      placeholder="username"
+      className="
+      relative
+      h-full
+      w-full
+      bg-transparent
+      text-sm
+      text-[#F5F1E8]
+      outline-none
+      placeholder:text-[#5e5e5e]
+    "
+    />
+
+    {/* Status Dot */}
     <motion.div
-      whileHover={{
-        scale: 1.01,
+      animate={{
+        opacity: [0.4, 1, 0.4],
+        scale: [1, 1.2, 1],
       }}
-      className="group relative flex h-[64px] flex-1 items-center overflow-hidden rounded-2xl border border-white/10 bg-[#0A0A0A]/80 px-5 backdrop-blur-2xl transition-all duration-300 focus-within:border-red-500/30"
+      transition={{
+        duration: 2.5,
+        repeat: Infinity,
+      }}
+      className="absolute right-5 h-2.5 w-2.5 rounded-full bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.8)]"
+    />
+
+  </motion.div>
+
+  {/* BUTTON */}
+  <Link
+    href={
+      isLoggedIn
+        ? "/dashboard"
+        : "/signup"
+    }
+  >
+    <button
+      className="
+      group
+      relative
+      flex
+      h-[68px]
+      w-full
+      items-center
+      justify-center
+      overflow-hidden
+      rounded-[24px]
+      bg-red-600
+      px-9
+      text-sm
+      font-medium
+      text-white
+      transition-all
+      duration-500
+      hover:-translate-y-[2px]
+      hover:scale-[1.02]
+      hover:bg-red-500
+      hover:shadow-[0_0_50px_rgba(239,68,68,0.35)]
+      sm:w-auto
+    "
     >
 
-      {/* Glow */}
-      <div className="absolute inset-0 bg-gradient-to-r from-red-500/10 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-focus-within:opacity-100" />
+      {/* Animated Gradient */}
+      <div className="absolute inset-0 bg-gradient-to-r from-red-500 via-red-400 to-red-700 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
 
-      {/* Domain */}
-      <span className="relative mr-2 whitespace-nowrap text-sm tracking-[0.04em] text-[#777]">
-        redr.lol/
-      </span>
+      {/* Shine */}
+      <div className="absolute inset-0 overflow-hidden rounded-[24px]">
+        <div className="absolute left-[-120%] top-0 h-full w-[60%] rotate-[20deg] bg-white/20 blur-xl transition-all duration-1000 group-hover:left-[140%]" />
+      </div>
 
-      {/* Input */}
-      <input
-        type="text"
-        placeholder="username"
-        className="relative h-full w-full bg-transparent text-sm text-[#F5F1E8] outline-none placeholder:text-[#5e5e5e]"
-      />
+      {/* Content */}
+      <span className="relative z-10 flex items-center gap-2 tracking-[0.05em]">
 
-      {/* Doodle Dot */}
-      <motion.div
-        animate={{
-          opacity: [0.4, 1, 0.4],
-        }}
-        transition={{
-          duration: 3,
-          repeat: Infinity,
-        }}
-        className="absolute right-5 h-2 w-2 rounded-full bg-red-500"
-      />
-    </motion.div>
-
-    {/* Button */}
-    <button className="group relative h-[64px] overflow-hidden rounded-2xl bg-red-600 px-8 text-sm font-medium text-white transition-all duration-300 hover:scale-[1.02] hover:bg-red-500">
-      <span className="relative z-10 flex items-center gap-2">
-        claim now
+        {isLoggedIn
+          ? "open dashboard"
+          : "claim now"}
 
         <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+
       </span>
 
-      <div className="absolute inset-0 bg-gradient-to-r from-red-500 via-red-600 to-red-700 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
     </button>
-  </div>
+  </Link>
+
+</motion.div>
 
   {/* Bottom Tiny Text */}
   <div className="mt-6 flex items-center gap-2 text-sm text-[#777]">

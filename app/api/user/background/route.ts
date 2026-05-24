@@ -1,0 +1,153 @@
+import { NextRequest, NextResponse } from "next/server";
+import { verifyToken } from "@/lib/session";
+import { sql } from "@/lib/db";
+
+/* SAVE BACKGROUND */
+export async function POST(
+  req: NextRequest
+) {
+  try {
+
+    const session =
+      req.cookies.get("session")?.value;
+
+    if (!session) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const user =
+      verifyToken(session);
+
+    if (!user) {
+      return NextResponse.json(
+        { error: "Invalid token" },
+        { status: 401 }
+      );
+    }
+
+    const {
+      background_url,
+      background_type,
+    } = await req.json();
+
+    const result = await sql`
+      UPDATE users
+
+      SET
+        background_url =
+          ${background_url},
+
+        background_type =
+          ${background_type}
+
+      WHERE id =
+        ${user.userId}
+
+      RETURNING *;
+    `;
+
+    if (
+      !result ||
+      result.length === 0
+    ) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      user: result[0],
+    });
+
+  } catch (error) {
+
+    console.error(
+      "Background upload error:",
+      error
+    );
+
+    return NextResponse.json(
+      {
+        error:
+          "Failed to update background",
+      },
+      { status: 500 }
+    );
+  }
+}
+
+/* REMOVE BACKGROUND */
+export async function DELETE(
+  req: NextRequest
+) {
+  try {
+
+    const session =
+      req.cookies.get("session")?.value;
+
+    if (!session) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const user =
+      verifyToken(session);
+
+    if (!user) {
+      return NextResponse.json(
+        { error: "Invalid token" },
+        { status: 401 }
+      );
+    }
+
+    const result = await sql`
+      UPDATE users
+
+      SET
+        background_url = NULL,
+        background_type = NULL
+
+      WHERE id =
+        ${user.userId}
+
+      RETURNING *;
+    `;
+
+    if (
+      !result ||
+      result.length === 0
+    ) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      user: result[0],
+    });
+
+  } catch (error) {
+
+    console.error(
+      "Background delete error:",
+      error
+    );
+
+    return NextResponse.json(
+      {
+        error:
+          "Failed to delete background",
+      },
+      { status: 500 }
+    );
+  }
+}

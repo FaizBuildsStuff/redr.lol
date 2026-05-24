@@ -165,16 +165,43 @@ export default function Sidebar({ user, setMobileOpen }: SidebarProps) {
         
         <div>
           {/* LOGO AREA */}
-          <div className="relative flex items-center gap-4 rounded-[24px] border border-white/[0.04] bg-white/[0.02] px-4 py-4 backdrop-blur-2xl">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-500/10 border border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.15)]">
-              <span className="text-xl font-bold text-red-500 font-serif">R</span>
-            </div>
-            <div>
-              <span className="text-xl font-semibold tracking-tight text-white">
-                redr<span className="text-red-500 font-bold">.lol</span>
-              </span>
-            </div>
-          </div>
+          <div className="relative flex items-center gap-4 rounded-[24px] border border-white/[0.05] bg-white/[0.025] px-4 py-4 backdrop-blur-3xl">
+
+  {/* Glow */}
+  <div className="absolute inset-0 rounded-[24px] bg-gradient-to-r from-red-500/5 via-transparent to-transparent" />
+
+  {/* Logo */}
+  <div className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl border border-red-500/15 bg-red-500/5 shadow-[0_0_25px_rgba(239,68,68,0.12)]">
+
+    <img
+      src="/Logo.png"
+      alt="redr logo"
+      className="
+      h-8
+      w-8
+      object-contain
+      drop-shadow-[0_0_12px_rgba(239,68,68,0.45)]
+    "
+    />
+
+  </div>
+
+  {/* Text */}
+  <div className="relative">
+
+    <span className="text-xl font-semibold tracking-[-0.04em] text-white">
+      redr
+      <span className="font-bold text-red-500">
+        .lol
+      </span>
+    </span>
+
+    {/* Tiny Glow Dot */}
+    <div className="absolute -right-4 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.9)]" />
+
+  </div>
+
+</div>
 
           {/* NAVIGATION MENUS */}
           <div className="mt-8 space-y-6">

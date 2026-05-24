@@ -10,13 +10,17 @@ interface PageProps {
 export default async function UserProfilePage({ params }: PageProps) {
   const { username } = await params;
 
+  const cleanUsername = decodeURIComponent(username)
+  .trim()
+  .toLowerCase();
+
   // Query database to check if user exists
   let user = null;
   try {
     const users = await sql`
-      SELECT id, username, email, discord_id, discord_access_token, created_at, typewriter_heading, typewriter_quotes, custom_links, active_badges 
+      SELECT id, username, email, discord_id, discord_access_token, created_at, typewriter_heading, typewriter_quotes, custom_links, active_badges, location, background_url, background_type, audios, audio_shuffle, audio_player_enabled
       FROM users 
-      WHERE LOWER(username) = LOWER(${username})
+      WHERE LOWER(TRIM(username)) = ${cleanUsername}
       LIMIT 1
     `;
     if (users && users.length > 0) {
@@ -87,6 +91,12 @@ export default async function UserProfilePage({ params }: PageProps) {
     typewriter_heading: user.typewriter_heading,
     typewriter_quotes: user.typewriter_quotes,
     custom_links: user.custom_links,
-    active_badges: user.active_badges
+    active_badges: user.active_badges,
+    location: user.location,
+    background_url: user.background_url,
+    background_type: user.background_type,
+    audios: user.audios,
+    audio_shuffle: user.audio_shuffle,
+    audio_player_enabled: user.audio_player_enabled
   }} initialDiscordData={initialDiscordData} initialConnections={initialConnections} />;
 }

@@ -151,19 +151,55 @@ const Header = () => {
                 href="/"
                 className="flex items-center gap-3"
               >
-
                 {/* Logo */}
                 <motion.div
                   animate={{
-                    rotate: [0, 8, -8, 0],
+                    y: [0, -4, 0],
+                    rotate: [0, 4, -4, 0],
                   }}
                   transition={{
                     duration: 8,
                     repeat: Infinity,
+                    ease: "easeInOut",
                   }}
-                  className="flex h-11 w-11 items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/10"
+                  className="
+  group
+  relative
+  flex
+  h-11
+  w-11
+  items-center
+  justify-center
+  overflow-hidden
+  rounded-2xl
+  border
+  border-red-500/15
+  bg-red-500/5
+  backdrop-blur-2xl
+  shadow-[0_0_30px_rgba(239,68,68,0.12)]
+"
                 >
-                  <Disc3 className="h-5 w-5 text-red-400" />
+
+                  {/* Glow */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 via-transparent to-transparent opacity-80" />
+
+                  {/* Logo Image */}
+                  <img
+                    src="/Logo.png"
+                    alt="redr logo"
+                    className="
+    relative
+    z-10
+    h-7
+    w-7
+    object-contain
+    drop-shadow-[0_0_14px_rgba(239,68,68,0.45)]
+  "
+                  />
+
+                  {/* Tiny Glow Dot */}
+                  <div className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.9)]" />
+
                 </motion.div>
 
                 {/* Text */}

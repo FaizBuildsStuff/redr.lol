@@ -8,6 +8,10 @@ import {
   Palette,
   CheckCircle2,
   Type,
+  Upload,
+  X,
+  Music,
+  MapPin,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +23,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { generateReactHelpers } from "@uploadthing/react";
+import type { OurFileRouter } from "@/lib/uploadthing";
+
+const { useUploadThing } =
+  generateReactHelpers<OurFileRouter>();
 
 interface UserProfile {
   id: number;
@@ -27,6 +36,18 @@ interface UserProfile {
   discord_id?: string;
   typewriter_heading?: string;
   typewriter_quotes?: string[];
+  background_url?: string;
+  background_type?: string;
+  audios?: Array<{ id: string; url: string; name: string }>;
+  audio_shuffle?: boolean;
+  audio_player_enabled?: boolean;
+  location?: string;
+}
+
+interface Audio {
+  id: string;
+  url: string;
+  name: string;
 }
 
 export default function CustomizePage() {
@@ -42,10 +63,27 @@ export default function CustomizePage() {
   const [saving, setSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
+  // Background states
+  const [backgroundUrl, setBackgroundUrl] = useState<string | null>(null);
+  const [backgroundType, setBackgroundType] = useState<string | null>(null);
+  const [uploadingBackground, setUploadingBackground] = useState(false);
+
+  // Audio states
+  const [audios, setAudios] = useState<Audio[]>([]);
+  const [uploadingAudio, setUploadingAudio] = useState(false);
+  const [audioShuffle, setAudioShuffle] = useState(false);
+  const [audioPlayerEnabled, setAudioPlayerEnabled] = useState(false);
+
+  // Location states
+  const [location, setLocation] = useState("");
+
   // Discord states
   const [isDiscordDialogOpen, setIsDiscordDialogOpen] = useState(false);
   const [inputDiscordId, setInputDiscordId] = useState("");
   const [savingDiscord, setSavingDiscord] = useState(false);
+
+  const { startUpload: startAudioUpload } = useUploadThing("audioUploader");
+  const { startUpload: startBackgroundUpload } = useUploadThing("backgroundUploader");
 
   useEffect(() => {
     async function checkAuth() {
@@ -58,6 +96,22 @@ export default function CustomizePage() {
           if (data.user.typewriter_heading) setTypewriterHeading(data.user.typewriter_heading);
           if (data.user.typewriter_quotes && data.user.typewriter_quotes.length > 0) {
             setTypewriterQuotes(data.user.typewriter_quotes);
+          }
+          if (data.user.background_url) {
+            setBackgroundUrl(data.user.background_url);
+            setBackgroundType(data.user.background_type);
+          }
+          if (data.user.audios && data.user.audios.length > 0) {
+            setAudios(data.user.audios);
+          }
+          if (data.user.audio_shuffle !== undefined) {
+            setAudioShuffle(data.user.audio_shuffle);
+          }
+          if (data.user.audio_player_enabled !== undefined) {
+            setAudioPlayerEnabled(data.user.audio_player_enabled);
+          }
+          if (data.user.location) {
+            setLocation(data.user.location);
           }
         } else {
           router.push("/signin");
@@ -95,6 +149,149 @@ export default function CustomizePage() {
     }
   };
 
+  const handleBackgroundUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploadingBackground(true);
+    try {
+      const uploadedFiles = await startBackgroundUpload(Array.from(files));
+      if (uploadedFiles && uploadedFiles.length > 0) {
+        const file = uploadedFiles[0];
+        const type = files[0].type.startsWith("video") ? "video" : "image";
+
+        const res = await fetch("/api/user/background", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            background_url: file.url,
+            background_type: type,
+          }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          setBackgroundUrl(data.user.background_url);
+          setBackgroundType(data.user.background_type);
+        }
+      }
+    } catch (error) {
+      console.error("Background upload error:", error);
+    } finally {
+      setUploadingBackground(false);
+    }
+  };
+
+  const handleRemoveBackground = async () => {
+    try {
+      const res = await fetch("/api/user/background", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (res.ok) {
+        setBackgroundUrl(null);
+        setBackgroundType(null);
+      }
+    } catch (error) {
+      console.error("Background delete error:", error);
+    }
+  };
+
+  const handleAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    if (audios.length >= 4) {
+      alert("Maximum 4 audios allowed");
+      return;
+    }
+
+    setUploadingAudio(true);
+    try {
+      const uploadedFiles = await startAudioUpload(Array.from(files));
+      if (uploadedFiles && uploadedFiles.length > 0) {
+        const file = uploadedFiles[0];
+
+        const res = await fetch("/api/user/audio", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            audio_url: file.url,
+            audio_name: files[0].name.split(".")[0],
+            shuffle: audioShuffle,
+            player_enabled: audioPlayerEnabled,
+          }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          setAudios(data.user.audios || []);
+        }
+      }
+    } catch (error) {
+      console.error("Audio upload error:", error);
+    } finally {
+      setUploadingAudio(false);
+    }
+  };
+
+  const handleRemoveAudio = async (audioId: string) => {
+    try {
+      const res = await fetch("/api/user/audio", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ audioId }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setAudios(data.user.audios || []);
+      }
+    } catch (error) {
+      console.error("Audio delete error:", error);
+    }
+  };
+
+  const handleAudioSettings = async (shuffle: boolean, playerEnabled: boolean) => {
+    setAudioShuffle(shuffle);
+    setAudioPlayerEnabled(playerEnabled);
+
+    try {
+      const res = await fetch("/api/user/audio", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          shuffle,
+          player_enabled: playerEnabled,
+        }),
+      });
+
+      if (!res.ok) {
+        console.error("Failed to update audio settings");
+      }
+    } catch (error) {
+      console.error("Audio settings error:", error);
+    }
+  };
+
+  const handleLocationSave = async () => {
+    try {
+      const res = await fetch("/api/user/location", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ location }),
+      });
+
+      if (res.ok) {
+        setSavedSuccess(true);
+        setTimeout(() => setSavedSuccess(false), 2000);
+      }
+    } catch (error) {
+      console.error("Location save error:", error);
+    }
+  };
+
   const handleSaveDiscord = async () => {
     try {
       setSavingDiscord(true);
@@ -115,53 +312,39 @@ export default function CustomizePage() {
   };
 
   const handleDisconnectDiscord = async () => {
-  try {
+    try {
+      setSavingDiscord(true);
 
-    setSavingDiscord(true);
+      const res = await fetch("/api/user/discord", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-    const res = await fetch("/api/user/discord", {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+      const data = await res.json();
 
-    const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.error || "Failed to disconnect Discord");
+      }
 
-    if (!res.ok) {
-      throw new Error(
-        data?.error || "Failed to disconnect Discord"
+      setUser((prev) =>
+        prev
+          ? {
+              ...prev,
+              discord_id: undefined,
+            }
+          : prev
       );
+
+      setInputDiscordId("");
+      router.refresh();
+    } catch (error) {
+      console.error("Failed to disconnect discord:", error);
+    } finally {
+      setSavingDiscord(false);
     }
-
-    /* INSTANT UI UPDATE */
-    setUser((prev) =>
-      prev
-        ? {
-            ...prev,
-            discord_id: undefined,
-          }
-        : prev
-    );
-
-    setInputDiscordId("");
-
-    /* OPTIONAL REFRESH */
-    router.refresh();
-
-  } catch (error) {
-
-    console.error(
-      "Failed to disconnect discord:",
-      error
-    );
-
-  } finally {
-
-    setSavingDiscord(false);
-
-  }
-};
+  };
 
   if (loading) {
     return (
@@ -230,7 +413,7 @@ export default function CustomizePage() {
               </h1>
 
               <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/45 sm:text-base">
-                Build a futuristic profile with animated typography, live integrations and modern creator aesthetics.
+                Build a futuristic profile with animated typography, live integrations, backgrounds, audio, and modern creator aesthetics.
               </p>
 
             </div>
@@ -282,7 +465,7 @@ export default function CustomizePage() {
         </div>
 
         {/* GRID */}
-        <div className="grid gap-6 lg:grid-cols-[1fr_0.85fr]">
+        <div className="grid gap-6 lg:grid-cols-2">
 
           {/* LEFT SIDE */}
           <div className="space-y-6">
@@ -310,7 +493,6 @@ export default function CustomizePage() {
                       Configure animated heading content
                     </p>
                   </div>
-
                 </div>
 
                 {/* Heading */}
@@ -322,9 +504,7 @@ export default function CustomizePage() {
                   <Input
                     type="text"
                     value={typewriterHeading}
-                    onChange={(e) =>
-                      setTypewriterHeading(e.target.value)
-                    }
+                    onChange={(e) => setTypewriterHeading(e.target.value)}
                     placeholder="Web Designer & Developer"
                     className="
                   h-14
@@ -343,7 +523,6 @@ export default function CustomizePage() {
 
                 {/* Quotes */}
                 <div>
-
                   <div className="mb-3 flex items-center justify-between">
                     <label className="text-xs font-semibold uppercase tracking-[0.15em] text-white/40">
                       Animated Quotes
@@ -355,7 +534,6 @@ export default function CustomizePage() {
                   </div>
 
                   <div className="space-y-3">
-
                     {typewriterQuotes.map((quote, index) => (
                       <motion.div
                         key={index}
@@ -363,7 +541,6 @@ export default function CustomizePage() {
                         animate={{ opacity: 1, y: 0 }}
                         className="group flex items-center gap-3"
                       >
-
                         <Input
                           type="text"
                           value={quote}
@@ -391,9 +568,7 @@ export default function CustomizePage() {
                           onClick={() => {
                             if (typewriterQuotes.length > 1) {
                               setTypewriterQuotes(
-                                typewriterQuotes.filter(
-                                  (_, i) => i !== index
-                                )
+                                typewriterQuotes.filter((_, i) => i !== index)
                               );
                             }
                           }}
@@ -418,17 +593,13 @@ export default function CustomizePage() {
                         >
                           ×
                         </button>
-
                       </motion.div>
                     ))}
 
                     {/* ADD BUTTON */}
                     <button
                       onClick={() =>
-                        setTypewriterQuotes([
-                          ...typewriterQuotes,
-                          "",
-                        ])
+                        setTypewriterQuotes([...typewriterQuotes, ""])
                       }
                       className="
                     mt-2
@@ -454,8 +625,177 @@ export default function CustomizePage() {
                     >
                       + Add New Quote
                     </button>
-
                   </div>
+                </div>
+              </div>
+            </div>
+
+            {/* BACKGROUND */}
+            <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-white/[0.03] p-6 backdrop-blur-3xl">
+              {/* Glow */}
+              <div className="absolute right-0 bottom-0 h-[200px] w-[200px] rounded-full bg-orange-500/10 blur-[120px]" />
+
+              <div className="relative z-10">
+                <div className="mb-6 flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-orange-500/20 bg-orange-500/10">
+                    <Upload className="h-5 w-5 text-orange-400" />
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">
+                      Background
+                    </h3>
+
+                    <p className="text-sm text-white/40">
+                      Upload PNG, Video, or GIF
+                    </p>
+                  </div>
+                </div>
+
+                {backgroundUrl ? (
+                  <div className="space-y-4">
+                    <div className="relative h-32 w-full overflow-hidden rounded-2xl border border-orange-500/20 bg-black/30">
+                      {backgroundType === "video" ? (
+                        <video
+                          src={backgroundUrl}
+                          className="h-full w-full object-cover"
+                          autoPlay
+                          muted
+                          loop
+                        />
+                      ) : (
+                        <img
+                          src={backgroundUrl}
+                          alt="Background preview"
+                          className="h-full w-full object-cover"
+                        />
+                      )}
+                    </div>
+
+                    <button
+                      onClick={handleRemoveBackground}
+                      className="
+                    flex
+                    h-12
+                    w-full
+                    items-center
+                    justify-center
+                    rounded-2xl
+                    border
+                    border-red-500/20
+                    bg-red-500/10
+                    text-sm
+                    font-semibold
+                    text-red-400
+                    transition-all
+                    duration-300
+                    hover:bg-red-500/20
+                  "
+                    >
+                      Remove Background
+                    </button>
+                  </div>
+                ) : (
+                  <label className="
+                  flex
+                  h-32
+                  w-full
+                  cursor-pointer
+                  items-center
+                  justify-center
+                  rounded-2xl
+                  border
+                  border-dashed
+                  border-white/10
+                  bg-white/[0.02]
+                  transition-all
+                  duration-300
+                  hover:border-orange-500/20
+                  hover:bg-orange-500/10
+                "
+                  >
+                    <input
+                      type="file"
+                      accept="image/*,video/*"
+                      onChange={handleBackgroundUpload}
+                      disabled={uploadingBackground}
+                      className="hidden"
+                    />
+                    <div className="flex flex-col items-center gap-2">
+                      <Upload className="h-6 w-6 text-orange-400" />
+                      <span className="text-sm font-semibold text-white/40">
+                        {uploadingBackground ? "Uploading..." : "Click to upload"}
+                      </span>
+                    </div>
+                  </label>
+                )}
+              </div>
+            </div>
+
+            {/* LOCATION */}
+            <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-white/[0.03] p-6 backdrop-blur-3xl">
+              {/* Glow */}
+              <div className="absolute left-0 bottom-0 h-[200px] w-[200px] rounded-full bg-cyan-500/10 blur-[120px]" />
+
+              <div className="relative z-10">
+                <div className="mb-6 flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-500/20 bg-cyan-500/10">
+                    <MapPin className="h-5 w-5 text-cyan-400" />
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">
+                      Location
+                    </h3>
+
+                    <p className="text-sm text-white/40">
+                      Display your location on profile
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <Input
+                    type="text"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    placeholder="e.g., San Francisco, CA"
+                    className="
+                  h-14
+                  rounded-2xl
+                  border-white/10
+                  bg-black/30
+                  px-4
+                  text-sm
+                  text-white
+                  placeholder:text-white/20
+                  focus:border-cyan-500/30
+                  focus:ring-0
+                "
+                  />
+
+                  <button
+                    onClick={handleLocationSave}
+                    className="
+                  flex
+                  h-12
+                  w-full
+                  items-center
+                  justify-center
+                  rounded-2xl
+                  border
+                  border-cyan-500/20
+                  bg-cyan-500/10
+                  text-sm
+                  font-semibold
+                  text-cyan-400
+                  transition-all
+                  duration-300
+                  hover:bg-cyan-500/20
+                "
+                  >
+                    Save Location
+                  </button>
                 </div>
               </div>
             </div>
@@ -464,15 +804,196 @@ export default function CustomizePage() {
           {/* RIGHT SIDE */}
           <div className="space-y-6">
 
+            {/* AUDIO */}
+            <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-white/[0.03] p-6 backdrop-blur-3xl">
+              {/* Glow */}
+              <div className="absolute bottom-0 right-0 h-[220px] w-[220px] rounded-full bg-purple-500/10 blur-[120px]" />
+
+              <div className="relative z-10">
+                <div className="mb-6 flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-purple-500/20 bg-purple-500/10">
+                    <Music className="h-5 w-5 text-purple-400" />
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">
+                      Audio Manager
+                    </h3>
+
+                    <p className="text-sm text-white/40">
+                      Add up to 4 audio tracks
+                    </p>
+                  </div>
+                </div>
+
+                {/* Audio List */}
+                <div className="mb-6 space-y-3">
+                  {audios.length > 0 ? (
+                    <div>
+                      <p className="mb-3 text-xs font-semibold uppercase tracking-[0.15em] text-white/40">
+                        {audios.length} / 4 Audios
+                      </p>
+                      <div className="space-y-2">
+                        {audios.map((audio) => (
+                          <motion.div
+                            key={audio.id}
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="flex items-center justify-between rounded-xl border border-purple-500/10 bg-purple-500/5 p-3"
+                          >
+                            <div className="flex-1">
+                              <p className="text-sm font-medium text-white truncate">
+                                {audio.name}
+                              </p>
+                              <p className="text-xs text-white/40">
+                                {audio.url.split("/").pop()}
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => handleRemoveAudio(audio.id)}
+                              className="
+                            flex
+                            h-8
+                            w-8
+                            shrink-0
+                            items-center
+                            justify-center
+                            rounded-lg
+                            border
+                            border-red-500/20
+                            bg-red-500/10
+                            text-red-400
+                            transition-all
+                            duration-300
+                            hover:bg-red-500/20
+                          "
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-white/40">No audios added yet</p>
+                  )}
+                </div>
+
+                {/* Upload Button */}
+                {audios.length < 4 && (
+                  <label className="
+                  flex
+                  h-12
+                  w-full
+                  cursor-pointer
+                  items-center
+                  justify-center
+                  rounded-2xl
+                  border
+                  border-dashed
+                  border-purple-500/20
+                  bg-purple-500/5
+                  text-sm
+                  font-semibold
+                  text-purple-400
+                  transition-all
+                  duration-300
+                  hover:border-purple-500/40
+                  hover:bg-purple-500/10
+                "
+                  >
+                    <input
+                      type="file"
+                      accept="audio/*"
+                      onChange={handleAudioUpload}
+                      disabled={uploadingAudio}
+                      className="hidden"
+                    />
+                    {uploadingAudio ? "Uploading..." : "+ Add Audio"}
+                  </label>
+                )}
+
+                {/* Audio Settings */}
+                {audios.length > 0 && (
+                  <div className="mt-6 space-y-3 border-t border-white/10 pt-6">
+                    <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/40 mb-3">
+                      Audio Options
+                    </p>
+
+                    <button
+                      onClick={() =>
+                        handleAudioSettings(!audioShuffle, audioPlayerEnabled)
+                      }
+                      className={`
+                    flex
+                    h-12
+                    w-full
+                    items-center
+                    justify-between
+                    rounded-2xl
+                    border
+                    px-4
+                    text-sm
+                    font-semibold
+                    transition-all
+                    duration-300
+                    ${
+                      audioShuffle
+                        ? "border-green-500/20 bg-green-500/10 text-green-400 hover:bg-green-500/20"
+                        : "border-white/10 bg-white/[0.03] text-white/40 hover:border-green-500/20 hover:bg-green-500/10 hover:text-green-400"
+                    }
+                  `}
+                    >
+                      <span>🎲 Shuffle Audios</span>
+                      <span
+                        className={`h-5 w-9 rounded-full transition-all ${
+                          audioShuffle ? "bg-green-400" : "bg-white/10"
+                        }`}
+                      />
+                    </button>
+
+                    <button
+                      onClick={() =>
+                        handleAudioSettings(audioShuffle, !audioPlayerEnabled)
+                      }
+                      className={`
+                    flex
+                    h-12
+                    w-full
+                    items-center
+                    justify-between
+                    rounded-2xl
+                    border
+                    px-4
+                    text-sm
+                    font-semibold
+                    transition-all
+                    duration-300
+                    ${
+                      audioPlayerEnabled
+                        ? "border-green-500/20 bg-green-500/10 text-green-400 hover:bg-green-500/20"
+                        : "border-white/10 bg-white/[0.03] text-white/40 hover:border-green-500/20 hover:bg-green-500/10 hover:text-green-400"
+                    }
+                  `}
+                    >
+                      <span>🎵 Audio Player</span>
+                      <span
+                        className={`h-5 w-9 rounded-full transition-all ${
+                          audioPlayerEnabled ? "bg-green-400" : "bg-white/10"
+                        }`}
+                      />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* DISCORD */}
             <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-white/[0.03] p-6 backdrop-blur-3xl">
-
               <div className="absolute bottom-0 right-0 h-[220px] w-[220px] rounded-full bg-indigo-500/10 blur-[120px]" />
 
               <div className="relative z-10">
-
                 <div className="mb-6 flex items-center gap-3">
-
                   <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-indigo-500/20 bg-indigo-500/10">
                     <Disc3 className="h-5 w-5 text-indigo-400" />
                   </div>
@@ -486,15 +1007,12 @@ export default function CustomizePage() {
                       Sync your live Discord presence
                     </p>
                   </div>
-
                 </div>
 
                 {user.discord_id ? (
                   <div className="space-y-4">
-
                     <div className="rounded-2xl border border-green-500/20 bg-green-500/10 p-4">
                       <div className="flex items-center gap-3">
-
                         <div className="h-3 w-3 rounded-full bg-green-400 shadow-[0_0_12px_rgba(74,222,128,0.8)]" />
 
                         <div>
@@ -506,16 +1024,13 @@ export default function CustomizePage() {
                             Live profile presence enabled
                           </p>
                         </div>
-
                       </div>
                     </div>
 
                     <div className="flex gap-3">
-
                       <Button
                         onClick={() =>
-                        (window.location.href =
-                          "/api/auth/discord/login")
+                          (window.location.href = "/api/auth/discord/login")
                         }
                         className="
                       h-12
@@ -551,14 +1066,12 @@ export default function CustomizePage() {
                       >
                         Disconnect
                       </Button>
-
                     </div>
                   </div>
                 ) : (
                   <Button
                     onClick={() =>
-                    (window.location.href =
-                      "/api/auth/discord/login")
+                      (window.location.href = "/api/auth/discord/login")
                     }
                     className="
                   h-14

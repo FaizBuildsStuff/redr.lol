@@ -34,7 +34,13 @@ export async function initDb() {
       ADD COLUMN IF NOT EXISTS theme VARCHAR(50) DEFAULT 'crimson-dither',
       ADD COLUMN IF NOT EXISTS music_active BOOLEAN DEFAULT false,
       ADD COLUMN IF NOT EXISTS sparkles_active BOOLEAN DEFAULT true,
-      ADD COLUMN IF NOT EXISTS custom_font VARCHAR(50) DEFAULT 'Satoshi';
+      ADD COLUMN IF NOT EXISTS custom_font VARCHAR(50) DEFAULT 'Satoshi',
+      ADD COLUMN IF NOT EXISTS background_url TEXT,
+      ADD COLUMN IF NOT EXISTS background_type VARCHAR(50),
+      ADD COLUMN IF NOT EXISTS audios JSONB DEFAULT '[]'::jsonb,
+      ADD COLUMN IF NOT EXISTS audio_shuffle BOOLEAN DEFAULT false,
+      ADD COLUMN IF NOT EXISTS audio_player_enabled BOOLEAN DEFAULT false,
+      ADD COLUMN IF NOT EXISTS location VARCHAR(255);
     `;
     console.log("Database schema initialized successfully.");
   } catch (error) {

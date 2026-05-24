@@ -199,7 +199,11 @@ function NekoTracker() {
 // ========================================
 // High-Fidelity Ethereal Shadow Background
 // ========================================
-function EtherealShadow() {
+function EtherealShadow({
+  user,
+}: {
+  user: any;
+}) {
   const [hueRotate, setHueRotate] = useState(180);
   const filterId = useRef(`shadowoverlay-${Math.random().toString(36).substring(2, 9)}`);
 
@@ -222,6 +226,48 @@ function EtherealShadow() {
 
   return (
     <div className="absolute inset-0 overflow-hidden w-full h-full pointer-events-none select-none z-0">
+      {/* REAL BACKGROUND */}
+      <div className="absolute inset-0 overflow-hidden">
+
+        {user?.background_url &&
+          user?.background_type === "video" ? (
+
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="h-full w-full object-cover"
+          >
+            <source
+              src={user.background_url}
+              type="video/mp4"
+            />
+          </video>
+
+        ) : user?.background_url &&
+          user?.background_type === "image" ? (
+
+          <img
+            src={user.background_url}
+            alt="Background"
+            className="h-full w-full object-cover"
+          />
+
+        ) : (
+
+          <img
+            src="/your-default-bg.jpg"
+            alt="Default Background"
+            className="h-full w-full object-cover"
+          />
+
+        )}
+
+        <div className="absolute inset-0 bg-black/45" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/30 to-black/80" />
+
+      </div>
       <svg style={{ position: "absolute", width: 0, height: 0, overflow: "hidden" }}>
         <defs>
           <filter id={filterId.current} x="-20%" y="-20%" width="140%" height="140%" colorInterpolationFilters="sRGB">
@@ -233,24 +279,53 @@ function EtherealShadow() {
           </filter>
         </defs>
       </svg>
-      <div
-        className="absolute w-full h-full bg-[#808080] dark:bg-[#404040]"
-        style={{
-          inset: "-100px",
-          filter: `url(#${filterId.current}) blur(4px)`,
-          maskImage: 'url(/assets/images/ethereal-shadow/ceBGguIpUU8luwByxuQz79t7To.png)',
-          maskSize: 'cover', maskRepeat: 'no-repeat', maskPosition: 'center',
-          WebkitMaskImage: 'url(/assets/images/ethereal-shadow/ceBGguIpUU8luwByxuQz79t7To.png)',
-          WebkitMaskSize: 'cover', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center',
-        }}
-      />
-      <div
-        className="absolute inset-0 pointer-events-none z-[1]"
-        style={{
-          backgroundImage: 'url(/assets/images/ethereal-shadow/g0QcWrxr87K0ufOxIUFBakwYA8.png)',
-          backgroundSize: '240px', backgroundRepeat: 'repeat', opacity: 0.5,
-        }}
-      />
+
+      {/* Dynamic Background */}
+      <div className="absolute inset-0 overflow-hidden">
+
+        {/* CUSTOM VIDEO */}
+        {user.background_url &&
+          user.background_type === "video" ? (
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="h-full w-full object-cover"
+          >
+            <source
+              src={user.background_url}
+              type="video/mp4"
+            />
+          </video>
+        ) : user.background_url &&
+          user.background_type === "image" ? (
+
+          /* CUSTOM IMAGE */
+          <img
+            src={user.background_url}
+            alt="Background"
+            className="h-full w-full object-cover"
+          />
+
+        ) : (
+
+          /* DEFAULT BACKGROUND */
+          <img
+            src="/your-default-bg.jpg"
+            alt="Default Background"
+            className="h-full w-full object-cover"
+          />
+
+        )}
+
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-black/45" />
+
+        {/* Gradient */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/30 to-black/80" />
+
+      </div>
     </div>
   );
 }
@@ -702,8 +777,8 @@ function DiscordBadgeIcon({ badge }: { badge: { id: string; icon: string; descri
         className="flex h-7 w-7 items-center justify-center rounded-lg bg-stone-100/50 dark:bg-white/5 border border-stone-200/30 dark:border-white/5 hover:bg-stone-200 dark:hover:bg-white/10 transition-all duration-200 cursor-default hover:-translate-y-0.5"
         style={{ transition: 'transform 0.18s cubic-bezier(0.34,1.56,0.64,1), background 0.18s ease' }}
       >
-        <img 
-          src={`https://cdn.discordapp.com/badge-icons/${badge.icon}.png`} 
+        <img
+          src={`https://cdn.discordapp.com/badge-icons/${badge.icon}.png`}
           alt={badge.id}
           className="h-5 w-5 object-contain drop-shadow-sm"
           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
@@ -751,6 +826,12 @@ interface DiscordProfileCardProps {
     created_at: string;
     discord_id?: string;
     active_badges?: string[];
+    location?: string;
+    background_url?: string;
+    background_type?: string;
+    audios?: Array<{ id: string; url: string; name: string }>;
+    audio_shuffle?: boolean;
+    audio_player_enabled?: boolean;
   };
   discordData: DiscordData | null;
   connections: OAuthConnection[];
@@ -789,19 +870,19 @@ interface DiscordData {
 
 // Placeholder interface — kept for backwards-compat in activities type
 interface _ActivityEntry {
-    name: string;
-    type?: number;
-    state?: string;
-    details?: string;
-    emoji?: { id?: string; name?: string; animated?: boolean };
-    assets?: {
-      large_image?: string;
-      large_text?: string;
-      small_image?: string;
-      small_text?: string;
-    };
-    application_id?: string;
-    timestamps?: { start?: number; end?: number };
+  name: string;
+  type?: number;
+  state?: string;
+  details?: string;
+  emoji?: { id?: string; name?: string; animated?: boolean };
+  assets?: {
+    large_image?: string;
+    large_text?: string;
+    small_image?: string;
+    small_text?: string;
+  };
+  application_id?: string;
+  timestamps?: { start?: number; end?: number };
 }
 
 const statusColors: Record<string, string> = {
@@ -1011,19 +1092,25 @@ function DiscordProfileCard({ user, discordData, connections }: DiscordProfileCa
                   <span className="pronouns text-red-500/80 dark:text-red-400/80 font-bold">{pronouns}</span>
                 </>
               )}
+              {user.location && (
+                <>
+                  <span className="divider opacity-50">•</span>
+                  <span className="location text-cyan-500/80 dark:text-cyan-400/80 font-medium">📍 {user.location}</span>
+                </>
+              )}
               {/* Platform indicators — hidden until bot gateway */}
               <div className="platform-indicators flex items-center gap-1 ml-1" />
             </div>
           </div>
 
-            {/* Discord Badges — icon only */}
-            {badges.length > 0 && (
-              <div className="discord-badges flex flex-wrap gap-1 pt-1.5">
-                {badges.map((badge, idx) => (
-                  <DiscordBadgeIcon key={idx} badge={badge} />
-                ))}
-              </div>
-            )}
+          {/* Discord Badges — icon only */}
+          {badges.length > 0 && (
+            <div className="discord-badges flex flex-wrap gap-1 pt-1.5">
+              {badges.map((badge, idx) => (
+                <DiscordBadgeIcon key={idx} badge={badge} />
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="scrollable-content flex flex-col gap-4 pt-4 border-t border-stone-250/20 dark:border-white/5">
@@ -1034,12 +1121,12 @@ function DiscordProfileCard({ user, discordData, connections }: DiscordProfileCa
             return (
               <div className="text-xs pb-3 border-b border-stone-200/50 dark:border-white/5 flex items-center gap-2 text-stone-700 dark:text-stone-300">
                 {customStatus.emoji && (
-                  <img 
-                    src={customStatus.emoji.id 
+                  <img
+                    src={customStatus.emoji.id
                       ? `https://cdn.discordapp.com/emojis/${customStatus.emoji.id}.${customStatus.emoji.animated ? 'gif' : 'png'}?size=24`
                       : ""
-                    } 
-                    alt="" 
+                    }
+                    alt=""
                     className="w-4 h-4 object-contain"
                   />
                 )}
@@ -1047,6 +1134,31 @@ function DiscordProfileCard({ user, discordData, connections }: DiscordProfileCa
               </div>
             );
           })()}
+
+          {/* Audio Player */}
+          {user.audios && user.audios.length > 0 && user.audio_player_enabled && (
+            <section className="section audio-section">
+              <h3 className="section-title text-[10px] font-bold text-stone-400 dark:text-stone-400 uppercase tracking-widest mb-2">🎵 Audio</h3>
+              <div className="audio-player flex flex-col gap-2 p-3 rounded-xl bg-stone-50 dark:bg-white/5 border border-stone-100 dark:border-white/5">
+                <div className="text-xs font-medium text-stone-700 dark:text-stone-300">
+                  {user.audios.length} audio{user.audios.length !== 1 ? 's' : ''} available
+                </div>
+                <div className="space-y-1">
+                  {user.audios.map((audio) => (
+                    <div key={audio.id} className="text-xs text-stone-600 dark:text-stone-400 flex items-center gap-2">
+                      <span>▶</span>
+                      <span className="truncate">{audio.name}</span>
+                    </div>
+                  ))}
+                </div>
+                {user.audio_shuffle && (
+                  <div className="text-[10px] text-purple-600 dark:text-purple-400 mt-1">
+                    🎲 Shuffle enabled - plays random audio on each visit
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
 
           {/* Bio */}
           {bio && (
@@ -1065,22 +1177,22 @@ function DiscordProfileCard({ user, discordData, connections }: DiscordProfileCa
               <div className="flex gap-3 items-center p-2 rounded-xl bg-stone-50 dark:bg-white/5 border border-stone-100 dark:border-white/5">
                 <div className="w-14 h-14 rounded-lg bg-stone-200 dark:bg-neutral-800 flex-shrink-0 overflow-hidden relative">
                   {activity.assets?.large_image ? (
-                    <img 
-                      src={activity.assets.large_image.startsWith("spotify:") 
+                    <img
+                      src={activity.assets.large_image.startsWith("spotify:")
                         ? `https://i.scdn.co/image/${activity.assets.large_image.replace("spotify:", "")}`
                         : activity.assets.large_image.startsWith("mp:")
-                        ? `https://media.discordapp.net/${activity.assets.large_image.replace("mp:", "")}`
-                        : `https://cdn.discordapp.com/app-assets/${activity.application_id}/${activity.assets.large_image}.png`}
+                          ? `https://media.discordapp.net/${activity.assets.large_image.replace("mp:", "")}`
+                          : `https://cdn.discordapp.com/app-assets/${activity.application_id}/${activity.assets.large_image}.png`}
                       alt={activity.assets?.large_text || activity.name}
                       className="w-full h-full object-cover"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-black/10 dark:bg-black/40">
-                       <Tv className="w-5 h-5 text-stone-400 dark:text-white/20" />
+                      <Tv className="w-5 h-5 text-stone-400 dark:text-white/20" />
                     </div>
                   )}
                   {activity.assets?.small_image && (
-                    <img 
+                    <img
                       src={activity.assets.small_image.startsWith("mp:")
                         ? `https://media.discordapp.net/${activity.assets.small_image.replace("mp:", "")}`
                         : `https://cdn.discordapp.com/app-assets/${activity.application_id}/${activity.assets.small_image}.png`}
@@ -1136,9 +1248,9 @@ function DiscordProfileCard({ user, discordData, connections }: DiscordProfileCa
           </div>
         </div>
       </div>
-      
+
     </InteractiveCard>
-      
+
   );
 }
 
@@ -1156,6 +1268,12 @@ interface ClientProfileProps {
     typewriter_quotes?: string[];
     custom_links?: any[];
     active_badges?: string[];
+    location?: string;
+    background_url?: string;
+    background_type?: string;
+    audios?: Array<{ id: string; url: string; name: string }>;
+    audio_shuffle?: boolean;
+    audio_player_enabled?: boolean;
   };
   initialDiscordData?: DiscordData | null;
   initialConnections?: OAuthConnection[];
@@ -1180,17 +1298,40 @@ export default function ClientProfile({ user, initialDiscordData, initialConnect
   // Note: We've removed the redroseapi client-side fallback. 
   // We rely exclusively on the data passed via initialDiscordData from the server.
 
-  // Initialize Audio
+  // Initialize Audio once when the user audio list changes.
   useEffect(() => {
-    audioRef.current = new Audio("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3");
-    audioRef.current.loop = true;
-    audioRef.current.volume = volume;
-    return () => { if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; } };
-  }, []);
+    if (!user?.audios || user.audios.length === 0) {
+      return;
+    }
 
-  // Sync volume to audio element
+    let selectedAudio = user.audios[0];
+
+    // SHUFFLE MODE
+    if (user.audio_shuffle && user.audios.length > 1) {
+      selectedAudio = user.audios[Math.floor(Math.random() * user.audios.length)];
+    }
+
+    const audio = new Audio(selectedAudio.url);
+    audio.preload = "auto";
+    audio.loop = !user.audio_shuffle;
+    audio.volume = volume;
+    audio.muted = false;
+
+    audioRef.current = audio;
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, [user]);
+
+  // Sync volume to audio element without recreating the audio instance.
   useEffect(() => {
-    if (audioRef.current) audioRef.current.volume = volume;
+    if (!audioRef.current) return;
+    audioRef.current.muted = false;
+    audioRef.current.volume = volume;
   }, [volume]);
 
   const handleEnterChamber = () => {
@@ -1210,21 +1351,36 @@ export default function ClientProfile({ user, initialDiscordData, initialConnect
 
   // Volume toggle: if muted restore prev; if unmuted mute
   const toggleMute = () => {
-    if (volume === 0) {
-      const restore = prevVolumeRef.current > 0 ? prevVolumeRef.current : 0.3;
-      setVolume(restore);
+    if (!audioRef.current) return;
+
+    if (audioRef.current.muted) {
+      audioRef.current.muted = false;
+      const restoreVolume = prevVolumeRef.current > 0 ? prevVolumeRef.current : 0.3;
+      audioRef.current.volume = restoreVolume;
+      setVolume(restoreVolume);
     } else {
-      prevVolumeRef.current = volume;
-      setVolume(0);
+      prevVolumeRef.current = volume > 0 ? volume : 0.3;
+      audioRef.current.muted = true;
     }
   };
 
   const handleVolumeChange = (newVol: number) => {
+    if (!audioRef.current) return;
+
+    const unmute = newVol > 0;
+    audioRef.current.muted = !unmute;
+    audioRef.current.volume = newVol;
     setVolume(newVol);
-    if (newVol > 0) prevVolumeRef.current = newVol;
+
+    if (unmute) {
+      prevVolumeRef.current = newVol;
+    }
+
+    setIsPlaying(!audioRef.current.paused);
   };
 
-  const isMuted = volume === 0;
+  const isMuted =
+    audioRef.current?.muted || false;
 
   const toggleTheme = () => {
     const currentTheme = theme === "system" ? "dark" : theme;
@@ -1392,7 +1548,7 @@ export default function ClientProfile({ user, initialDiscordData, initialConnect
       `}</style>
 
       {/* Ethereal Shadow Background */}
-      <EtherealShadow />
+      <EtherealShadow user={user} />
 
       {/* Oneko Cursor Tracker */}
       <NekoTracker />
@@ -1415,94 +1571,246 @@ export default function ClientProfile({ user, initialDiscordData, initialConnect
             {theme === "dark" ? <Sun className="h-4.5 w-4.5" /> : <Moon className="h-4.5 w-4.5" />}
           </button>
 
-          {/* Audio controls */}
+          {/* AUDIO CONTROLS */}
           <AnimatePresence>
             {entered && (
               <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="flex items-center gap-2 bg-white/40 dark:bg-black/40 border border-stone-200/50 dark:border-white/5 p-2 rounded-2xl backdrop-blur-md select-none"
+                initial={{
+                  opacity: 0,
+                  y: -10,
+                  scale: 0.95,
+                }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                  scale: 1,
+                }}
+                transition={{
+                  duration: 0.35,
+                  ease: "easeOut",
+                }}
+                className="
+        flex
+        items-center
+        gap-2
+        rounded-2xl
+        border
+        border-white/10
+        bg-black/35
+        px-2
+        py-2
+        backdrop-blur-2xl
+        shadow-[0_10px_40px_rgba(0,0,0,0.45)]
+      "
               >
-                {/* Play/Pause */}
-                <button
-                  onClick={togglePlayback}
-                  className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.06] text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white transition-all duration-200"
-                  title={isPlaying ? "Pause" : "Play"}
-                >
-                  {isPlaying ? (
-                    /* Pause icon */
-                    <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
-                      <rect x="6" y="4" width="4" height="16" rx="1" />
-                      <rect x="14" y="4" width="4" height="16" rx="1" />
-                    </svg>
-                  ) : (
-                    /* Play icon */
-                    <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
-                      <polygon points="5 3 19 12 5 21 5 3" />
-                    </svg>
-                  )}
-                </button>
 
-                {/* Volume control with hover dropdown */}
+
+                {/* VOLUME */}
                 <div
-                  className="relative"
-                  onMouseEnter={() => setShowVolumeDropdown(true)}
-                  onMouseLeave={() => setShowVolumeDropdown(false)}
+                  className="
+    relative
+    flex
+    items-center
+    gap-2
+  "
+                  onMouseEnter={() =>
+                    setShowVolumeDropdown(true)
+                  }
+                  onMouseLeave={() =>
+                    setShowVolumeDropdown(false)
+                  }
                 >
+
+                  {/* BUTTON */}
                   <button
                     onClick={toggleMute}
-                    className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.06] text-red-400 hover:text-red-300 transition-all duration-200"
-                    title={isMuted ? "Unmute" : "Mute"}
+                    className="
+      group
+      relative
+      flex
+      h-9
+      w-9
+      items-center
+      justify-center
+      overflow-hidden
+      rounded-xl
+      border
+      border-white/5
+      bg-white/[0.04]
+      text-white/70
+      transition-all
+      duration-300
+      hover:bg-red-500/10
+      hover:text-white
+    "
                   >
-                    {isMuted
-                      ? <VolumeX className="h-4 w-4" />
-                      : <Volume2 className="h-4 w-4" />
-                    }
+
+                    {/* Glow */}
+                    <div
+                      className="
+        absolute
+        inset-0
+        bg-red-500/10
+        opacity-0
+        blur-xl
+        transition-opacity
+        duration-300
+        group-hover:opacity-100
+      "
+                    />
+
+                    {isMuted ? (
+                      <VolumeX
+                        className="
+          relative
+          z-10
+          h-4
+          w-4
+          text-red-400
+        "
+                      />
+                    ) : (
+                      <Volume2
+                        className="
+          relative
+          z-10
+          h-4
+          w-4
+        "
+                      />
+                    )}
                   </button>
 
-                  {/* Volume dropdown panel */}
+                  {/* SLIDER */}
                   <AnimatePresence>
+
                     {showVolumeDropdown && (
+
                       <motion.div
-                        initial={{ opacity: 0, y: -4, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -4, scale: 0.95 }}
-                        transition={{ duration: 0.15, ease: 'easeOut' }}
-                        className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-50"
+                        initial={{
+                          width: 0,
+                          opacity: 0,
+                          x: -10,
+                        }}
+                        animate={{
+                          width: 120,
+                          opacity: 1,
+                          x: 0,
+                        }}
+                        exit={{
+                          width: 0,
+                          opacity: 0,
+                          x: -10,
+                        }}
+                        transition={{
+                          duration: 0.28,
+                          ease: "easeOut",
+                        }}
+                        className="
+          overflow-hidden
+        "
                       >
+
                         <div
-                          className="flex flex-col items-center gap-2 px-3 py-3 rounded-2xl"
-                          style={{
-                            background: 'rgba(10,10,10,0.92)',
-                            border: '1px solid rgba(255,255,255,0.08)',
-                            backdropFilter: 'blur(20px)',
-                            boxShadow: '0 12px 40px rgba(0,0,0,0.6)',
-                          }}
+                          className="
+            relative
+            flex
+            items-center
+            px-1
+          "
                         >
-                          {/* Volume percentage */}
-                          <span className="text-[10px] font-bold text-white/70 tracking-wider tabular-nums">
-                            {Math.round(volume * 100)}%
-                          </span>
-                          {/* Vertical slider */}
+
+                          {/* Track */}
+                          <div
+                            className="
+              absolute
+              left-1
+              right-1
+              top-1/2
+              h-[6px]
+              -translate-y-1/2
+              rounded-full
+              bg-white/[0.08]
+            "
+                          />
+
+                          {/* Active */}
+                          <div
+                            className="
+              absolute
+              left-1
+              top-1/2
+              h-[6px]
+              -translate-y-1/2
+              rounded-full
+              bg-gradient-to-r
+              from-red-500
+              to-red-400
+              shadow-[0_0_16px_rgba(239,68,68,0.45)]
+            "
+                            style={{
+                              width: `${volume * 96}px`,
+                            }}
+                          />
+
                           <input
                             type="range"
-                            min="0"
+                            min="0.01"
                             max="1"
-                            step="0.05"
+                            step="0.01"
                             value={volume}
-                            onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
-                            className="volume-slider-vert"
+                            onChange={(e) =>
+                              handleVolumeChange(
+                                parseFloat(
+                                  e.target.value
+                                )
+                              )
+                            }
+                            className="
+              relative
+              z-10
+              h-[6px]
+              w-full
+              cursor-pointer
+              appearance-none
+              bg-transparent
+
+              [&::-webkit-slider-thumb]:appearance-none
+              [&::-webkit-slider-thumb]:h-4
+              [&::-webkit-slider-thumb]:w-4
+              [&::-webkit-slider-thumb]:rounded-full
+              [&::-webkit-slider-thumb]:bg-white
+              [&::-webkit-slider-thumb]:shadow-[0_0_18px_rgba(255,255,255,0.45)]
+              [&::-webkit-slider-thumb]:transition-all
+              [&::-webkit-slider-thumb]:duration-200
+
+              hover:[&::-webkit-slider-thumb]:scale-110
+            "
                           />
-                          {/* Low/High labels */}
-                          <span className="text-[8px] text-white/40 uppercase tracking-widest">Low</span>
+
                         </div>
-                        {/* Arrow */}
-                        <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0"
-                          style={{ borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderTop: '5px solid rgba(255,255,255,0.08)' }} />
+
                       </motion.div>
                     )}
+
                   </AnimatePresence>
+
                 </div>
+
+                {/* VOLUME TEXT */}
+                <div
+                  className="
+          min-w-[42px]
+          text-center
+          text-[10px]
+          font-bold
+          tracking-[0.12em]
+          text-white/45
+        "
+                >
+                  {Math.round(volume * 100)}%
+                </div>
+
               </motion.div>
             )}
           </AnimatePresence>

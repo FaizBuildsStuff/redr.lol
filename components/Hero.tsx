@@ -1,10 +1,49 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 const Hero = () => {
+  const [username, setUsername] = useState("");
+const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+React.useEffect(() => {
+
+  const checkAuth = async () => {
+    try {
+
+      const res = await fetch("/api/auth/me");
+
+      const data = await res.json();
+
+      if (data?.user) {
+
+        setIsLoggedIn(true);
+
+        setUsername(
+          data.user.username || ""
+        );
+
+      } else {
+
+        setIsLoggedIn(false);
+
+      }
+
+    } catch (error) {
+
+      console.error(error);
+
+      setIsLoggedIn(false);
+
+    }
+  };
+
+  checkAuth();
+
+}, []);
   return (
     <section className="relative min-h-screen overflow-hidden bg-[#0A0A0A] text-[#F5F1E8]">
       {/* Background */}
@@ -381,28 +420,68 @@ const Hero = () => {
         </motion.p>
 
         {/* Buttons */}
-        <motion.div
-          initial={{ opacity: 0, y: 25 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{
-            duration: 1,
-            delay: 0.25,
-          }}
-          className="mt-12 flex flex-col items-center gap-4 sm:flex-row"
-        >
-          <button className="group relative overflow-hidden rounded-2xl bg-red-600 px-7 py-4 text-sm font-medium text-white transition-all duration-300 hover:scale-[1.03] hover:bg-red-500">
-            <span className="relative z-10 flex items-center gap-2">
-              create your profile
-              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-            </span>
+<motion.div
+  initial={{ opacity: 0, y: 25 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{
+    duration: 1,
+    delay: 0.25,
+  }}
+  className="mt-12 flex flex-col items-center gap-4 sm:flex-row"
+>
 
-            <div className="absolute inset-0 bg-gradient-to-r from-red-500 via-red-600 to-red-700 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-          </button>
+  {/* MAIN BUTTON */}
+  <Link href={isLoggedIn ? "/dashboard" : "/signup"}>
+    <button className="group relative flex h-14 items-center justify-center overflow-hidden rounded-2xl bg-red-600 px-8 text-sm font-medium text-white transition-all duration-500 hover:-translate-y-[2px] hover:bg-red-500 hover:shadow-[0_0_40px_rgba(239,68,68,0.35)]">
 
-          <button className="rounded-2xl border border-white/10 bg-white/[0.03] px-7 py-4 text-sm font-medium text-[#d8d8d8] backdrop-blur-xl transition-all duration-300 hover:border-red-500/20 hover:bg-red-500/10 hover:text-white">
-            explore profiles
-          </button>
-        </motion.div>
+      {/* Glow */}
+      <div className="absolute inset-0 bg-gradient-to-r from-red-500 via-red-400 to-red-700 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+
+      {/* Shine */}
+      <div className="absolute inset-0 overflow-hidden rounded-2xl">
+        <div className="absolute left-[-120%] top-0 h-full w-[60%] rotate-[20deg] bg-white/20 blur-xl transition-all duration-1000 group-hover:left-[140%]" />
+      </div>
+
+      {/* Content */}
+      <span className="relative z-10 flex items-center gap-2 tracking-[0.04em]">
+
+        {isLoggedIn
+          ? "View dashboard"
+          : "Create your profile"}
+
+        <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+
+      </span>
+
+    </button>
+  </Link>
+
+  {/* SECONDARY BUTTON */}
+  <Link href="/explore">
+    <button
+      className="
+      rounded-2xl
+      border
+      border-white/10
+      bg-white/[0.03]
+      px-8
+      py-4
+      text-sm
+      font-medium
+      text-[#d8d8d8]
+      backdrop-blur-xl
+      transition-all
+      duration-300
+      hover:border-red-500/20
+      hover:bg-red-500/10
+      hover:text-white
+    "
+    >
+      explore profiles
+    </button>
+  </Link>
+
+</motion.div>
       </div>
     </section>
   );
