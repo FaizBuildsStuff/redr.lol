@@ -206,6 +206,7 @@ function EtherealShadow({
 }) {
   const [hueRotate, setHueRotate] = useState(180);
   const filterId = useRef(`shadowoverlay-${Math.random().toString(36).substring(2, 9)}`);
+  const backgroundAudioEnabled = user.background_audio_enabled ?? false;
 
   useEffect(() => {
     let animationFrameId: number;
@@ -234,7 +235,7 @@ function EtherealShadow({
 
           <video
             autoPlay
-            muted
+            muted={!backgroundAudioEnabled}
             loop
             playsInline
             className="h-full w-full object-cover"
@@ -288,7 +289,7 @@ function EtherealShadow({
           user.background_type === "video" ? (
           <video
             autoPlay
-            muted
+            muted={!backgroundAudioEnabled}
             loop
             playsInline
             className="h-full w-full object-cover"
@@ -829,6 +830,7 @@ interface DiscordProfileCardProps {
     location?: string;
     background_url?: string;
     background_type?: string;
+    background_audio_enabled?: boolean;
     audios?: Array<{ id: string; url: string; name: string }>;
     audio_shuffle?: boolean;
     audio_player_enabled?: boolean;
@@ -898,6 +900,7 @@ function DiscordProfileCard({ user, discordData, connections }: DiscordProfileCa
   const [message, setMessage] = useState('');
   const [bannerError, setBannerError] = useState(false);
   const [bannerLoaded, setBannerLoaded] = useState(false);
+  const backgroundAudioEnabled = user.background_audio_enabled ?? false;
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1136,7 +1139,7 @@ function DiscordProfileCard({ user, discordData, connections }: DiscordProfileCa
           })()}
 
           {/* Audio Player */}
-          {user.audios && user.audios.length > 0 && user.audio_player_enabled && (
+          {!backgroundAudioEnabled && user.audios && user.audios.length > 0 && user.audio_player_enabled && (
             <section className="section audio-section">
               <h3 className="section-title text-[10px] font-bold text-stone-400 dark:text-stone-400 uppercase tracking-widest mb-2">🎵 Audio</h3>
               <div className="audio-player flex flex-col gap-2 p-3 rounded-xl bg-stone-50 dark:bg-white/5 border border-stone-100 dark:border-white/5">
@@ -1271,6 +1274,7 @@ interface ClientProfileProps {
     location?: string;
     background_url?: string;
     background_type?: string;
+    background_audio_enabled?: boolean;
     audios?: Array<{ id: string; url: string; name: string }>;
     audio_shuffle?: boolean;
     audio_player_enabled?: boolean;
@@ -1281,6 +1285,7 @@ interface ClientProfileProps {
 
 export default function ClientProfile({ user, initialDiscordData, initialConnections }: ClientProfileProps) {
   const [entered, setEntered] = useState(false);
+  const backgroundAudioEnabled = user.background_audio_enabled ?? false;
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.3);
   const [showVolumeDropdown, setShowVolumeDropdown] = useState(false);

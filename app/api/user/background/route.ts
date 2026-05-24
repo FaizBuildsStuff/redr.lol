@@ -31,23 +31,32 @@ export async function POST(
     const {
       background_url,
       background_type,
+      background_audio_enabled,
     } = await req.json();
 
-    const result = await sql`
-      UPDATE users
+    let result;
+    if (background_audio_enabled !== undefined) {
+      result = await sql`
+        UPDATE users
 
-      SET
-        background_url =
-          ${background_url},
+        SET
+          background_url = ${background_url},
+          background_type = ${background_type},
+          background_audio_enabled = ${background_audio_enabled}
+        WHERE id = ${user.userId}
+        RETURNING *;
+      `;
+    } else {
+      result = await sql`
+        UPDATE users
 
-        background_type =
-          ${background_type}
-
-      WHERE id =
-        ${user.userId}
-
-      RETURNING *;
-    `;
+        SET
+          background_url = ${background_url},
+          background_type = ${background_type}
+        WHERE id = ${user.userId}
+        RETURNING *;
+      `;
+    }
 
     if (
       !result ||
@@ -78,6 +87,44 @@ export async function POST(
       },
       { status: 500 }
     );
+  }
+}
+
+/* TOGGLE VIDEO AUDIO */
+export async function PATCH(
+  req: NextRequest
+) {
+  try {
+    const session = req.cookies.get("session")?.value;
+
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = verifyToken(session);
+    if (!user) {
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+    }
+
+    const { background_audio_enabled } = await req.json();
+
+    const result = await sql`
+      UPDATE users
+
+      SET
+        background_audio_enabled = ${background_audio_enabled}
+      WHERE id = ${user.userId}
+      RETURNING *;
+    `;
+
+    if (!result || result.length === 0) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, user: result[0] });
+  } catch (error) {
+    console.error("Background audio toggle error:", error);
+    return NextResponse.json({ error: "Failed to update background audio state" }, { status: 500 });
   }
 }
 
@@ -112,7 +159,8 @@ export async function DELETE(
 
       SET
         background_url = NULL,
-        background_type = NULL
+        background_type = NULL,
+        background_audio_enabled = false
 
       WHERE id =
         ${user.userId}

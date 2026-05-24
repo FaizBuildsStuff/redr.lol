@@ -18,7 +18,7 @@ export default async function UserProfilePage({ params }: PageProps) {
   let user = null;
   try {
     const users = await sql`
-      SELECT id, username, email, discord_id, discord_access_token, created_at, typewriter_heading, typewriter_quotes, custom_links, active_badges, location, background_url, background_type, audios, audio_shuffle, audio_player_enabled
+      SELECT id, username, email, discord_id, discord_access_token, created_at, typewriter_heading, typewriter_quotes, custom_links, active_badges, location, background_url, background_type, audios, audio_shuffle, audio_player_enabled, background_audio_enabled
       FROM users 
       WHERE LOWER(TRIM(username)) = ${cleanUsername}
       LIMIT 1
@@ -97,6 +97,7 @@ export default async function UserProfilePage({ params }: PageProps) {
     background_type: user.background_type,
     audios: user.audios,
     audio_shuffle: user.audio_shuffle,
-    audio_player_enabled: user.audio_player_enabled
+    audio_player_enabled: user.audio_player_enabled,
+    background_audio_enabled: user.background_audio_enabled
   }} initialDiscordData={initialDiscordData} initialConnections={initialConnections} />;
 }

@@ -41,6 +41,7 @@ interface UserProfile {
   audios?: Array<{ id: string; url: string; name: string }>;
   audio_shuffle?: boolean;
   audio_player_enabled?: boolean;
+  background_audio_enabled?: boolean;
   location?: string;
 }
 
@@ -73,6 +74,7 @@ export default function CustomizePage() {
   const [uploadingAudio, setUploadingAudio] = useState(false);
   const [audioShuffle, setAudioShuffle] = useState(false);
   const [audioPlayerEnabled, setAudioPlayerEnabled] = useState(false);
+  const [backgroundAudioEnabled, setBackgroundAudioEnabled] = useState(false);
 
   // Location states
   const [location, setLocation] = useState("");
@@ -109,6 +111,9 @@ export default function CustomizePage() {
           }
           if (data.user.audio_player_enabled !== undefined) {
             setAudioPlayerEnabled(data.user.audio_player_enabled);
+          }
+          if (data.user.background_audio_enabled !== undefined) {
+            setBackgroundAudioEnabled(data.user.background_audio_enabled);
           }
           if (data.user.location) {
             setLocation(data.user.location);
@@ -173,6 +178,7 @@ export default function CustomizePage() {
           const data = await res.json();
           setBackgroundUrl(data.user.background_url);
           setBackgroundType(data.user.background_type);
+          setBackgroundAudioEnabled(data.user.background_audio_enabled ?? false);
         }
       }
     } catch (error) {
@@ -192,9 +198,32 @@ export default function CustomizePage() {
       if (res.ok) {
         setBackgroundUrl(null);
         setBackgroundType(null);
+        setBackgroundAudioEnabled(false);
       }
     } catch (error) {
       console.error("Background delete error:", error);
+    }
+  };
+
+  const handleBackgroundAudioToggle = async () => {
+    const nextEnabled = !backgroundAudioEnabled;
+    const previousEnabled = backgroundAudioEnabled;
+    setBackgroundAudioEnabled(nextEnabled);
+
+    try {
+      const res = await fetch("/api/user/background", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ background_audio_enabled: nextEnabled }),
+      });
+
+      if (!res.ok) {
+        console.error("Failed to update background audio state");
+        setBackgroundAudioEnabled(previousEnabled);
+      }
+    } catch (error) {
+      console.error("Background audio toggle error:", error);
+      setBackgroundAudioEnabled(previousEnabled);
     }
   };
 
@@ -345,6 +374,9 @@ export default function CustomizePage() {
       setSavingDiscord(false);
     }
   };
+
+  const audioControlsDisabled =
+    backgroundType === "video" && backgroundAudioEnabled;
 
   if (loading) {
     return (
@@ -672,6 +704,31 @@ export default function CustomizePage() {
                       )}
                     </div>
 
+                    {backgroundType === "video" && (
+                      <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-4 text-sm text-white/60">
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <p className="font-semibold text-white">Video Audio</p>
+                            <p className="text-xs text-white/40">
+                              When enabled, the background video plays with sound and audio track playback is disabled.
+                            </p>
+                          </div>
+                          <button
+                            onClick={handleBackgroundAudioToggle}
+                            className={
+                              `inline-flex h-11 items-center justify-center rounded-2xl px-4 text-sm font-semibold transition-all duration-300 ${
+                                backgroundAudioEnabled
+                                  ? "border border-green-500/20 bg-green-500/10 text-green-300 hover:bg-green-500/20"
+                                  : "border border-white/10 bg-white/[0.03] text-white/40 hover:border-green-500/20 hover:bg-green-500/10 hover:text-green-300"
+                              }`
+                            }
+                          >
+                            {backgroundAudioEnabled ? "Video sound on" : "Mute video audio"}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
                     <button
                       onClick={handleRemoveBackground}
                       className="
@@ -805,7 +862,7 @@ export default function CustomizePage() {
           <div className="space-y-6">
 
             {/* AUDIO */}
-            <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-white/[0.03] p-6 backdrop-blur-3xl">
+            <div className={`relative overflow-hidden rounded-[32px] border border-white/10 bg-white/[0.03] p-6 backdrop-blur-3xl ${audioControlsDisabled ? "pointer-events-none opacity-60" : ""}`}>
               {/* Glow */}
               <div className="absolute bottom-0 right-0 h-[220px] w-[220px] rounded-full bg-purple-500/10 blur-[120px]" />
 
@@ -851,7 +908,9 @@ export default function CustomizePage() {
                             </div>
                             <button
                               onClick={() => handleRemoveAudio(audio.id)}
-                              className="
+                              disabled={audioControlsDisabled}
+                              className={
+                                `
                             flex
                             h-8
                             w-8
@@ -866,7 +925,9 @@ export default function CustomizePage() {
                             transition-all
                             duration-300
                             hover:bg-red-500/20
-                          "
+                            ${audioControlsDisabled ? "pointer-events-none opacity-40" : ""}
+                          `
+                              }
                             >
                               <X className="h-4 w-4" />
                             </button>
@@ -881,11 +942,11 @@ export default function CustomizePage() {
 
                 {/* Upload Button */}
                 {audios.length < 4 && (
-                  <label className="
+                  <label className={
+                    `
                   flex
                   h-12
                   w-full
-                  cursor-pointer
                   items-center
                   justify-center
                   rounded-2xl
@@ -900,17 +961,24 @@ export default function CustomizePage() {
                   duration-300
                   hover:border-purple-500/40
                   hover:bg-purple-500/10
-                "
-                  >
+                  ${audioControlsDisabled ? "opacity-40" : "cursor-pointer"}
+                `
+                  }>
                     <input
                       type="file"
                       accept="audio/*"
                       onChange={handleAudioUpload}
-                      disabled={uploadingAudio}
+                      disabled={uploadingAudio || audioControlsDisabled}
                       className="hidden"
                     />
                     {uploadingAudio ? "Uploading..." : "+ Add Audio"}
                   </label>
+                )}
+
+                {audioControlsDisabled && (
+                  <div className="mt-4 rounded-2xl border border-white/10 bg-black/10 px-4 py-3 text-xs text-white/60">
+                    Video audio is enabled, so the audio player is temporarily disabled.
+                  </div>
                 )}
 
                 {/* Audio Settings */}
@@ -924,6 +992,7 @@ export default function CustomizePage() {
                       onClick={() =>
                         handleAudioSettings(!audioShuffle, audioPlayerEnabled)
                       }
+                      disabled={audioControlsDisabled}
                       className={`
                     flex
                     h-12
@@ -956,6 +1025,7 @@ export default function CustomizePage() {
                       onClick={() =>
                         handleAudioSettings(audioShuffle, !audioPlayerEnabled)
                       }
+                      disabled={audioControlsDisabled}
                       className={`
                     flex
                     h-12
