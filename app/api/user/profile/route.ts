@@ -90,6 +90,14 @@ export async function PATCH(req: NextRequest) {
       hasUpdates = true;
     }
 
+    if (body.discord_profile_transparency !== undefined) {
+      await sql`
+        UPDATE users SET discord_profile_transparency = ${body.discord_profile_transparency}
+        WHERE id = ${userId}
+      `;
+      hasUpdates = true;
+    }
+
     if (!hasUpdates) {
       return NextResponse.json({ message: "No updates provided" });
     }
@@ -97,7 +105,7 @@ export async function PATCH(req: NextRequest) {
     // Return the updated user row
     const [updated] = await sql`
       SELECT id, username, email, typewriter_heading, typewriter_quotes,
-             custom_links, active_badges, theme, music_active, sparkles_active, custom_font
+             custom_links, active_badges, theme, music_active, sparkles_active, custom_font, discord_profile_transparency
       FROM users
       WHERE id = ${userId}
     `;

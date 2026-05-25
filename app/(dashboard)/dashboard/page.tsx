@@ -22,6 +22,7 @@ interface UserProfile {
   id: number;
   username: string;
   email: string;
+  discord_id?: string;
 }
 
 export default function DashboardPage() {
@@ -29,13 +30,14 @@ export default function DashboardPage() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [savingDiscord, setSavingDiscord] = useState(false);
 
   useEffect(() => {
     async function checkAuth() {
       try {
         const res = await fetch("/api/auth/me");
         const data = await res.json();
-        
+
         if (data.user) {
           setUser(data.user);
         } else {
@@ -78,12 +80,30 @@ export default function DashboardPage() {
     }
   };
 
+  const handleDisconnectDiscord = async () => {
+    try {
+      setSavingDiscord(true);
+      const res = await fetch("/api/user/discord", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (res.ok) {
+        setUser((prev) => (prev ? { ...prev, discord_id: undefined } : prev));
+        router.refresh();
+      }
+    } catch (error) {
+      console.error("Failed to disconnect discord:", error);
+    } finally {
+      setSavingDiscord(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="relative flex min-h-screen items-center justify-center bg-[#0A0A0A] text-[#F5F1E8]">
         {/* Glowing Orbs */}
         <div className="absolute left-1/2 top-1/2 h-[350px] w-[350px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-red-600/10 blur-[120px]" />
-        
+
         <div className="flex flex-col items-center gap-4 text-center">
           <motion.div
             animate={{ rotate: 360 }}
@@ -109,7 +129,7 @@ export default function DashboardPage() {
         {/* Glow */}
         <div className="absolute left-1/3 top-0 h-[600px] w-[600px] rounded-full bg-red-600/5 blur-[160px]" />
         <div className="absolute bottom-0 right-1/4 h-[500px] w-[500px] rounded-full bg-red-500/5 blur-[140px]" />
-        
+
         {/* Soft Grid */}
         <div
           className="absolute inset-0 opacity-[0.03]"
@@ -129,7 +149,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="mx-auto max-w-5xl relative z-10">
-        
+
         {/* Heading */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 border-b border-white/5 pb-8">
           <div>
@@ -141,7 +161,7 @@ export default function DashboardPage() {
             >
               <Sparkles className="h-4 w-4" /> Account Space
             </motion.div>
-            
+
             <motion.h1
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
@@ -150,7 +170,7 @@ export default function DashboardPage() {
             >
               Hello, <span className="text-red-500 font-semibold">{user.username}</span> dashboard
             </motion.h1>
-            
+
             <motion.p
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
@@ -178,49 +198,49 @@ export default function DashboardPage() {
         </div>
 
         {/* DASHBOARD */}
-<div className="mt-12 space-y-6">
+        <div className="mt-12 space-y-6">
 
-  {/* TOP STATS */}
-  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {/* TOP STATS */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
 
-    {[
-      {
-        title: "Total Views",
-        value: "24.8K",
-        growth: "+18%",
-        color: "from-red-500/20 to-red-500/5",
-      },
-      {
-        title: "Profile Clicks",
-        value: "8.2K",
-        growth: "+9%",
-        color: "from-purple-500/20 to-purple-500/5",
-      },
-      {
-        title: "Link CTR",
-        value: "42%",
-        growth: "+12%",
-        color: "from-indigo-500/20 to-indigo-500/5",
-      },
-      {
-        title: "Active Themes",
-        value: "14",
-        growth: "+2",
-        color: "from-pink-500/20 to-pink-500/5",
-      },
-    ].map((item, i) => (
-      <motion.div
-        key={item.title}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{
-          delay: i * 0.08,
-        }}
-        whileHover={{
-          y: -4,
-          scale: 1.01,
-        }}
-        className="
+            {[
+              {
+                title: "Total Views",
+                value: "24.8K",
+                growth: "+18%",
+                color: "from-red-500/20 to-red-500/5",
+              },
+              {
+                title: "Profile Clicks",
+                value: "8.2K",
+                growth: "+9%",
+                color: "from-purple-500/20 to-purple-500/5",
+              },
+              {
+                title: "Link CTR",
+                value: "42%",
+                growth: "+12%",
+                color: "from-indigo-500/20 to-indigo-500/5",
+              },
+              {
+                title: "Active Themes",
+                value: "14",
+                growth: "+2",
+                color: "from-pink-500/20 to-pink-500/5",
+              },
+            ].map((item, i) => (
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  delay: i * 0.08,
+                }}
+                whileHover={{
+                  y: -4,
+                  scale: 1.01,
+                }}
+                className="
         group
         relative
         overflow-hidden
@@ -231,48 +251,48 @@ export default function DashboardPage() {
         p-6
         backdrop-blur-3xl
       "
-      >
+              >
 
-        {/* Glow */}
-        <div
-          className={`absolute inset-0 bg-gradient-to-br ${item.color} opacity-0 transition-opacity duration-500 group-hover:opacity-100`}
-        />
+                {/* Glow */}
+                <div
+                  className={`absolute inset-0 bg-gradient-to-br ${item.color} opacity-0 transition-opacity duration-500 group-hover:opacity-100`}
+                />
 
-        <div className="relative z-10">
+                <div className="relative z-10">
 
-          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/40">
-            {item.title}
-          </p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/40">
+                    {item.title}
+                  </p>
 
-          <div className="mt-4 flex items-end justify-between">
+                  <div className="mt-4 flex items-end justify-between">
 
-            <h3 className="text-4xl font-bold tracking-tight text-white">
-              {item.value}
-            </h3>
+                    <h3 className="text-4xl font-bold tracking-tight text-white">
+                      {item.value}
+                    </h3>
 
-            <div className="rounded-full border border-green-500/20 bg-green-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-green-400">
-              {item.growth}
-            </div>
+                    <div className="rounded-full border border-green-500/20 bg-green-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-green-400">
+                      {item.growth}
+                    </div>
 
+                  </div>
+
+                </div>
+              </motion.div>
+            ))}
           </div>
 
-        </div>
-      </motion.div>
-    ))}
-  </div>
+          {/* MAIN GRID */}
+          <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
 
-  {/* MAIN GRID */}
-  <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
+            {/* LEFT */}
+            <div className="space-y-6">
 
-    {/* LEFT */}
-    <div className="space-y-6">
-
-      {/* USER PROFILE */}
-      <motion.div
-        initial={{ opacity: 0, y: 25 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="
+              {/* USER PROFILE */}
+              <motion.div
+                initial={{ opacity: 0, y: 25 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="
         relative
         overflow-hidden
         rounded-[34px]
@@ -282,56 +302,56 @@ export default function DashboardPage() {
         p-6
         backdrop-blur-3xl
       "
-      >
+              >
 
-        {/* Glow */}
-        <div className="absolute left-0 top-0 h-[220px] w-[220px] rounded-full bg-red-500/10 blur-[120px]" />
+                {/* Glow */}
+                <div className="absolute left-0 top-0 h-[220px] w-[220px] rounded-full bg-red-500/10 blur-[120px]" />
 
-        <div className="relative z-10">
+                <div className="relative z-10">
 
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+                  <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
 
-            {/* LEFT */}
-            <div className="flex items-center gap-5">
+                    {/* LEFT */}
+                    <div className="flex items-center gap-5">
 
-              <div className="relative">
+                      <div className="relative">
 
-                <div className="absolute inset-0 rounded-3xl bg-red-500/20 blur-xl" />
+                        <div className="absolute inset-0 rounded-3xl bg-red-500/20 blur-xl" />
 
-                <div className="relative flex h-20 w-20 items-center justify-center rounded-3xl border border-white/10 bg-black/40 backdrop-blur-xl">
-                  <User className="h-9 w-9 text-red-400" />
-                </div>
+                        <div className="relative flex h-20 w-20 items-center justify-center rounded-3xl border border-white/10 bg-black/40 backdrop-blur-xl">
+                          <User className="h-9 w-9 text-red-400" />
+                        </div>
 
-              </div>
+                      </div>
 
-              <div>
+                      <div>
 
-                <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-green-500/20 bg-green-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.15em] text-green-400">
-                  <div className="h-2 w-2 rounded-full bg-green-400 shadow-[0_0_10px_rgba(74,222,128,0.8)]" />
-                  Online
-                </div>
+                        <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-green-500/20 bg-green-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.15em] text-green-400">
+                          <div className="h-2 w-2 rounded-full bg-green-400 shadow-[0_0_10px_rgba(74,222,128,0.8)]" />
+                          Online
+                        </div>
 
-                <h2 className="text-3xl font-semibold tracking-tight text-white">
-                  @{user.username}
-                </h2>
+                        <h2 className="text-3xl font-semibold tracking-tight text-white">
+                          @{user.username}
+                        </h2>
 
-                <div className="mt-2 flex items-center gap-2 text-sm text-white/40">
-                  <Mail className="h-4 w-4" />
-                  {user.email}
-                </div>
+                        <div className="mt-2 flex items-center gap-2 text-sm text-white/40">
+                          <Mail className="h-4 w-4" />
+                          {user.email}
+                        </div>
 
-              </div>
+                      </div>
 
-            </div>
+                    </div>
 
-            {/* ACTIONS */}
-            <div className="flex flex-wrap gap-3">
+                    {/* ACTIONS */}
+                    <div className="flex flex-wrap gap-3">
 
-              <Button
-                onClick={() =>
-                  router.push("/dashboard/customize")
-                }
-                className="
+                      <Button
+                        onClick={() =>
+                          router.push("/dashboard/customize")
+                        }
+                        className="
                 h-12
                 rounded-2xl
                 bg-red-500
@@ -345,15 +365,15 @@ export default function DashboardPage() {
                 hover:bg-red-400
                 hover:shadow-[0_0_40px_rgba(239,68,68,0.35)]
               "
-              >
-                Customize Profile
-              </Button>
+                      >
+                        Customize Profile
+                      </Button>
 
-              <Button
-                onClick={() =>
-                  router.push("/dashboard/links")
-                }
-                className="
+                      <Button
+                        onClick={() =>
+                          router.push("/dashboard/links")
+                        }
+                        className="
                 h-12
                 rounded-2xl
                 border
@@ -367,33 +387,33 @@ export default function DashboardPage() {
                 duration-300
                 hover:bg-white/[0.06]
               "
-              >
-                Manage Links
-              </Button>
+                      >
+                        Manage Links
+                      </Button>
 
-            </div>
-          </div>
+                    </div>
+                  </div>
 
-          {/* LINK */}
-          <div className="mt-8 flex flex-col gap-3 rounded-3xl border border-white/10 bg-black/30 p-5 sm:flex-row sm:items-center sm:justify-between">
+                  {/* LINK */}
+                  <div className="mt-8 flex flex-col gap-3 rounded-3xl border border-white/10 bg-black/30 p-5 sm:flex-row sm:items-center sm:justify-between">
 
-            <div>
+                    <div>
 
-              <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/35">
-                Public Profile URL
-              </p>
+                      <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/35">
+                        Public Profile URL
+                      </p>
 
-              <div className="mt-2 flex items-center gap-2 text-lg font-semibold text-white">
-                redr.lol/{user.username}
-              </div>
+                      <div className="mt-2 flex items-center gap-2 text-lg font-semibold text-white">
+                        redr.lol/{user.username}
+                      </div>
 
-            </div>
+                    </div>
 
-            <div className="flex gap-3">
+                    <div className="flex gap-3">
 
-              <button
-                onClick={handleCopyLink}
-                className="
+                      <button
+                        onClick={handleCopyLink}
+                        className="
                 flex
                 h-12
                 items-center
@@ -409,21 +429,21 @@ export default function DashboardPage() {
                 transition-all
                 hover:bg-white/[0.06]
               "
-              >
-                {copied ? (
-                  <Check className="h-4 w-4 text-green-400" />
-                ) : (
-                  <Copy className="h-4 w-4" />
-                )}
+                      >
+                        {copied ? (
+                          <Check className="h-4 w-4 text-green-400" />
+                        ) : (
+                          <Copy className="h-4 w-4" />
+                        )}
 
-                {copied ? "Copied" : "Copy"}
-              </button>
+                        {copied ? "Copied" : "Copy"}
+                      </button>
 
-              <a
-                href={`/${user.username}`}
-                target="_blank"
-                rel="noreferrer"
-                className="
+                      <a
+                        href={`/${user.username}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="
                 flex
                 h-12
                 items-center
@@ -440,22 +460,22 @@ export default function DashboardPage() {
                 duration-300
                 hover:scale-[1.02]
               "
-              >
-                Visit
-                <ExternalLink className="h-4 w-4" />
-              </a>
+                      >
+                        Visit
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
 
-            </div>
-          </div>
-        </div>
-      </motion.div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
 
-      {/* ANALYTICS GRAPH */}
-      <motion.div
-        initial={{ opacity: 0, y: 25 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="
+              {/* ANALYTICS GRAPH */}
+              <motion.div
+                initial={{ opacity: 0, y: 25 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="
         relative
         overflow-hidden
         rounded-[34px]
@@ -465,45 +485,45 @@ export default function DashboardPage() {
         p-6
         backdrop-blur-3xl
       "
-      >
+              >
 
-        {/* Glow */}
-        <div className="absolute right-0 top-0 h-[240px] w-[240px] rounded-full bg-purple-500/10 blur-[120px]" />
+                {/* Glow */}
+                <div className="absolute right-0 top-0 h-[240px] w-[240px] rounded-full bg-purple-500/10 blur-[120px]" />
 
-        <div className="relative z-10">
+                <div className="relative z-10">
 
-          <div className="mb-8 flex items-center justify-between">
+                  <div className="mb-8 flex items-center justify-between">
 
-            <div>
-              <h3 className="text-xl font-semibold text-white">
-                Engagement Analytics
-              </h3>
+                    <div>
+                      <h3 className="text-xl font-semibold text-white">
+                        Engagement Analytics
+                      </h3>
 
-              <p className="mt-1 text-sm text-white/40">
-                Real-time profile interaction overview
-              </p>
-            </div>
+                      <p className="mt-1 text-sm text-white/40">
+                        Real-time profile interaction overview
+                      </p>
+                    </div>
 
-            <div className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-xs font-semibold uppercase tracking-[0.15em] text-white/40">
-              Last 30 Days
-            </div>
+                    <div className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-xs font-semibold uppercase tracking-[0.15em] text-white/40">
+                      Last 30 Days
+                    </div>
 
-          </div>
+                  </div>
 
-          {/* FAKE GRAPH */}
-          <div className="flex h-[260px] items-end gap-3">
+                  {/* FAKE GRAPH */}
+                  <div className="flex h-[260px] items-end gap-3">
 
-            {[35, 65, 40, 90, 75, 55, 95, 80, 70, 100, 85, 60].map(
-              (height, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ height: 0 }}
-                  animate={{ height: `${height}%` }}
-                  transition={{
-                    duration: 0.8,
-                    delay: i * 0.05,
-                  }}
-                  className="
+                    {[35, 65, 40, 90, 75, 55, 95, 80, 70, 100, 85, 60].map(
+                      (height, i) => (
+                        <motion.div
+                          key={i}
+                          initial={{ height: 0 }}
+                          animate={{ height: `${height}%` }}
+                          transition={{
+                            duration: 0.8,
+                            delay: i * 0.05,
+                          }}
+                          className="
                   relative
                   flex-1
                   rounded-t-[20px]
@@ -513,27 +533,27 @@ export default function DashboardPage() {
                   to-purple-500
                   opacity-90
                 "
-                >
-                  <div className="absolute inset-0 rounded-t-[20px] bg-white/10" />
-                </motion.div>
-              )
-            )}
+                        >
+                          <div className="absolute inset-0 rounded-t-[20px] bg-white/10" />
+                        </motion.div>
+                      )
+                    )}
 
-          </div>
+                  </div>
 
-        </div>
-      </motion.div>
-    </div>
+                </div>
+              </motion.div>
+            </div>
 
-    {/* RIGHT SIDEBAR */}
-    <div className="space-y-6">
+            {/* RIGHT SIDEBAR */}
+            <div className="space-y-6">
 
-      {/* QUICK ACTIONS */}
-      <motion.div
-        initial={{ opacity: 0, y: 25 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        className="
+              {/* QUICK ACTIONS */}
+              <motion.div
+                initial={{ opacity: 0, y: 25 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="
         relative
         overflow-hidden
         rounded-[34px]
@@ -543,27 +563,27 @@ export default function DashboardPage() {
         p-6
         backdrop-blur-3xl
       "
-      >
+              >
 
-        <div className="absolute bottom-0 right-0 h-[180px] w-[180px] rounded-full bg-red-500/10 blur-[100px]" />
+                <div className="absolute bottom-0 right-0 h-[180px] w-[180px] rounded-full bg-red-500/10 blur-[100px]" />
 
-        <div className="relative z-10">
+                <div className="relative z-10">
 
-          <h3 className="text-lg font-semibold text-white">
-            Quick Actions
-          </h3>
+                  <h3 className="text-lg font-semibold text-white">
+                    Quick Actions
+                  </h3>
 
-          <div className="mt-5 space-y-3">
+                  <div className="mt-5 space-y-3">
 
-            {[
-              "Customize Profile",
-              "Manage Social Links",
-              "Upgrade Premium",
-              "Analytics Center",
-            ].map((item, i) => (
-              <button
-                key={i}
-                className="
+                    {[
+                      "Customize Profile",
+                      "Manage Social Links",
+                      "Upgrade Premium",
+                      "Analytics Center",
+                    ].map((item, i) => (
+                      <button
+                        key={i}
+                        className="
                 flex
                 h-14
                 w-full
@@ -582,23 +602,23 @@ export default function DashboardPage() {
                 hover:border-red-500/20
                 hover:bg-red-500/10
               "
-              >
-                {item}
+                      >
+                        {item}
 
-                <ExternalLink className="h-4 w-4 text-white/30" />
-              </button>
-            ))}
+                        <ExternalLink className="h-4 w-4 text-white/30" />
+                      </button>
+                    ))}
 
-          </div>
-        </div>
-      </motion.div>
+                  </div>
+                </div>
+              </motion.div>
 
-      {/* ACTIVITY */}
-      <motion.div
-        initial={{ opacity: 0, y: 25 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.45 }}
-        className="
+              {/* DISCORD */}
+              <motion.div
+                initial={{ opacity: 0, y: 25 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.42 }}
+                className="
         relative
         overflow-hidden
         rounded-[34px]
@@ -608,48 +628,114 @@ export default function DashboardPage() {
         p-6
         backdrop-blur-3xl
       "
-      >
+              >
+                <div className="absolute bottom-0 right-0 h-[180px] w-[180px] rounded-full bg-indigo-500/10 blur-[100px]" />
+                <div className="relative z-10">
+                  <div className="mb-6 flex items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-indigo-500/20 bg-indigo-500/10">
+                      <Disc3 className="h-4 w-4 text-indigo-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-semibold text-white">Discord</h3>
+                      <p className="text-xs text-white/40">Live profile presence</p>
+                    </div>
+                  </div>
 
-        <div className="relative z-10">
+                  {user.discord_id ? (
+                    <div className="space-y-4">
+                      <div className="rounded-xl border border-green-500/20 bg-green-500/10 p-3">
+                        <div className="flex items-center gap-3">
+                          <div className="h-2 w-2 rounded-full bg-green-400 shadow-[0_0_12px_rgba(74,222,128,0.8)]" />
+                          <div>
+                            <p className="text-xs font-semibold text-white">Connected</p>
+                            <p className="text-[10px] text-white/40">Syncing live activity</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => (window.location.href = "/api/auth/discord/login")}
+                          className="h-9 flex-1 rounded-lg bg-indigo-500 text-xs font-semibold text-white hover:bg-indigo-400 transition-all"
+                        >
+                          Reconnect
+                        </Button>
+                        <Button
+                          onClick={handleDisconnectDiscord}
+                          disabled={savingDiscord}
+                          className="h-9 flex-1 rounded-lg border border-red-500/20 bg-red-500/10 text-xs font-semibold text-red-400 hover:bg-red-500/20 transition-all"
+                        >
+                          Disconnect
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <Button
+                      onClick={() => (window.location.href = "/api/auth/discord/login")}
+                      className="h-12 w-full rounded-xl bg-indigo-500 text-sm font-semibold text-white hover:bg-indigo-400 hover:shadow-[0_0_20px_rgba(99,102,241,0.3)] transition-all"
+                    >
+                      Connect Discord
+                    </Button>
+                  )}
+                </div>
+              </motion.div>
 
-          <h3 className="text-lg font-semibold text-white">
-            Recent Activity
-          </h3>
-
-          <div className="mt-5 space-y-4">
-
-            {[
-              "Profile theme updated",
-              "New social link added",
-              "Analytics synced",
-              "Discord connected",
-            ].map((item, i) => (
-              <div
-                key={i}
-                className="flex items-center gap-3"
+              {/* ACTIVITY */}
+              <motion.div
+                initial={{ opacity: 0, y: 25 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.45 }}
+                className="
+        relative
+        overflow-hidden
+        rounded-[34px]
+        border
+        border-white/10
+        bg-white/[0.03]
+        p-6
+        backdrop-blur-3xl
+      "
               >
 
-                <div className="h-3 w-3 rounded-full bg-red-400 shadow-[0_0_10px_rgba(248,113,113,0.8)]" />
+                <div className="relative z-10">
 
-                <div>
-                  <p className="text-sm text-white">
-                    {item}
-                  </p>
+                  <h3 className="text-lg font-semibold text-white">
+                    Recent Activity
+                  </h3>
 
-                  <p className="text-xs text-white/35">
-                    Just now
-                  </p>
+                  <div className="mt-5 space-y-4">
+
+                    {[
+                      "Profile theme updated",
+                      "New social link added",
+                      "Analytics synced",
+                      "Discord connected",
+                    ].map((item, i) => (
+                      <div
+                        key={i}
+                        className="flex items-center gap-3"
+                      >
+
+                        <div className="h-3 w-3 rounded-full bg-red-400 shadow-[0_0_10px_rgba(248,113,113,0.8)]" />
+
+                        <div>
+                          <p className="text-sm text-white">
+                            {item}
+                          </p>
+
+                          <p className="text-xs text-white/35">
+                            Just now
+                          </p>
+                        </div>
+
+                      </div>
+                    ))}
+
+                  </div>
                 </div>
-
-              </div>
-            ))}
-
+              </motion.div>
+            </div>
           </div>
         </div>
-      </motion.div>
-    </div>
-  </div>
-</div>
 
       </div>
     </section>

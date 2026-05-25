@@ -41,7 +41,8 @@ export async function initDb() {
       ADD COLUMN IF NOT EXISTS audio_shuffle BOOLEAN DEFAULT false,
       ADD COLUMN IF NOT EXISTS audio_player_enabled BOOLEAN DEFAULT false,
       ADD COLUMN IF NOT EXISTS background_audio_enabled BOOLEAN DEFAULT false,
-      ADD COLUMN IF NOT EXISTS location VARCHAR(255);
+      ADD COLUMN IF NOT EXISTS location VARCHAR(255),
+      ADD COLUMN IF NOT EXISTS discord_profile_transparency NUMERIC DEFAULT 0.40;
     `;
     console.log("Database schema initialized successfully.");
   } catch (error) {

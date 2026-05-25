@@ -828,12 +828,11 @@ interface DiscordProfileCardProps {
     discord_id?: string;
     active_badges?: string[];
     location?: string;
-    background_url?: string;
-    background_type?: string;
     background_audio_enabled?: boolean;
     audios?: Array<{ id: string; url: string; name: string }>;
     audio_shuffle?: boolean;
     audio_player_enabled?: boolean;
+    discord_profile_transparency?: number;
   };
   discordData: DiscordData | null;
   connections: OAuthConnection[];
@@ -970,7 +969,13 @@ function DiscordProfileCard({ user, discordData, connections }: DiscordProfileCa
   return (
     <InteractiveCard isProfile={true} className="text-left w-[400px]">
       <style>{`
-        .aesthetic-card { --accent-color: ${primaryAccent}; }
+        .aesthetic-card { 
+          --accent-color: ${primaryAccent}; 
+          background: rgba(255, 255, 255, ${user.discord_profile_transparency ?? 0.40}) !important;
+        }
+        .dark .aesthetic-card {
+          background: rgba(12, 12, 12, ${user.discord_profile_transparency ?? 0.40}) !important;
+        }
       `}</style>
 
       {/* Banner */}
@@ -1278,6 +1283,7 @@ interface ClientProfileProps {
     audios?: Array<{ id: string; url: string; name: string }>;
     audio_shuffle?: boolean;
     audio_player_enabled?: boolean;
+    discord_profile_transparency?: number;
   };
   initialDiscordData?: DiscordData | null;
   initialConnections?: OAuthConnection[];

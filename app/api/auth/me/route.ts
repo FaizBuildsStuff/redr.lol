@@ -16,7 +16,7 @@ export async function GET() {
     // Fetch the latest user info from the database including all customization fields
     const [dbUser] = await sql`
       SELECT username, email, discord_id, typewriter_heading, typewriter_quotes, active_badges, owned_badges,
-        location, background_url, background_type, audios, audio_shuffle, audio_player_enabled, background_audio_enabled
+        location, background_url, background_type, audios, audio_shuffle, audio_player_enabled, background_audio_enabled, discord_profile_transparency
       FROM users
       WHERE id = ${user.userId}
     `;
@@ -40,6 +40,7 @@ export async function GET() {
         audio_shuffle: dbUser.audio_shuffle,
         audio_player_enabled: dbUser.audio_player_enabled,
         background_audio_enabled: dbUser.background_audio_enabled,
+        discord_profile_transparency: dbUser.discord_profile_transparency,
       } 
     });
   } catch (error) {

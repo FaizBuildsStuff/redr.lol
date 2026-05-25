@@ -75,18 +75,18 @@ export default function DashboardLayout({
       </div>
 
       {/* MOBILE HEADER BAR */}
-      <div className="flex w-full items-center justify-between border-b border-white/5 bg-[#0D0D0D]/90 px-4 py-3 md:hidden absolute top-0 left-0 right-0 z-40 backdrop-blur-md">
+      <div className="flex w-full items-center justify-between border-b border-white/[0.06] bg-[#0A0A0A]/95 px-4 py-3 md:hidden absolute top-0 left-0 right-0 z-40 backdrop-blur-xl">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/10 border border-red-500/20">
-            <span className="text-sm font-black text-red-500 font-serif">R</span>
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/10 border border-red-500/20 shadow-[0_0_12px_rgba(239,68,68,0.15)]">
+            <img src="/Logo.png" alt="redr logo" className="h-5 w-5 object-contain" />
           </div>
-          <span className="text-base font-semibold tracking-tight text-white">redr.lol</span>
+          <span className="text-sm font-semibold tracking-tight text-white">redr<span className="text-red-500 font-bold">.lol</span></span>
         </div>
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
-          className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/5 bg-white/[0.02] text-[#8C8C8C] hover:text-white transition-all"
+          className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.03] text-[#8C8C8C] hover:text-white hover:border-white/10 hover:bg-white/[0.06] transition-all duration-200"
         >
-          <Menu className="h-5 w-5" />
+          <Menu className="h-4.5 w-4.5" />
         </button>
       </div>
 
@@ -104,32 +104,41 @@ export default function DashboardLayout({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
               onClick={() => setMobileOpen(false)}
-              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
+              className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm md:hidden"
             />
-            {/* Menu container */}
+            {/* Drawer */}
             <motion.aside
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 220 }}
-              className="fixed bottom-0 top-0 left-0 z-50 w-[280px] bg-[#0D0D0D] p-6 shadow-2xl md:hidden flex flex-col"
+              transition={{ type: "spring", damping: 28, stiffness: 240 }}
+              className="fixed bottom-0 top-0 left-0 z-50 w-[280px] md:hidden flex flex-col border-r border-white/[0.06] shadow-[8px_0_40px_rgba(0,0,0,0.6)]"
+              style={{ background: "linear-gradient(160deg, #111111 0%, #0A0A0A 60%, #0D0808 100%)" }}
             >
-              <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-4">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/10 border border-red-500/20">
-                    <span className="text-sm font-black text-red-500 font-serif">R</span>
+              {/* Glow inside drawer */}
+              <div className="pointer-events-none absolute left-0 top-0 h-[300px] w-[300px] rounded-full bg-red-500/10 blur-[120px]" />
+              <div className="pointer-events-none absolute bottom-0 right-0 h-[200px] w-[200px] rounded-full bg-red-600/10 blur-[100px]" />
+
+              {/* Drawer Header */}
+              <div className="relative z-10 flex items-center justify-between border-b border-white/[0.06] px-5 py-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/10 border border-red-500/20 shadow-[0_0_12px_rgba(239,68,68,0.15)]">
+                    <img src="/Logo.png" alt="redr logo" className="h-5 w-5 object-contain" />
                   </div>
-                  <span className="text-base font-semibold text-white">redr.lol</span>
+                  <span className="text-sm font-semibold text-white tracking-tight">redr<span className="text-red-500 font-bold">.lol</span></span>
                 </div>
                 <button
                   onClick={() => setMobileOpen(false)}
-                  className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/5 bg-white/[0.02] text-[#8C8C8C] hover:text-white"
+                  className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.03] text-[#8C8C8C] hover:text-white hover:bg-white/[0.07] transition-all duration-200"
                 >
-                  <X className="h-4.5 w-4.5" />
+                  <X className="h-4 w-4" />
                 </button>
               </div>
-              <div className="flex-1 overflow-y-auto pr-1">
+
+              {/* Sidebar content */}
+              <div className="relative z-10 flex-1 overflow-y-auto px-4 py-4">
                 <Sidebar user={user} setMobileOpen={setMobileOpen} />
               </div>
             </motion.aside>
