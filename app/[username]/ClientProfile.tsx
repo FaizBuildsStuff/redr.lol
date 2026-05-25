@@ -6,7 +6,8 @@ import { useTheme } from "next-themes";
 import {
   Award, ShieldCheck, CheckCircle2, Gem, Crown, Shield, ShieldAlert,
   Code, Palette, Heart, HeartHandshake, Gift, Image as ImageIcon,
-  Globe, Rocket, Bug, Snowflake, Trophy, Medal, TestTube, Star, Sparkles, Tv
+  Globe, Rocket, Bug, Snowflake, Trophy, Medal, TestTube, Star, Sparkles, Tv,
+  Music
 } from "lucide-react";
 import { useLanyard } from "@/hooks/use-lanyard";
 
@@ -201,8 +202,12 @@ function NekoTracker() {
 // ========================================
 function EtherealShadow({
   user,
+  bgVideoRef,
+  isMuted,
 }: {
   user: any;
+  bgVideoRef: React.RefObject<HTMLVideoElement | null>;
+  isMuted: boolean;
 }) {
   const [hueRotate, setHueRotate] = useState(180);
   const filterId = useRef(`shadowoverlay-${Math.random().toString(36).substring(2, 9)}`);
@@ -234,8 +239,9 @@ function EtherealShadow({
           user?.background_type === "video" ? (
 
           <video
+            ref={bgVideoRef}
             autoPlay
-            muted={!backgroundAudioEnabled}
+            muted={backgroundAudioEnabled}
             loop
             playsInline
             className="h-full w-full object-cover"
@@ -281,52 +287,6 @@ function EtherealShadow({
         </defs>
       </svg>
 
-      {/* Dynamic Background */}
-      <div className="absolute inset-0 overflow-hidden">
-
-        {/* CUSTOM VIDEO */}
-        {user.background_url &&
-          user.background_type === "video" ? (
-          <video
-            autoPlay
-            muted={!backgroundAudioEnabled}
-            loop
-            playsInline
-            className="h-full w-full object-cover"
-          >
-            <source
-              src={user.background_url}
-              type="video/mp4"
-            />
-          </video>
-        ) : user.background_url &&
-          user.background_type === "image" ? (
-
-          /* CUSTOM IMAGE */
-          <img
-            src={user.background_url}
-            alt="Background"
-            className="h-full w-full object-cover"
-          />
-
-        ) : (
-
-          /* DEFAULT BACKGROUND */
-          <img
-            src="/your-default-bg.jpg"
-            alt="Default Background"
-            className="h-full w-full object-cover"
-          />
-
-        )}
-
-        {/* Overlay */}
-        <div className="absolute inset-0 bg-black/45" />
-
-        {/* Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/30 to-black/80" />
-
-      </div>
     </div>
   );
 }
@@ -1144,29 +1104,127 @@ function DiscordProfileCard({ user, discordData, connections }: DiscordProfileCa
           })()}
 
           {/* Audio Player */}
-          {!backgroundAudioEnabled && user.audios && user.audios.length > 0 && user.audio_player_enabled && (
-            <section className="section audio-section">
-              <h3 className="section-title text-[10px] font-bold text-stone-400 dark:text-stone-400 uppercase tracking-widest mb-2">🎵 Audio</h3>
-              <div className="audio-player flex flex-col gap-2 p-3 rounded-xl bg-stone-50 dark:bg-white/5 border border-stone-100 dark:border-white/5">
-                <div className="text-xs font-medium text-stone-700 dark:text-stone-300">
-                  {user.audios.length} audio{user.audios.length !== 1 ? 's' : ''} available
-                </div>
-                <div className="space-y-1">
-                  {user.audios.map((audio) => (
-                    <div key={audio.id} className="text-xs text-stone-600 dark:text-stone-400 flex items-center gap-2">
-                      <span>▶</span>
-                      <span className="truncate">{audio.name}</span>
-                    </div>
-                  ))}
-                </div>
-                {user.audio_shuffle && (
-                  <div className="text-[10px] text-purple-600 dark:text-purple-400 mt-1">
-                    🎲 Shuffle enabled - plays random audio on each visit
-                  </div>
-                )}
+{!backgroundAudioEnabled &&
+  user.audios &&
+  user.audios.length > 0 &&
+  user.audio_player_enabled && (
+
+  <section className="relative overflow-hidden rounded-[26px] border border-white/[0.06] bg-[#0F0F10]/80 p-4 backdrop-blur-3xl">
+
+    {/* Glow */}
+    <div className="pointer-events-none absolute -right-10 bottom-0 h-[180px] w-[180px] rounded-full bg-purple-500/[0.08] blur-[100px]" />
+
+    <div className="relative z-10">
+
+      {/* Header */}
+      <div className="mb-4 flex items-center justify-between">
+
+        <div className="flex items-center gap-3">
+
+          {/* Icon */}
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-purple-500/15 bg-purple-500/[0.08]">
+
+            <Music className="h-4 w-4 text-purple-300" />
+
+          </div>
+
+          <div>
+
+            <h3 className="text-[15px] font-medium tracking-tight text-white">
+              Audio Player
+            </h3>
+
+            <p className="text-xs text-white/35">
+              {user.audios.length} track{user.audios.length !== 1 ? "s" : ""} available
+            </p>
+
+          </div>
+
+        </div>
+
+        {/* Shuffle */}
+        {user.audio_shuffle && (
+          <div className="rounded-full border border-purple-500/15 bg-purple-500/[0.08] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-purple-300">
+            Shuffle
+          </div>
+        )}
+
+      </div>
+
+      {/* Audio List */}
+      <div className="space-y-2">
+
+        {user.audios.map((audio: any, index: number) => (
+
+          <div
+            key={audio.id}
+            className="
+              group
+              flex
+              items-center
+              justify-between
+              rounded-2xl
+              border
+              border-white/[0.05]
+              bg-white/[0.025]
+              px-3
+              py-2.5
+              transition-all
+              duration-300
+              hover:border-purple-500/15
+              hover:bg-purple-500/[0.04]
+            "
+          >
+
+            {/* Left */}
+            <div className="flex min-w-0 items-center gap-3">
+
+              {/* Dot */}
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-white/[0.05] bg-black/20">
+
+                <span className="text-[11px] font-bold text-purple-300">
+                  {index + 1}
+                </span>
+
               </div>
-            </section>
-          )}
+
+              {/* Name */}
+              <div className="min-w-0">
+
+                <p className="truncate text-sm font-medium text-white/80">
+                  {audio.name}
+                </p>
+
+                <p className="text-[10px] uppercase tracking-[0.16em] text-white/25">
+                  Audio Track
+                </p>
+
+              </div>
+
+            </div>
+
+            {/* Live Indicator */}
+            <div className="flex items-center gap-1.5">
+
+              <div className="h-1.5 w-1.5 rounded-full bg-purple-400 shadow-[0_0_10px_rgba(192,132,252,0.8)]" />
+
+              <span className="text-[10px] font-medium uppercase tracking-[0.14em] text-white/30">
+                Ready
+              </span>
+
+            </div>
+
+          </div>
+
+        ))}
+
+      </div>
+
+    </div>
+
+  </section>
+
+)}
 
           {/* Bio */}
           {bio && (
@@ -1294,6 +1352,8 @@ export default function ClientProfile({ user, initialDiscordData, initialConnect
   const backgroundAudioEnabled = user.background_audio_enabled ?? false;
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.3);
+  const [isMuted, setIsMuted] = useState(false);
+  const bgVideoRef = useRef<HTMLVideoElement>(null);
   const [showVolumeDropdown, setShowVolumeDropdown] = useState(false);
   const prevVolumeRef = useRef(0.3);
 
@@ -1303,6 +1363,28 @@ export default function ClientProfile({ user, initialDiscordData, initialConnect
 
   const [discordData, setDiscordData] = useState<DiscordData | null>(initialDiscordData || null);
   const [connections] = useState<OAuthConnection[]>(initialConnections || []);
+
+  useEffect(() => {
+    if (bgVideoRef.current) {
+
+      bgVideoRef.current.volume = volume;
+
+      // VIDEO AUDIO MODE
+      if (backgroundAudioEnabled) {
+        bgVideoRef.current.muted = isMuted;
+      }
+
+      // EXTERNAL AUDIO MODE
+      else {
+        bgVideoRef.current.muted = true;
+      }
+
+    }
+  }, [
+    volume,
+    isMuted,
+    backgroundAudioEnabled,
+  ]);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -1341,8 +1423,13 @@ export default function ClientProfile({ user, initialDiscordData, initialConnect
   // Sync volume to audio element without recreating the audio instance.
   useEffect(() => {
     if (!audioRef.current) return;
-    audioRef.current.muted = false;
     audioRef.current.volume = volume;
+    if (backgroundAudioEnabled) {
+  audioRef.current.pause();
+} else {
+  audioRef.current.play().catch(() => {});
+}
+    // Do NOT touch .muted here — it's managed exclusively by toggleMute/handleVolumeChange
   }, [volume]);
 
   const handleEnterChamber = () => {
@@ -1364,34 +1451,32 @@ export default function ClientProfile({ user, initialDiscordData, initialConnect
   const toggleMute = () => {
     if (!audioRef.current) return;
 
-    if (audioRef.current.muted) {
-      audioRef.current.muted = false;
+    if (isMuted) {
       const restoreVolume = prevVolumeRef.current > 0 ? prevVolumeRef.current : 0.3;
+      audioRef.current.muted = false;
       audioRef.current.volume = restoreVolume;
       setVolume(restoreVolume);
+      setIsMuted(false);
     } else {
       prevVolumeRef.current = volume > 0 ? volume : 0.3;
       audioRef.current.muted = true;
+      setIsMuted(true);
     }
   };
 
   const handleVolumeChange = (newVol: number) => {
     if (!audioRef.current) return;
 
-    const unmute = newVol > 0;
-    audioRef.current.muted = !unmute;
+    const shouldMute = newVol === 0;
+    audioRef.current.muted = shouldMute;
     audioRef.current.volume = newVol;
     setVolume(newVol);
+    setIsMuted(shouldMute);
 
-    if (unmute) {
+    if (!shouldMute) {
       prevVolumeRef.current = newVol;
     }
-
-    setIsPlaying(!audioRef.current.paused);
   };
-
-  const isMuted =
-    audioRef.current?.muted || false;
 
   const toggleTheme = () => {
     const currentTheme = theme === "system" ? "dark" : theme;
@@ -1559,7 +1644,11 @@ export default function ClientProfile({ user, initialDiscordData, initialConnect
       `}</style>
 
       {/* Ethereal Shadow Background */}
-      <EtherealShadow user={user} />
+      <EtherealShadow
+        user={user}
+        bgVideoRef={bgVideoRef}
+        isMuted={isMuted}
+      />
 
       {/* Oneko Cursor Tracker */}
       <NekoTracker />
