@@ -23,6 +23,17 @@ export async function initDb() {
       );
     `;
     await sql`
+      CREATE TABLE IF NOT EXISTS daily_analytics (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        date DATE NOT NULL DEFAULT CURRENT_DATE,
+        views INTEGER DEFAULT 0,
+        profile_clicks INTEGER DEFAULT 0,
+        link_clicks INTEGER DEFAULT 0,
+        UNIQUE(user_id, date)
+      );
+    `;
+    await sql`
       ALTER TABLE users 
       ADD COLUMN IF NOT EXISTS discord_id VARCHAR(255),
       ADD COLUMN IF NOT EXISTS discord_access_token TEXT,
@@ -42,7 +53,12 @@ export async function initDb() {
       ADD COLUMN IF NOT EXISTS audio_player_enabled BOOLEAN DEFAULT false,
       ADD COLUMN IF NOT EXISTS background_audio_enabled BOOLEAN DEFAULT false,
       ADD COLUMN IF NOT EXISTS location VARCHAR(255),
-      ADD COLUMN IF NOT EXISTS discord_profile_transparency NUMERIC DEFAULT 0.40;
+      ADD COLUMN IF NOT EXISTS discord_profile_transparency NUMERIC DEFAULT 0.40,
+      ADD COLUMN IF NOT EXISTS views INTEGER DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS profile_clicks INTEGER DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS link_clicks INTEGER DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS devices JSONB DEFAULT '{"desktop": 0, "mobile": 0, "tablet": 0}'::jsonb,
+      ADD COLUMN IF NOT EXISTS referrers JSONB DEFAULT '{}'::jsonb;
     `;
     console.log("Database schema initialized successfully.");
   } catch (error) {

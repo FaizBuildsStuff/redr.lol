@@ -7,7 +7,7 @@ import {
   Award, ShieldCheck, CheckCircle2, Gem, Crown, Shield, ShieldAlert,
   Code, Palette, Heart, HeartHandshake, Gift, Image as ImageIcon,
   Globe, Rocket, Bug, Snowflake, Trophy, Medal, TestTube, Star, Sparkles, Tv,
-  Music
+  Music, Eye
 } from "lucide-react";
 import { useLanyard } from "@/hooks/use-lanyard";
 
@@ -352,8 +352,13 @@ function InteractiveCard({ children, className = "", isProfile = false }: Intera
 // ========================================
 // Clock Widget Component
 // ========================================
-function ClockWidget() {
+function ClockWidget({
+  user,
+}: {
+  user: any;
+}) {
   const [time, setTime] = useState({ hours: '00', minutes: '00', seconds: '00', ampm: '', day: '', fullDate: '' });
+  const [liveViews, setLiveViews] = useState<number | null>(null);
 
   useEffect(() => {
     const updateTime = () => {
@@ -377,6 +382,25 @@ function ClockWidget() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    const fetchViews = async () => {
+      if (!user?.username) return;
+      try {
+        const res = await fetch(`/api/user/${user.username}/stats`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.views !== undefined) setLiveViews(data.views);
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
+    fetchViews();
+    // Poll every 5 seconds for real-time views
+    const interval = setInterval(fetchViews, 5000);
+    return () => clearInterval(interval);
+  }, [user?.username]);
+
   return (
     <InteractiveCard className="clock-card min-h-[150px] flex flex-col justify-center items-center">
       <div className="clock-content py-6 w-full h-full flex justify-center items-center">
@@ -393,11 +417,58 @@ function ClockWidget() {
                 <span className="ampm text-[9px] font-bold tracking-widest uppercase opacity-60 leading-none mt-1">{time.ampm}</span>
               </div>
             </div>
-            <div className="date-section flex items-center mt-3 text-[10px] tracking-[2px] uppercase text-stone-500 dark:text-stone-400 font-bold font-sans opacity-95">
-              <span className="day font-semibold">{time.day}</span>
-              <span className="divider mx-2 opacity-50">•</span>
-              <span className="date">{time.fullDate}</span>
-            </div>
+            <div className="mt-4 flex flex-col items-center gap-2">
+
+  {/* Date */}
+  <div className="flex items-center text-[10px] tracking-[2px] uppercase text-stone-500 dark:text-stone-400 font-bold font-sans opacity-95">
+
+    <span className="day font-semibold">
+      {time.day}
+    </span>
+
+    <span className="divider mx-2 opacity-50">
+      •
+    </span>
+
+    <span className="date">
+      {time.fullDate}
+    </span>
+
+  </div>
+
+  {/* Location */}
+  {user.location && (
+    <div className="group relative overflow-hidden rounded-full border border-cyan-500/10 bg-cyan-500/[0.05] px-3 py-1 backdrop-blur-xl">
+
+      {/* Glow */}
+      <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/[0.08] via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+
+      <div className="relative z-10 flex items-center gap-2">
+
+        {/* Dot */}
+        <div className="h-1.5 w-1.5 rounded-full bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.9)]" />
+
+        <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-300/90">
+          {user.location}
+        </span>
+
+      </div>
+
+    </div>
+  )}
+
+  {/* Views Indicator */}
+  {liveViews !== null && (
+    <div className="group relative overflow-hidden rounded-full border border-red-500/10 bg-red-500/[0.05] px-3 py-1 backdrop-blur-xl mt-1.5 flex items-center justify-center">
+      <div className="absolute inset-0 bg-gradient-to-r from-red-500/[0.08] via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+      <div className="relative z-10 flex items-center gap-2">
+        <Eye className="h-3 w-3 text-white" />
+        <span className="text-[10px] font-bold text-white tracking-[0.15em]">{liveViews.toLocaleString()} views</span>
+      </div>
+    </div>
+  )}
+
+</div>
           </div>
         </div>
       </div>
@@ -579,9 +650,10 @@ interface ScrambleLinkProps {
   label: string;
   icon: React.ReactNode;
   title: string;
+  username?: string;
 }
 
-function ScrambleLink({ href, label, icon, title }: ScrambleLinkProps) {
+function ScrambleLink({ href, label, icon, title, username }: ScrambleLinkProps) {
   const [text, setText] = useState(label);
   const intervalId = useRef<any>(null);
 
@@ -610,11 +682,22 @@ function ScrambleLink({ href, label, icon, title }: ScrambleLinkProps) {
     return () => { if (intervalId.current) clearInterval(intervalId.current); };
   }, [label]);
 
+  const handleClick = () => {
+    if (username) {
+      fetch("/api/analytics/click", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, type: "link" }),
+      }).catch(() => {});
+    }
+  };
+
   return (
     <a
       href={href}
       target="_blank"
       rel="noreferrer"
+      onClick={handleClick}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       className="social-item relative flex items-center gap-3 px-4 py-3.5 bg-stone-50/50 dark:bg-black/20 border border-stone-200/60 dark:border-white/5 hover:border-stone-400 dark:hover:border-white/20 rounded-lg overflow-hidden text-xs font-semibold text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white transition-all duration-200 select-none hover:translate-x-0.5 cursor-pointer group"
@@ -630,7 +713,7 @@ function ScrambleLink({ href, label, icon, title }: ScrambleLinkProps) {
 // ========================================
 // Social Connection Grid Widget Component
 // ========================================
-function SocialWidget({ customLinks }: { customLinks?: any[] }) {
+function SocialWidget({ customLinks, username }: { customLinks?: any[], username?: string }) {
   const links = customLinks && customLinks.length > 0 ? customLinks.filter(l => l.active !== false) : [
     { title: "GitHub", url: "https://github.com/Camilo404", iconType: "github" },
     { title: "YouTube", url: "https://www.youtube.com/channel/UChzlaSE1adSPVGYBBOQ1ibg", iconType: "youtube" },
@@ -659,7 +742,7 @@ function SocialWidget({ customLinks }: { customLinks?: any[] }) {
       </div>
       <div className="social-grid grid grid-cols-2 gap-3 w-full">
         {links.map((link, idx) => (
-          <ScrambleLink key={idx} href={link.url} label={link.title} title={link.title} icon={renderIcon(link.iconType)} />
+          <ScrambleLink key={idx} href={link.url} label={link.title} title={link.title} icon={renderIcon(link.iconType)} username={username} />
         ))}
       </div>
     </InteractiveCard>
@@ -1060,12 +1143,7 @@ function DiscordProfileCard({ user, discordData, connections }: DiscordProfileCa
                   <span className="pronouns text-red-500/80 dark:text-red-400/80 font-bold">{pronouns}</span>
                 </>
               )}
-              {user.location && (
-                <>
-                  <span className="divider opacity-50">•</span>
-                  <span className="location text-cyan-500/80 dark:text-cyan-400/80 font-medium">📍 {user.location}</span>
-                </>
-              )}
+              
               {/* Platform indicators — hidden until bot gateway */}
               <div className="platform-indicators flex items-center gap-1 ml-1" />
             </div>
@@ -1104,61 +1182,61 @@ function DiscordProfileCard({ user, discordData, connections }: DiscordProfileCa
           })()}
 
           {/* Audio Player */}
-{!backgroundAudioEnabled &&
-  user.audios &&
-  user.audios.length > 0 &&
-  user.audio_player_enabled && (
+          {!backgroundAudioEnabled &&
+            user.audios &&
+            user.audios.length > 0 &&
+            user.audio_player_enabled && (
 
-  <section className="relative overflow-hidden rounded-[26px] border border-white/[0.06] bg-[#0F0F10]/80 p-4 backdrop-blur-3xl">
+              <section className="relative overflow-hidden rounded-[26px] border border-white/[0.06] bg-[#0F0F10]/80 p-4 backdrop-blur-3xl">
 
-    {/* Glow */}
-    <div className="pointer-events-none absolute -right-10 bottom-0 h-[180px] w-[180px] rounded-full bg-purple-500/[0.08] blur-[100px]" />
+                {/* Glow */}
+                <div className="pointer-events-none absolute -right-10 bottom-0 h-[180px] w-[180px] rounded-full bg-purple-500/[0.08] blur-[100px]" />
 
-    <div className="relative z-10">
+                <div className="relative z-10">
 
-      {/* Header */}
-      <div className="mb-4 flex items-center justify-between">
+                  {/* Header */}
+                  <div className="mb-4 flex items-center justify-between">
 
-        <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3">
 
-          {/* Icon */}
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-purple-500/15 bg-purple-500/[0.08]">
+                      {/* Icon */}
+                      <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-purple-500/15 bg-purple-500/[0.08]">
 
-            <Music className="h-4 w-4 text-purple-300" />
+                        <Music className="h-4 w-4 text-purple-300" />
 
-          </div>
+                      </div>
 
-          <div>
+                      <div>
 
-            <h3 className="text-[15px] font-medium tracking-tight text-white">
-              Audio Player
-            </h3>
+                        <h3 className="text-[15px] font-medium tracking-tight text-white">
+                          Audio Player
+                        </h3>
 
-            <p className="text-xs text-white/35">
-              {user.audios.length} track{user.audios.length !== 1 ? "s" : ""} available
-            </p>
+                        <p className="text-xs text-white/35">
+                          {user.audios.length} track{user.audios.length !== 1 ? "s" : ""} available
+                        </p>
 
-          </div>
+                      </div>
 
-        </div>
+                    </div>
 
-        {/* Shuffle */}
-        {user.audio_shuffle && (
-          <div className="rounded-full border border-purple-500/15 bg-purple-500/[0.08] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-purple-300">
-            Shuffle
-          </div>
-        )}
+                    {/* Shuffle */}
+                    {user.audio_shuffle && (
+                      <div className="rounded-full border border-purple-500/15 bg-purple-500/[0.08] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-purple-300">
+                        Shuffle
+                      </div>
+                    )}
 
-      </div>
+                  </div>
 
-      {/* Audio List */}
-      <div className="space-y-2">
+                  {/* Audio List */}
+                  <div className="space-y-2">
 
-        {user.audios.map((audio: any, index: number) => (
+                    {user.audios.map((audio: any, index: number) => (
 
-          <div
-            key={audio.id}
-            className="
+                      <div
+                        key={audio.id}
+                        className="
               group
               flex
               items-center
@@ -1174,57 +1252,57 @@ function DiscordProfileCard({ user, discordData, connections }: DiscordProfileCa
               hover:border-purple-500/15
               hover:bg-purple-500/[0.04]
             "
-          >
+                      >
 
-            {/* Left */}
-            <div className="flex min-w-0 items-center gap-3">
+                        {/* Left */}
+                        <div className="flex min-w-0 items-center gap-3">
 
-              {/* Dot */}
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-white/[0.05] bg-black/20">
+                          {/* Dot */}
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-white/[0.05] bg-black/20">
 
-                <span className="text-[11px] font-bold text-purple-300">
-                  {index + 1}
-                </span>
+                            <span className="text-[11px] font-bold text-purple-300">
+                              {index + 1}
+                            </span>
 
-              </div>
+                          </div>
 
-              {/* Name */}
-              <div className="min-w-0">
+                          {/* Name */}
+                          <div className="min-w-0">
 
-                <p className="truncate text-sm font-medium text-white/80">
-                  {audio.name}
-                </p>
+                            <p className="truncate text-sm font-medium text-white/80">
+                              {audio.name}
+                            </p>
 
-                <p className="text-[10px] uppercase tracking-[0.16em] text-white/25">
-                  Audio Track
-                </p>
+                            <p className="text-[10px] uppercase tracking-[0.16em] text-white/25">
+                              Audio Track
+                            </p>
 
-              </div>
+                          </div>
 
-            </div>
+                        </div>
 
-            {/* Live Indicator */}
-            <div className="flex items-center gap-1.5">
+                        {/* Live Indicator */}
+                        <div className="flex items-center gap-1.5">
 
-              <div className="h-1.5 w-1.5 rounded-full bg-purple-400 shadow-[0_0_10px_rgba(192,132,252,0.8)]" />
+                          <div className="h-1.5 w-1.5 rounded-full bg-purple-400 shadow-[0_0_10px_rgba(192,132,252,0.8)]" />
 
-              <span className="text-[10px] font-medium uppercase tracking-[0.14em] text-white/30">
-                Ready
-              </span>
+                          <span className="text-[10px] font-medium uppercase tracking-[0.14em] text-white/30">
+                            Ready
+                          </span>
 
-            </div>
+                        </div>
 
-          </div>
+                      </div>
 
-        ))}
+                    ))}
 
-      </div>
+                  </div>
 
-    </div>
+                </div>
 
-  </section>
+              </section>
 
-)}
+            )}
 
           {/* Bio */}
           {bio && (
@@ -1388,8 +1466,16 @@ export default function ClientProfile({ user, initialDiscordData, initialConnect
 
   useEffect(() => { setMounted(true); }, []);
 
-  // Note: We've removed the redroseapi client-side fallback. 
-  // We rely exclusively on the data passed via initialDiscordData from the server.
+  // Track profile view
+  useEffect(() => {
+    if (user?.username) {
+      fetch("/api/analytics/view", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: user.username }),
+      }).catch(() => {});
+    }
+  }, [user?.username]);
 
   // Initialize Audio once when the user audio list changes.
   useEffect(() => {
@@ -1425,15 +1511,25 @@ export default function ClientProfile({ user, initialDiscordData, initialConnect
     if (!audioRef.current) return;
     audioRef.current.volume = volume;
     if (backgroundAudioEnabled) {
-  audioRef.current.pause();
-} else {
-  audioRef.current.play().catch(() => {});
-}
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play().catch(() => { });
+    }
     // Do NOT touch .muted here — it's managed exclusively by toggleMute/handleVolumeChange
   }, [volume]);
 
   const handleEnterChamber = () => {
     setEntered(true);
+    
+    // Track profile click (Tap to Decipher)
+    if (user?.username) {
+      fetch("/api/analytics/click", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: user.username, type: "profile" }),
+      }).catch(() => {});
+    }
+
     if (audioRef.current) {
       audioRef.current.play()
         .then(() => setIsPlaying(true))
@@ -1979,9 +2075,9 @@ export default function ClientProfile({ user, initialDiscordData, initialConnect
 
               {/* Right Column: Stacked Bento Widgets */}
               <div className="flex flex-col gap-[0.9rem] w-full max-w-[400px] mx-auto lg:mx-0">
-                <ClockWidget />
+                <ClockWidget user={user} />
                 <ShadowWidget heading={user.typewriter_heading} quotesProp={user.typewriter_quotes} />
-                <SocialWidget customLinks={user.custom_links} />
+                <SocialWidget customLinks={user.custom_links} username={user.username} />
                 <BadgesShowcase activeBadges={user.active_badges} />
               </div>
             </div>

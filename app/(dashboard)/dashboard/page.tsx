@@ -31,6 +31,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [savingDiscord, setSavingDiscord] = useState(false);
+  const [stats, setStats] = useState<{ views: number, profile_clicks: number, link_clicks: number, link_ctr: number, graph_data: any[] }>({ views: 0, profile_clicks: 0, link_clicks: 0, link_ctr: 0, graph_data: [] });
 
   useEffect(() => {
     async function checkAuth() {
@@ -60,6 +61,21 @@ export default function DashboardPage() {
     }
 
     checkAuth();
+
+    // Fetch stats polling
+    const fetchStats = async () => {
+      try {
+        const res = await fetch("/api/user/analytics");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.views !== undefined) setStats(data);
+        }
+      } catch (err) {}
+    };
+    fetchStats();
+    const interval = setInterval(fetchStats, 5000);
+
+    return () => clearInterval(interval);
   }, [router]);
 
   const handleCopyLink = () => {
@@ -206,20 +222,20 @@ export default function DashboardPage() {
             {[
               {
                 title: "Total Views",
-                value: "24.8K",
-                growth: "+18%",
+                value: stats.views.toLocaleString(),
+                growth: "Live",
                 color: "from-red-500/20 to-red-500/5",
               },
               {
                 title: "Profile Clicks",
-                value: "8.2K",
-                growth: "+9%",
+                value: stats.profile_clicks.toLocaleString(),
+                growth: "Live",
                 color: "from-purple-500/20 to-purple-500/5",
               },
               {
                 title: "Link CTR",
-                value: "42%",
-                growth: "+12%",
+                value: `${stats.link_ctr}%`,
+                growth: "Live",
                 color: "from-indigo-500/20 to-indigo-500/5",
               },
               {
@@ -510,15 +526,17 @@ export default function DashboardPage() {
 
                   </div>
 
-                  {/* FAKE GRAPH */}
+                  {/* DYNAMIC GRAPH */}
                   <div className="flex h-[260px] items-end gap-3">
 
-                    {[35, 65, 40, 90, 75, 55, 95, 80, 70, 100, 85, 60].map(
-                      (height, i) => (
+                    {stats.graph_data.map((dayData: any, i) => {
+                      const maxViews = Math.max(...stats.graph_data.map((d: any) => d.views), 1);
+                      const heightPct = (dayData.views / maxViews) * 100;
+                      return (
                         <motion.div
                           key={i}
                           initial={{ height: 0 }}
-                          animate={{ height: `${height}%` }}
+                          animate={{ height: `${Math.max(5, heightPct)}%` }}
                           transition={{
                             duration: 0.8,
                             delay: i * 0.05,
@@ -536,8 +554,17 @@ export default function DashboardPage() {
                         >
                           <div className="absolute inset-0 rounded-t-[20px] bg-white/10" />
                         </motion.div>
-                      )
-                    )}
+                      );
+                    })}
+
+                    {Array.from({ length: Math.max(0, 12 - stats.graph_data.length) }).map((_, i) => (
+                      <motion.div
+                        key={`empty-${i}`}
+                        initial={{ height: 0 }}
+                        animate={{ height: '5%' }}
+                        className="relative flex-1 rounded-t-[20px] bg-white/5 opacity-50"
+                      />
+                    ))}
 
                   </div>
 
