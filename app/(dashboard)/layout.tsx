@@ -10,6 +10,7 @@ interface UserProfile {
   id: number;
   username: string;
   email: string;
+  onboarding_completed?: boolean;
 }
 
 export default function DashboardLayout({
@@ -29,6 +30,10 @@ export default function DashboardLayout({
         const res = await fetch("/api/auth/me");
         const data = await res.json();
         if (data.user) {
+          if (data.user.onboarding_completed === false) {
+            router.push("/onboarding");
+            return;
+          }
           setUser(data.user);
         } else {
           localStorage.removeItem("is_logged_in");

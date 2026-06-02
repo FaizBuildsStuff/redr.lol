@@ -3,6 +3,69 @@ import bcrypt from "bcryptjs";
 import { sql, initDb } from "@/lib/db";
 import { createToken } from "@/lib/session";
 
+export async function GET(request: Request) {
+  try {
+    await initDb();
+
+    const { searchParams } = new URL(request.url);
+    const username = searchParams.get("username")?.trim().toLowerCase();
+    const email = searchParams.get("email")?.trim().toLowerCase();
+
+    if (!username && !email) {
+      return NextResponse.json(
+        { error: "Username or email is required." },
+        { status: 400 }
+      );
+    }
+
+    if (username) {
+      if (username.length < 3) {
+        return NextResponse.json({
+          available: false,
+          reason: "Username must be at least 3 characters.",
+        });
+      }
+
+      if (!/^[a-z0-9_][a-z0-9_-]*$/.test(username)) {
+        return NextResponse.json({
+          available: false,
+          reason: "Use lowercase letters, numbers, underscores, or hyphens.",
+        });
+      }
+
+      const users = await sql`
+        SELECT id FROM users
+        WHERE LOWER(username) = LOWER(${username})
+        LIMIT 1
+      `;
+
+      return NextResponse.json({
+        available: users.length === 0,
+        reason: users.length === 0 ? null : "Username is already taken.",
+      });
+    }
+
+    if (email) {
+      const users = await sql`
+        SELECT id FROM users
+        WHERE LOWER(email) = LOWER(${email})
+        LIMIT 1
+      `;
+
+      return NextResponse.json({
+        available: users.length === 0,
+        reason: users.length === 0 ? null : "Email is already registered.",
+      });
+    }
+  } catch (error: any) {
+    console.error("Availability API error:", error);
+    return NextResponse.json(
+      { error: error.message || "Failed to check availability." },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(request: Request) {
   try {
     // 1. Ensure the database schema exists
@@ -26,6 +89,13 @@ export async function POST(request: Request) {
     if (cleanUsername.length < 3) {
       return NextResponse.json(
         { error: "Username must be at least 3 characters long." },
+        { status: 400 }
+      );
+    }
+
+    if (!/^[a-z0-9_][a-z0-9_-]*$/.test(cleanUsername)) {
+      return NextResponse.json(
+        { error: "Username can only contain lowercase letters, numbers, underscores, and hyphens." },
         { status: 400 }
       );
     }

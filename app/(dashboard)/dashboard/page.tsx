@@ -238,12 +238,7 @@ export default function DashboardPage() {
                 growth: "Live",
                 color: "from-indigo-500/20 to-indigo-500/5",
               },
-              {
-                title: "Active Themes",
-                value: "14",
-                growth: "+2",
-                color: "from-pink-500/20 to-pink-500/5",
-              },
+              
             ].map((item, i) => (
               <motion.div
                 key={item.title}
@@ -575,70 +570,6 @@ export default function DashboardPage() {
             {/* RIGHT SIDEBAR */}
             <div className="space-y-6">
 
-              {/* QUICK ACTIONS */}
-              <motion.div
-                initial={{ opacity: 0, y: 25 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                className="
-        relative
-        overflow-hidden
-        rounded-[34px]
-        border
-        border-white/10
-        bg-white/[0.03]
-        p-6
-        backdrop-blur-3xl
-      "
-              >
-
-                <div className="absolute bottom-0 right-0 h-[180px] w-[180px] rounded-full bg-red-500/10 blur-[100px]" />
-
-                <div className="relative z-10">
-
-                  <h3 className="text-lg font-semibold text-white">
-                    Quick Actions
-                  </h3>
-
-                  <div className="mt-5 space-y-3">
-
-                    {[
-                      "Customize Profile",
-                      "Manage Social Links",
-                      "Upgrade Premium",
-                      "Analytics Center",
-                    ].map((item, i) => (
-                      <button
-                        key={i}
-                        className="
-                flex
-                h-14
-                w-full
-                items-center
-                justify-between
-                rounded-2xl
-                border
-                border-white/10
-                bg-black/30
-                px-5
-                text-sm
-                font-semibold
-                text-white
-                transition-all
-                duration-300
-                hover:border-red-500/20
-                hover:bg-red-500/10
-              "
-                      >
-                        {item}
-
-                        <ExternalLink className="h-4 w-4 text-white/30" />
-                      </button>
-                    ))}
-
-                  </div>
-                </div>
-              </motion.div>
 
               {/* DISCORD */}
               <motion.div
@@ -703,61 +634,6 @@ export default function DashboardPage() {
                       Connect Discord
                     </Button>
                   )}
-                </div>
-              </motion.div>
-
-              {/* ACTIVITY */}
-              <motion.div
-                initial={{ opacity: 0, y: 25 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.45 }}
-                className="
-        relative
-        overflow-hidden
-        rounded-[34px]
-        border
-        border-white/10
-        bg-white/[0.03]
-        p-6
-        backdrop-blur-3xl
-      "
-              >
-
-                <div className="relative z-10">
-
-                  <h3 className="text-lg font-semibold text-white">
-                    Recent Activity
-                  </h3>
-
-                  <div className="mt-5 space-y-4">
-
-                    {[
-                      "Profile theme updated",
-                      "New social link added",
-                      "Analytics synced",
-                      "Discord connected",
-                    ].map((item, i) => (
-                      <div
-                        key={i}
-                        className="flex items-center gap-3"
-                      >
-
-                        <div className="h-3 w-3 rounded-full bg-red-400 shadow-[0_0_10px_rgba(248,113,113,0.8)]" />
-
-                        <div>
-                          <p className="text-sm text-white">
-                            {item}
-                          </p>
-
-                          <p className="text-xs text-white/35">
-                            Just now
-                          </p>
-                        </div>
-
-                      </div>
-                    ))}
-
-                  </div>
                 </div>
               </motion.div>
             </div>

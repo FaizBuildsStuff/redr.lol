@@ -1,113 +1,153 @@
-# 🌹 redr.lol — Cyber-Identity Chamber & Bio-Link Genesis
+# redr.lol
 
-<div align="center">
+An interactive bio-link and creator profile platform built with Next.js App Router, Neon Postgres, signed cookie sessions, Discord presence, UploadThing media uploads, and a dark cyber-crimson design system.
 
+## Current Stack
+
+| Area | Implementation |
+| :--- | :--- |
+| App runtime | Next.js 16.2.6, App Router, Turbopack dev server |
+| UI runtime | React 19.2.4, React Compiler enabled in `next.config.ts` |
+| Styling | Tailwind CSS 4, custom `app/globals.css`, shadcn-style UI primitives |
+| Motion | Framer Motion 12, GSAP dependency available |
+| Database | Neon Serverless Postgres through `@neondatabase/serverless` |
+| Auth | Custom HMAC-SHA256 signed session token stored in cookies |
+| Uploads | UploadThing audio and profile background upload routes |
+| Integrations | Discord OAuth, Discord API connections, Lanyard WebSocket presence |
+
+## Product Surface
+
+`redr.lol` lets users create public profile chambers at `/:username`. Profiles can show custom links, selected badges, typewriter text, Discord presence, Discord connections, location, uploaded background media, up to four audio tracks, and analytics-backed click/view counters.
+
+The private dashboard contains:
+
+- Dashboard home: account summary, profile URL, quick actions, and Discord connection surface.
+- Analytics: total views, profile clicks, link clicks, CTR, device/referrer mix, and 12-day graph data.
+- Links: custom social/link list editing.
+- Customize: profile text, quotes, background media, audio tracks, player toggles, Discord card transparency, and theme-like presentation settings.
+- Badges: owned and active badge selection.
+- Image host, premium, templates, and settings pages for additional creator tooling.
+- Onboarding: first-run flow for Discord, links, media preferences, and premium prompt.
+
+## Route Map
+
+```text
+app/
+  (root)/
+    page.tsx                         Public marketing home
+    layout.tsx                       Root group wrapper
+  (auth)/
+    signin/page.tsx                  Email/password sign in
+    signup/page.tsx                  Account creation, redirects to onboarding
+  onboarding/
+    layout.tsx                       Focused onboarding shell
+    page.tsx                         Four-step setup wizard
+  (dashboard)/
+    layout.tsx                       Auth guard, onboarding guard, sidebar shell
+    dashboard/page.tsx               Account dashboard
+    dashboard/analytics/page.tsx     Analytics visualizations
+    dashboard/badges/page.tsx        Badge inventory and active badge selection
+    dashboard/customize/page.tsx     Profile text, media, audio, Discord card settings
+    dashboard/image-host/page.tsx    Hosted asset UI
+    dashboard/links/page.tsx         Custom links manager
+    dashboard/premium/page.tsx       Supporter tier page
+    dashboard/settings/page.tsx      Account settings UI
+    dashboard/templates/page.tsx     Template gallery UI
+  [username]/
+    page.tsx                         Server profile loader, awaits async params
+    ClientProfile.tsx                Interactive public profile experience
+  api/
+    analytics/click/route.ts         Public click tracking
+    analytics/view/route.ts          Public view tracking
+    auth/*                           Credentials auth and Discord OAuth
+    uploadthing/route.ts             UploadThing route handler
+    user/*                           Profile, media, onboarding, analytics APIs
 ```
-             __          _       _ 
-  _ __ ___  / _|  _ __  | | ___ | |_ 
- | '__/ _ \| |_  | '__| | |/ _ \| __|
- | | |  __/|  _| | |    | | (_) | |_ 
- |_|  \___||_|   |_|    |_|\___/ \__|
-                                     
-```
 
-**An elite, ultra-modern bio-profile and custom web-identity space.**  
-*A highly optimized, glassmorphic, visual canvas crafted for digital creators, collectors, and cyber-enthusiasts.*
+## API Summary
 
----
-
-[![Next.js v16](https://img.shields.io/badge/Next.js-16.2.6-F5F1E8?style=for-the-badge&logo=nextdotjs&logoColor=0D0D0D&color=F5F1E8)](https://nextjs.org)
-[![React v19](https://img.shields.io/badge/React-19.2.4-00D8FF?style=for-the-badge&logo=react&logoColor=white&color=082F49)](https://react.dev)
-[![Neon Postgres Edge](https://img.shields.io/badge/Neon_DB-Serverless-00E599?style=for-the-badge&logo=postgresql&logoColor=white&color=022C22)](https://neon.tech)
-[![Tailwind CSS v4](https://img.shields.io/badge/Tailwind-v4.0-38BDF8?style=for-the-badge&logo=tailwindcss&logoColor=white&color=0C4A6E)](https://tailwindcss.com)
-[![Framer Motion v12](https://img.shields.io/badge/Framer_Motion-v12-FF00C8?style=for-the-badge&logo=framer&logoColor=white&color=4C0519)](https://framer.com)
-
-</div>
-
----
-
-## 👁️ System Overview & Architecture
-
-`redr.lol` allows developers and creators to design high-fidelity, interactive digital profile chambers. Powered by a responsive global layout featuring a custom **Cyber-Crimson Grid** design system, users can register, unlock rare badges, custom-host high-resolution profile imagery, structure custom links, and publish beautiful bio-profile sites.
-
-```
-       [ Public Landing ]  ───────>  [ Secure Gateways ] (Cookie-based Session JWT)
-               │                                   │
-               ▼                                   ▼
-      [ Chamber Identity ] <───────────── [ Creator Dashboard ]
-   pulsating "Tap to Decipher" gateway       • Modular Settings & Layout Control
-   audio visualizer & dynamic canvas         • SVG-rendered live analytics charts
-   lossless media loop streaming             • Theme templates & custom visual nodes
-   Oneko mouse tracking pixel animations     • Badges inventory & supporter tiers
-```
-
----
-
-## ✨ Primary Features
-
-| Feature Module | Technical Focus | Core Mechanics |
+| Route | Methods | Purpose |
 | :--- | :--- | :--- |
-| **🔒 Authenticated Shell (`(auth)`)** | Security & Session Registry | Secure signup and signin APIs utilizing `bcryptjs` password hashing and signed cookie verification using HMAC-SHA256. |
-| **🛠️ Control Chamber (`(dashboard)`)** | Unified Layout Sandbox | Persistent custom sidebar shell featuring sublink trees, live user metrics, support widgets, and profile status tags. |
-| **🎨 Live Customizer** | Real-time Canvas Rendering | Active state customization spanning glassmorphic card variables, accent switches (Crimson, Purple, Emerald, Mono), and Satoshi/Outfit typography templates. |
-| **🔗 Dynamic Links Router** | Interactive social nodes | Manage, toggle visibility of, and delete custom redirection buttons (GitHub, Twitter, Discord, YouTube, Web). |
-| **🌐 Dynamic Chamber Gates (`/[username]`)**| Gestural Core Autoplay | Pulsating visual gate overcoming standard browser audio restrictions via client-bound click loops, animated cursor shapes, pixelated Oneko widget track loops, and real-time audio visualizer spectrum canvas. |
-| **📊 Quantum Analytics** | SVG Sparkline Graphics | Visual metrics dashboard highlighting Unique Views, Click-Through Rates (CTR), referrals, and device share. |
-| **🛢️ Neon Serverless DB** | High-Performance Storage | Direct query interface with serverless Postgres edge clusters and safe parameterized protection filters. |
+| `/api/auth/signup` | `POST` | Validates credentials, initializes DB schema through `initDb()`, hashes password with `bcryptjs`, creates user, sets cookies. |
+| `/api/auth/signin` | `POST` | Validates email/password, sets `session` and `is_logged_in` cookies. |
+| `/api/auth/signout` | `POST`, `GET` | Clears auth cookies. |
+| `/api/auth/me` | `GET` | Verifies the signed cookie and returns the latest user customization/session fields. |
+| `/api/auth/discord/login` | `GET` | Redirects to Discord OAuth. |
+| `/api/auth/discord/callback` | `GET` | Exchanges OAuth code, stores Discord ID and tokens, redirects to onboarding or customize. |
+| `/api/user/profile` | `PATCH` | Updates typewriter text, quotes, links, badges, theme flags, custom font, and Discord card transparency. |
+| `/api/user/background` | `POST`, `PATCH`, `DELETE` | Saves/removes image or video background and toggles background audio. |
+| `/api/user/audio` | `POST`, `PATCH`, `DELETE` | Adds/removes up to four audio tracks and updates shuffle/player settings. |
+| `/api/user/onboarding` | `POST` | Marks onboarding complete and optionally saves initial links/audio settings. |
+| `/api/user/analytics` | `GET` | Returns dashboard analytics for the logged-in user. |
+| `/api/user/[username]/stats` | `GET` | Returns public stats for a profile username. |
+| `/api/user/discord` | `POST`, `DELETE` | Saves or disconnects a Discord ID for the logged-in user. |
+| `/api/user/discord-profile` | `GET` | Fetches Discord profile and connections for a `username` query. |
+| `/api/user/location` | `POST` | Updates the logged-in user's profile location. |
+| `/api/analytics/view` | `POST` | Increments profile views, device counts, referrers, and daily analytics. |
+| `/api/analytics/click` | `POST` | Increments profile or link click counters and daily analytics. |
 
----
+## Database
 
-## 🛠️ Technology Stack
+The application uses Neon Serverless Postgres through `lib/db.ts`.
 
-* **Client & Compiler:** Next.js 16.2.6 utilizing the cutting-edge **Turbopack Compiler Core** for instant hot-module updates.
-* **Database Pipeline:** Neon Serverless PostgreSQL running edge-optimized query clusters accessed via modern tagged templates.
-* **Session Layer:** Custom JWT-like signed cookies (`session` HttpOnly cookie & `is_logged_in` client cookie) with SHA256 signatures.
-* **Aesthetic Styling:** Tailwind CSS v4.0 with customized ambient red glow filters, glassmorphism cards, and textured noise sheets.
-* **Motion Physics:** Framer Motion v12 delivering seamless spatial transitions, drag animations, and exit timelines.
-* **Metadata & SEO:** Semantic header hierarchies equipped with automated dynamic site templates, OpenGraph indices, and theme hydration guards.
+Core tables:
 
----
+- `users`: credentials, Discord IDs/tokens, profile customization fields, badge JSON, media JSON, onboarding state, and aggregate analytics counters.
+- `daily_analytics`: per-user daily view, profile click, and link click totals with `UNIQUE(user_id, date)`.
 
-## 🚀 Installation & Local Launch
+Important note: `lib/db.ts:initDb()` contains the fullest schema expansion. `scripts/db-init.js` provisions the base user table, daily analytics, and aggregate analytics columns only. `scripts/migrate_badges.js` separately adds `owned_badges`.
 
-### 1. Register Environment Secrets
-Create a `.env` file at the root registry of your workspace directory:
-```env
-DATABASE_URL=postgresql://neondb_owner:[password]@ep-[id]-pooler.c-7.us-east-1.aws.neon.tech/neondb?sslmode=require
-JWT_SECRET=[secure-quantum-identity-key]
+All database writes and reads should use Neon tagged template syntax:
+
+```ts
+await sql`
+  SELECT *
+  FROM users
+  WHERE LOWER(username) = LOWER(${username})
+  LIMIT 1
+`;
 ```
 
-### 2. Provision Dependencies
-Install the package registry using your terminal shell:
+## Environment Variables
+
+Create `.env` in the project root:
+
+```env
+DATABASE_URL=postgresql://...
+JWT_SECRET=replace-with-a-long-random-secret
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+DISCORD_CLIENT_ID=...
+DISCORD_CLIENT_SECRET=...
+UPLOADTHING_TOKEN=...
+```
+
+`JWT_SECRET` has a development fallback in `lib/session.ts`, but production should always provide a real secret.
+
+## Local Development
+
 ```bash
 npm install
-```
-
-### 3. Setup Database Schema
-Execute the database schema setup to deploy tables to your Neon DB cluster:
-```bash
 npm run db:init
-```
-
-### 4. Boot Dev Environment
-Start the development server with Next's high-speed Turbopack engine:
-```bash
 npm run dev
 ```
-Open **`http://localhost:3000`** in your browser to inspect the application.
 
----
+Open `http://localhost:3000`.
 
-## 🛡️ Coding Guidelines & Codebase Commitments
+Useful commands:
 
-> [!IMPORTANT]
-> **1. Tailwind CSS Theme Conformity**
-> Maintain curated dark HSL coordinates (`#050505` / `#0D0D0D` and accents `#950000`). Never utilize default browser visual presets or basic, non-harmonious primary colors.
+```bash
+npm run build
+npm start
+node scripts/migrate_badges.js
+```
 
-> [!WARNING]
-> **2. No Lucide Brand Icons**
-> Next.js Turbopack compiler restrictions prevent direct Lucide React imports for brand logos (e.g. `Github`, `Twitter`, `Youtube`, `Discord`). These icons **must** be implemented utilizing native inline SVG components to ensure clean compilation.
+There is no lint/test script currently defined in `package.json`.
 
-> [!NOTE]
-> **3. Hydration Mismatch Prevention**
-> Keep `suppressHydrationWarning` assigned to the root `<html>` node inside the global [app/layout.tsx](file:///e:/Programming%20Projects/redrose/app/layout.tsx) file to ensure clean renders when client layouts read active theme states.
+## Implementation Rules
+
+- Read relevant local Next docs in `node_modules/next/dist/docs/` before changing App Router code. This project runs Next 16, where route `params` and `searchParams` are asynchronous in many file conventions.
+- In dynamic routes such as `app/[username]/page.tsx`, type params as `Promise<{ username: string }>` and resolve them with `await params`.
+- Do not import brand logotypes from `lucide-react`. Use local inline SVGs or existing SVG assets under `public/assets/images/connections`.
+- Keep SQL parameterized through tagged template literals. Avoid raw string interpolation.
+- Preserve the dark cyber-crimson visual language: near-black backgrounds, subtle glass surfaces, restrained crimson accents, custom cursors, and the existing view-transition mask.
+- Keep `suppressHydrationWarning` on the root `<html>` in `app/layout.tsx` because `next-themes` is active.

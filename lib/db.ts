@@ -54,11 +54,16 @@ export async function initDb() {
       ADD COLUMN IF NOT EXISTS background_audio_enabled BOOLEAN DEFAULT false,
       ADD COLUMN IF NOT EXISTS location VARCHAR(255),
       ADD COLUMN IF NOT EXISTS discord_profile_transparency NUMERIC DEFAULT 0.40,
+      ADD COLUMN IF NOT EXISTS onboarding_discovery_source VARCHAR(255),
+      ADD COLUMN IF NOT EXISTS onboarding_discovery_other TEXT,
+      ADD COLUMN IF NOT EXISTS onboarding_planned_use VARCHAR(255),
+      ADD COLUMN IF NOT EXISTS onboarding_planned_use_other TEXT,
       ADD COLUMN IF NOT EXISTS views INTEGER DEFAULT 0,
       ADD COLUMN IF NOT EXISTS profile_clicks INTEGER DEFAULT 0,
       ADD COLUMN IF NOT EXISTS link_clicks INTEGER DEFAULT 0,
       ADD COLUMN IF NOT EXISTS devices JSONB DEFAULT '{"desktop": 0, "mobile": 0, "tablet": 0}'::jsonb,
-      ADD COLUMN IF NOT EXISTS referrers JSONB DEFAULT '{}'::jsonb;
+      ADD COLUMN IF NOT EXISTS referrers JSONB DEFAULT '{}'::jsonb,
+      ADD COLUMN IF NOT EXISTS onboarding_completed BOOLEAN DEFAULT false;
     `;
     console.log("Database schema initialized successfully.");
   } catch (error) {

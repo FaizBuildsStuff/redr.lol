@@ -46,6 +46,7 @@ async function run() {
         username VARCHAR(255) UNIQUE NOT NULL,
         email VARCHAR(255) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL,
+        onboarding_completed BOOLEAN DEFAULT false,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `;
@@ -70,7 +71,12 @@ async function run() {
       ADD COLUMN IF NOT EXISTS profile_clicks INTEGER DEFAULT 0,
       ADD COLUMN IF NOT EXISTS link_clicks INTEGER DEFAULT 0,
       ADD COLUMN IF NOT EXISTS devices JSONB DEFAULT '{"desktop": 0, "mobile": 0, "tablet": 0}'::jsonb,
-      ADD COLUMN IF NOT EXISTS referrers JSONB DEFAULT '{}'::jsonb;
+      ADD COLUMN IF NOT EXISTS referrers JSONB DEFAULT '{}'::jsonb,
+      ADD COLUMN IF NOT EXISTS onboarding_discovery_source VARCHAR(255),
+      ADD COLUMN IF NOT EXISTS onboarding_discovery_other TEXT,
+      ADD COLUMN IF NOT EXISTS onboarding_planned_use VARCHAR(255),
+      ADD COLUMN IF NOT EXISTS onboarding_planned_use_other TEXT,
+      ADD COLUMN IF NOT EXISTS onboarding_completed BOOLEAN DEFAULT false;
     `;
     console.log("Database initialized successfully! 'users' table is now ready.");
   } catch (error) {

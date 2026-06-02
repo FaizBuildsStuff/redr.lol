@@ -76,6 +76,13 @@ export async function GET(req: NextRequest) {
       WHERE id = ${session.userId}
     `;
 
+    // Check if onboarding is completed
+    const [dbUser] = await sql`SELECT onboarding_completed FROM users WHERE id = ${session.userId}`;
+
+    if (dbUser && !dbUser.onboarding_completed) {
+      return NextResponse.redirect(new URL("/onboarding?success=discord_connected", req.url));
+    }
+
     // Successfully connected
     return NextResponse.redirect(new URL("/dashboard/customize?success=discord_connected", req.url));
     

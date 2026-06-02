@@ -1,54 +1,137 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
-import { Checkbox } from "@/components/ui/checkbox";
+import { AnimatePresence, motion } from "framer-motion";
+import { ArrowRight, Check, Edit3, Loader2, Lock, Mail, Sparkles, UserRound, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import {
-  ArrowRight,
-  Disc3,
-  Loader2,
-} from "lucide-react";
 
-const Signup = () => {
+type SignupStep = "username" | "email" | "password";
+type Availability = "idle" | "checking" | "available" | "taken" | "invalid";
+
+const steps: Array<{ id: SignupStep; label: string }> = [
+  { id: "username", label: "Claim URL" },
+  { id: "email", label: "Secure account" },
+  { id: "password", label: "Activate" },
+];
+
+const cleanUsername = (value: string) =>
+  value.toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 28);
+
+const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+
+export default function Signup() {
   const router = useRouter();
+  const [step, setStep] = useState<SignupStep>("username");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [agreedTOS, setAgreedTOS] = useState(false);
-  const [agreedOffers, setAgreedOffers] = useState(false);
+  const [usernameStatus, setUsernameStatus] = useState<Availability>("idle");
+  const [usernameMessage, setUsernameMessage] = useState("Choose a public profile handle.");
+  const [emailStatus, setEmailStatus] = useState<Availability>("idle");
+  const [emailMessage, setEmailMessage] = useState("Use an email you can access.");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const activeIndex = steps.findIndex((item) => item.id === step);
+  const profileUrl = useMemo(() => `redr.lol/${username || "username"}`, [username]);
+
+  useEffect(() => {
     setError(null);
 
-    // Form validation
-    if (!username.trim()) {
-      setError("Username is required.");
+    if (!username) {
+      setUsernameStatus("idle");
+      setUsernameMessage("Choose a public profile handle.");
       return;
     }
-    if (username.trim().length < 3) {
-      setError("Username must be at least 3 characters.");
+
+    if (username.length < 3) {
+      setUsernameStatus("invalid");
+      setUsernameMessage("Use at least 3 characters.");
       return;
     }
-    if (!email.trim()) {
-      setError("Email is required.");
+
+    const timer = window.setTimeout(async () => {
+      setUsernameStatus("checking");
+      setUsernameMessage("Checking availability...");
+
+      try {
+        const res = await fetch(`/api/auth/signup?username=${encodeURIComponent(username)}`);
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || "Could not check username.");
+
+        setUsernameStatus(data.available ? "available" : "taken");
+        setUsernameMessage(data.available ? "This username is available." : data.reason || "Username is taken.");
+      } catch (err: any) {
+        setUsernameStatus("invalid");
+        setUsernameMessage(err.message || "Could not check username.");
+      }
+    }, 350);
+
+    return () => window.clearTimeout(timer);
+  }, [username]);
+
+  useEffect(() => {
+    setError(null);
+
+    if (!email) {
+      setEmailStatus("idle");
+      setEmailMessage("Use an email you can access.");
       return;
     }
-    if (!password) {
-      setError("Password is required.");
+
+    if (!isValidEmail(email)) {
+      setEmailStatus("invalid");
+      setEmailMessage("Enter a valid email address.");
       return;
     }
+
+    const timer = window.setTimeout(async () => {
+      setEmailStatus("checking");
+      setEmailMessage("Checking email...");
+
+      try {
+        const res = await fetch(`/api/auth/signup?email=${encodeURIComponent(email.trim().toLowerCase())}`);
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || "Could not check email.");
+
+        setEmailStatus(data.available ? "available" : "taken");
+        setEmailMessage(data.available ? "Email looks good." : data.reason || "Email is already registered.");
+      } catch (err: any) {
+        setEmailStatus("invalid");
+        setEmailMessage(err.message || "Could not check email.");
+      }
+    }, 350);
+
+    return () => window.clearTimeout(timer);
+  }, [email]);
+
+  const continueFromUsername = () => {
+    if (usernameStatus !== "available") {
+      setError("Pick an available username before continuing.");
+      return;
+    }
+    setError(null);
+    setStep("email");
+  };
+
+  const continueFromEmail = () => {
+    if (emailStatus !== "available") {
+      setError("Enter an available email before continuing.");
+      return;
+    }
+    setError(null);
+    setStep("password");
+  };
+
+  const handleSignup = async () => {
+    setError(null);
+
     if (password.length < 6) {
       setError("Password must be at least 6 characters.");
-      return;
-    }
-    if (!agreedTOS) {
-      setError("You must agree to the Terms of Service and Privacy Policy.");
       return;
     }
 
@@ -57,27 +140,15 @@ const Signup = () => {
     try {
       const response = await fetch("/api/auth/signup", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username,
-          email,
-          password,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, email, password }),
       });
 
       const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to sign up.");
 
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to sign up.");
-      }
-
-      // Store in local storage to track login status
       localStorage.setItem("is_logged_in", "true");
-
-      // Redirect user to the dashboard
-      router.push("/dashboard");
+      router.push("/onboarding");
       router.refresh();
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred.");
@@ -87,310 +158,270 @@ const Signup = () => {
   };
 
   return (
-    <section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#050505] px-5 py-14 text-[#F5F1E8] sm:px-6 sm:py-20">
-
-      {/* Background */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-
-        {/* Main Glow */}
-        <div className="absolute left-1/2 top-0 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-red-600/10 blur-[140px]" />
-
-        {/* Bottom Glow */}
-        <div className="absolute bottom-[-10%] right-[-5%] h-[400px] w-[400px] rounded-full bg-red-500/10 blur-[120px]" />
-
-        {/* Soft Mesh */}
-        <div
-          className="absolute inset-0 opacity-[0.04]"
-          style={{
-            backgroundImage: `
-              radial-gradient(circle at top left, rgba(239,68,68,0.10), transparent 25%),
-              radial-gradient(circle at bottom right, rgba(220,38,38,0.08), transparent 30%)
-            `,
-          }}
-        />
-
-        {/* Grain */}
-        <div className="absolute inset-0 opacity-[0.025] mix-blend-soft-light">
-          <div
-            className="h-full w-full"
-            style={{
-              backgroundImage:
-                "url('https://grainy-gradients.vercel.app/noise.svg')",
-            }}
-          />
-        </div>
+    <section className="relative min-h-screen overflow-hidden bg-[#050505] px-5 py-8 text-[#F5F1E8] sm:px-6 lg:px-10">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(149,0,0,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(149,0,0,0.08)_1px,transparent_1px)] bg-[size:54px_54px] opacity-30" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(149,0,0,0.18),transparent_34%),linear-gradient(180deg,rgba(5,5,5,0)_0%,#050505_84%)]" />
       </div>
 
-      {/* Card */}
-      <motion.div
-        initial={{
-          opacity: 0,
-          y: 24,
-        }}
-        animate={{
-          opacity: 1,
-          y: 0,
-        }}
-        transition={{
-          duration: 0.7,
-        }}
-        className="relative w-full max-w-[560px] overflow-hidden rounded-[34px] border border-white/[0.06] bg-[#0B0B0B]/90 shadow-[0_0_120px_rgba(255,0,0,0.05)] backdrop-blur-3xl"
-      >
-
-        {/* Glow */}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-red-500/[0.07] via-transparent to-transparent" />
-
-        {/* Inner */}
-        <div className="relative px-7 py-8 sm:px-10 sm:py-10">
-
-          {/* Logo */}
-          <div className="flex items-center gap-4">
-
-            <motion.div
-              animate={{
-                rotate: [0, 6, -6, 0],
-              }}
-              transition={{
-                duration: 8,
-                repeat: Infinity,
-              }}
-              className="flex h-14 w-14 items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/10"
-            >
-              <Disc3 className="h-6 w-6 text-red-400" />
-            </motion.div>
-
-            <div>
-
-              <h2 className="text-[1.7rem] font-medium tracking-[-0.08em] text-white">
-                redr.lol
-              </h2>
-
-              <p className="mt-1 text-sm text-[#787878]">
-                profiles with personality
-              </p>
+      <div className="relative mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-7xl items-center gap-8 lg:grid-cols-[minmax(0,0.95fr)_minmax(420px,1.05fr)]">
+        <motion.aside
+          initial={{ opacity: 0, x: -24 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.7 }}
+          className="hidden min-h-[680px] overflow-hidden rounded-[30px] border border-white/[0.06] bg-[#0A0A0A]/80 p-8 shadow-[0_30px_120px_rgba(0,0,0,0.55)] backdrop-blur-2xl lg:block"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/10">
+                <Sparkles className="h-5 w-5 text-red-300" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-white">redr.lol</p>
+                <p className="text-xs text-[#777]">identity launch console</p>
+              </div>
+            </div>
+            <div className="rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-red-200">
+              premium
             </div>
           </div>
 
-          {/* Heading */}
-          <div className="mt-12">
-
-            <h1 className="text-[3.1rem] font-medium leading-[0.84] tracking-[-0.09em] text-[#F5F1E8] sm:text-[4.2rem]">
-
-              <span className="tracking-[-0.06em]">
-                create your
-              </span>
-
-              <br />
-
-              <span className="tracking-[-0.07em] text-red-500">
-                identity
-              </span>
+          <div className="mt-14">
+            <h1 className="max-w-lg text-6xl font-semibold leading-[0.92] tracking-[-0.06em] text-white">
+              Claim a profile that feels engineered.
             </h1>
-
-            <p className="mt-6 max-w-md text-[16px] font-[400] leading-[1.85] tracking-[0.01em] text-[#9A9A9A] antialiased [text-rendering:geometricPrecision] [-webkit-font-smoothing:antialiased] [-moz-osx-font-smoothing:grayscale]">
-              Create a modern profile with smooth customization,
-              layouts, effects, socials, and complete creative freedom.
+            <p className="mt-6 max-w-md text-sm leading-7 text-[#9A9A9A]">
+              Start with a clean public URL, then tune the experience with dashboard controls, profile media, badges, analytics, and Discord presence.
             </p>
           </div>
 
-          {/* Error Message */}
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-6 rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-4 text-sm text-red-400"
-            >
-              {error}
-            </motion.div>
-          )}
-
-          {/* Form */}
-          <form onSubmit={handleSignup} className="mt-12 space-y-4">
-
-            {/* Username */}
-            <div className="group rounded-[22px] border border-white/[0.06] bg-[#101010] transition-all duration-300 focus-within:border-red-500/20 focus-within:bg-[#121212]">
-
-              {/* Label */}
-              <div className="flex items-center justify-between px-5 pt-4">
-
-                <span className="text-[11px] uppercase tracking-[0.16em] text-[#666]">
-                  username
-                </span>
-
-                <div className="h-1.5 w-1.5 rounded-full bg-red-500/70" />
-              </div>
-
-              {/* Input */}
-              <div className="flex items-center px-5 pb-4 pt-2">
-
-                <span className="mr-1 text-[15px] text-[#666]">
-                  redr.lol/
-                </span>
-
-                <Input
-                  required
-                  placeholder="yourname"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="h-auto border-0 bg-transparent p-0 text-[15px] text-white shadow-none outline-none focus-visible:ring-0 placeholder:text-[#5E5E5E]"
-                />
-              </div>
-            </div>
-
-            {/* Email */}
-            <div className="group rounded-[22px] border border-white/[0.06] bg-[#101010] transition-all duration-300 focus-within:border-red-500/20 focus-within:bg-[#121212]">
-
-              {/* Label */}
-              <div className="flex items-center justify-between px-5 pt-4">
-
-                <span className="text-[11px] uppercase tracking-[0.16em] text-[#666]">
-                  email address
-                </span>
-
-                <div className="h-1.5 w-1.5 rounded-full bg-red-500/70" />
-              </div>
-
-              {/* Input */}
-              <div className="px-5 pb-4 pt-2">
-
-                <Input
-                  required
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="h-auto border-0 bg-transparent p-0 text-[15px] text-white shadow-none outline-none focus-visible:ring-0 placeholder:text-[#5E5E5E]"
-                />
-              </div>
-            </div>
-
-            {/* Password */}
-            <div className="group rounded-[22px] border border-white/[0.06] bg-[#101010] transition-all duration-300 focus-within:border-red-500/20 focus-within:bg-[#121212]">
-
-              {/* Label */}
-              <div className="flex items-center justify-between px-5 pt-4">
-
-                <span className="text-[11px] uppercase tracking-[0.16em] text-[#666]">
-                  password
-                </span>
-
-                <div className="h-1.5 w-1.5 rounded-full bg-red-500/70" />
-              </div>
-
-              {/* Input */}
-              <div className="px-5 pb-4 pt-2">
-
-                <Input
-                  required
-                  type="password"
-                  placeholder="••••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="h-auto border-0 bg-transparent p-0 text-[15px] text-white shadow-none outline-none focus-visible:ring-0 placeholder:text-[#5E5E5E]"
-                />
-              </div>
-            </div>
-
-            {/* Checkboxes */}
-            <div className="space-y-4 pt-3">
-
-              {/* TOS */}
-              <div className="flex items-start gap-4 rounded-[22px] border border-white/[0.04] bg-[#0F0F0F] px-5 py-4">
-
-                <Checkbox
-                  checked={agreedTOS}
-                  onCheckedChange={(checked) => setAgreedTOS(!!checked)}
-                  className="mt-1 border-white/20 data-[state=checked]:border-red-500 data-[state=checked]:bg-red-500"
-                />
-
-                <p className="text-sm leading-[1.8] text-[#8C8C8C]">
-                  I agree to the{" "}
-
-                  <Link
-                    href="#"
-                    className="font-medium text-white transition-colors duration-300 hover:text-red-300"
-                  >
-                    Terms of Service
-                  </Link>{" "}
-
-                  and{" "}
-
-                  <Link
-                    href="#"
-                    className="font-medium text-white transition-colors duration-300 hover:text-red-300"
-                  >
-                    Privacy Policy
-                  </Link>
-                  .
-                </p>
-              </div>
-
-              {/* Offers */}
-              <div className="flex items-start gap-4 rounded-[22px] border border-white/[0.04] bg-[#0F0F0F] px-5 py-4">
-
-                <Checkbox
-                  checked={agreedOffers}
-                  onCheckedChange={(checked) => setAgreedOffers(!!checked)}
-                  className="mt-1 border-white/20 data-[state=checked]:border-red-500 data-[state=checked]:bg-red-500"
-                />
-
-                <p className="text-sm leading-[1.8] text-[#8C8C8C]">
-                  I agree to receive updates, announcements,
-                  and product news from redr.lol.
-                </p>
-              </div>
-            </div>
-
-            {/* Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative mt-2 flex h-[64px] w-full items-center justify-center overflow-hidden rounded-[22px] bg-red-600 text-sm font-medium text-white transition-all duration-500 hover:-translate-y-[2px] hover:bg-red-500 disabled:opacity-50 disabled:pointer-events-none"
-            >
-
-              {/* Glow */}
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-red-500 via-red-400 to-red-700 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-
-              {/* Shine */}
-              <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[22px]">
-                <div className="absolute left-[-120%] top-0 h-full w-[60%] rotate-[20deg] bg-white/20 blur-xl transition-all duration-1000 group-hover:left-[140%]" />
-              </div>
-
-              {/* Text */}
-              {loading ? (
-                <span className="relative z-10 flex items-center gap-2 tracking-[0.04em]">
-                  creating account...
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                </span>
-              ) : (
-                <span className="relative z-10 flex items-center gap-2 tracking-[0.04em]">
-                  create account
-
-                  <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                </span>
-              )}
-            </button>
-          </form>
-          {/* Form End */}
-
-          {/* Bottom */}
-          <div className="mt-8 text-center">
-
-            <p className="text-sm text-[#777]">
-              already have an account?{" "}
-
-              <Link
-                href="/signin"
-                className="font-medium text-white transition-colors duration-300 hover:text-red-300"
+          <div className="mt-12 grid gap-4">
+            {[
+              ["Live profile chamber", "Background media, audio, links, and badges."],
+              ["Creator dashboard", "Analytics, settings, templates, and social controls."],
+              ["Session protected", "Signed cookies and database-backed ownership."],
+            ].map(([title, desc], index) => (
+              <motion.div
+                key={title}
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 + index * 0.1 }}
+                className="rounded-2xl border border-white/[0.06] bg-white/[0.025] p-5"
               >
-                login
-              </Link>
-            </p>
+                <div className="mb-4 h-1.5 overflow-hidden rounded-full bg-white/[0.05]">
+                  <motion.div
+                    className="h-full rounded-full bg-gradient-to-r from-red-950 via-red-500 to-white"
+                    animate={{ x: ["-100%", "110%"] }}
+                    transition={{ duration: 3 + index, repeat: Infinity, ease: "easeInOut" }}
+                  />
+                </div>
+                <p className="text-sm font-semibold text-white">{title}</p>
+                <p className="mt-1 text-xs leading-5 text-[#777]">{desc}</p>
+              </motion.div>
+            ))}
           </div>
-        </div>
-      </motion.div>
+        </motion.aside>
+
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.65 }}
+          className="mx-auto w-full max-w-xl overflow-hidden rounded-[32px] border border-white/[0.07] bg-[#0B0B0B]/92 shadow-[0_24px_110px_rgba(149,0,0,0.10)] backdrop-blur-3xl"
+        >
+          <div className="border-b border-white/[0.06] px-6 py-5 sm:px-8">
+            <div className="flex items-center justify-between gap-4">
+              <Link href="/" className="text-sm font-semibold tracking-tight text-white">
+                redr<span className="text-red-500">.lol</span>
+              </Link>
+              <Link href="/signin" className="text-xs font-medium text-[#888] transition-colors hover:text-white">
+                Sign in
+              </Link>
+            </div>
+
+            <div className="mt-6 grid grid-cols-3 gap-2">
+              {steps.map((item, index) => (
+                <div key={item.id} className="space-y-2">
+                  <div className={`h-1.5 rounded-full ${index <= activeIndex ? "bg-red-500" : "bg-white/[0.08]"}`} />
+                  <p className={`text-[10px] font-semibold uppercase tracking-[0.14em] ${index <= activeIndex ? "text-white" : "text-[#555]"}`}>
+                    {item.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="px-6 py-8 sm:px-8 sm:py-10">
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-6 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200"
+              >
+                {error}
+              </motion.div>
+            )}
+
+            <AnimatePresence mode="wait">
+              {step === "username" && (
+                <motion.div key="username" initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -18 }} className="space-y-7">
+                  <div>
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/10">
+                      <UserRound className="h-5 w-5 text-red-300" />
+                    </div>
+                    <h1 className="mt-6 text-3xl font-semibold tracking-[-0.04em] text-white">Claim your username.</h1>
+                    <p className="mt-3 text-sm leading-6 text-[#888]">This becomes your public profile address. Keep it short, clean, and easy to share.</p>
+                  </div>
+
+                  <div className="rounded-[24px] border border-white/[0.07] bg-[#101010] p-5 transition-colors focus-within:border-red-500/30">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#666]">Profile URL</p>
+                    <div className="mt-3 flex items-center text-lg">
+                      <span className="text-[#666]">redr.lol/</span>
+                      <Input
+                        autoFocus
+                        value={username}
+                        onChange={(event) => setUsername(cleanUsername(event.target.value))}
+                        placeholder="anthryve"
+                        className="h-auto border-0 bg-transparent p-0 text-lg font-semibold text-white shadow-none outline-none placeholder:text-[#444] focus-visible:ring-0"
+                      />
+                    </div>
+                    <div className="mt-4 flex items-center gap-2 text-sm">
+                      {usernameStatus === "checking" && <Loader2 className="h-4 w-4 animate-spin text-[#888]" />}
+                      {usernameStatus === "available" && <Check className="h-4 w-4 text-emerald-400" />}
+                      {(usernameStatus === "taken" || usernameStatus === "invalid") && <X className="h-4 w-4 text-red-300" />}
+                      <span className={usernameStatus === "available" ? "text-emerald-300" : usernameStatus === "taken" || usernameStatus === "invalid" ? "text-red-200" : "text-[#777]"}>
+                        {usernameMessage}
+                      </span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={continueFromUsername}
+                    disabled={usernameStatus !== "available"}
+                    className="group flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-white text-sm font-semibold text-black transition-all hover:bg-red-100 disabled:pointer-events-none disabled:opacity-40"
+                  >
+                    Continue <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </button>
+                </motion.div>
+              )}
+
+              {step === "email" && (
+                <motion.div key="email" initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -18 }} className="space-y-7">
+                  <div className="rounded-[24px] border border-red-500/15 bg-red-500/[0.05] p-5">
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-red-200/70">Reserved domain</p>
+                        <p className="mt-2 break-all text-xl font-semibold text-white">{profileUrl}</p>
+                      </div>
+                      <button onClick={() => setStep("username")} className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-[#AAA] transition-colors hover:text-white">
+                        <Edit3 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05]">
+                      <Mail className="h-5 w-5 text-white" />
+                    </div>
+                    <h1 className="mt-6 text-3xl font-semibold tracking-[-0.04em] text-white">Secure your account.</h1>
+                    <p className="mt-3 text-sm leading-6 text-[#888]">Add an email so your profile can be recovered and managed safely.</p>
+                  </div>
+
+                  <div className="rounded-[24px] border border-white/[0.07] bg-[#101010] p-5 transition-colors focus-within:border-red-500/30">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#666]">Email address</p>
+                    <Input
+                      autoFocus
+                      type="email"
+                      value={email}
+                      onChange={(event) => setEmail(event.target.value)}
+                      placeholder="you@example.com"
+                      className="mt-3 h-auto border-0 bg-transparent p-0 text-lg font-semibold text-white shadow-none outline-none placeholder:text-[#444] focus-visible:ring-0"
+                    />
+                    <div className="mt-4 flex items-center gap-2 text-sm">
+                      {emailStatus === "checking" && <Loader2 className="h-4 w-4 animate-spin text-[#888]" />}
+                      {emailStatus === "available" && <Check className="h-4 w-4 text-emerald-400" />}
+                      {(emailStatus === "taken" || emailStatus === "invalid") && <X className="h-4 w-4 text-red-300" />}
+                      <span className={emailStatus === "available" ? "text-emerald-300" : emailStatus === "taken" || emailStatus === "invalid" ? "text-red-200" : "text-[#777]"}>
+                        {emailMessage}
+                      </span>
+                    </div>
+                  </div>
+
+                  {emailStatus === "available" && (
+                    <button
+                      type="button"
+                      onClick={continueFromEmail}
+                      className="group flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-white text-sm font-semibold text-black transition-all hover:bg-red-100"
+                    >
+                      Continue <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    </button>
+                  )}
+                </motion.div>
+              )}
+
+              {step === "password" && (
+                <motion.div key="password" initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -18 }} className="space-y-7">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {[
+                      ["Username", profileUrl, "username"],
+                      ["Email", email, "email"],
+                    ].map(([label, value, target]) => (
+                      <div key={label} className="rounded-[22px] border border-white/[0.07] bg-white/[0.025] p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#666]">{label}</p>
+                            <p className="mt-2 truncate text-sm font-semibold text-white">{value}</p>
+                          </div>
+                          <button onClick={() => setStep(target as SignupStep)} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-[#999] hover:text-white">
+                            <Edit3 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div>
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/10">
+                      <Lock className="h-5 w-5 text-red-300" />
+                    </div>
+                    <h1 className="mt-6 text-3xl font-semibold tracking-[-0.04em] text-white">Create your password.</h1>
+                    <p className="mt-3 text-sm leading-6 text-[#888]">One last step, then we will open the premium onboarding flow.</p>
+                  </div>
+
+                  <div className="rounded-[24px] border border-white/[0.07] bg-[#101010] p-5 transition-colors focus-within:border-red-500/30">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#666]">Password</p>
+                    <Input
+                      autoFocus
+                      type="password"
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                      placeholder="At least 6 characters"
+                      className="mt-3 h-auto border-0 bg-transparent p-0 text-lg font-semibold text-white shadow-none outline-none placeholder:text-[#444] focus-visible:ring-0"
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleSignup}
+                    disabled={loading}
+                    className="group flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-red-600 text-sm font-semibold text-white transition-all hover:bg-red-500 disabled:pointer-events-none disabled:opacity-50"
+                  >
+                    {loading ? (
+                      <>
+                        Creating account <Loader2 className="h-4 w-4 animate-spin" />
+                      </>
+                    ) : (
+                      <>
+                        Continue to onboarding <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                      </>
+                    )}
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </motion.div>
+      </div>
     </section>
   );
-};
-
-export default Signup;
+}
