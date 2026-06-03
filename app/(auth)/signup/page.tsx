@@ -272,25 +272,57 @@ export default function Signup() {
                     <p className="mt-3 text-sm leading-6 text-[#888]">This becomes your public profile address. Keep it short, clean, and easy to share.</p>
                   </div>
 
-                  <div className="rounded-[24px] border border-white/[0.07] bg-[#101010] p-5 transition-colors focus-within:border-red-500/30">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#666]">Profile URL</p>
-                    <div className="mt-3 flex items-center text-lg">
-                      <span className="text-[#666]">redr.lol/</span>
+                  <div className="group relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.04] to-white/[0.02] p-5 backdrop-blur-xl transition-all duration-300 hover:border-white/20 focus-within:border-red-500/40 focus-within:shadow-[0_0_40px_rgba(239,68,68,0.15)]">
+
+                    <div className="pointer-events-none absolute inset-0 z-0 opacity-0 bg-gradient-to-r from-red-500/5 via-transparent to-red-500/5 transition-opacity duration-300 group-focus-within:opacity-100" />
+
+                    <div className="relative z-10 flex items-center justify-between">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">
+                        Profile URL
+                      </p>
+
+                      <div className="rounded-xl border border-white/10 bg-white/[0.04] px-2.5 py-1">
+                        <span className="text-[10px] font-medium uppercase tracking-wider text-zinc-500">
+                          Public
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="relative z-10 mt-4 flex h-16 items-center rounded-2xl border border-white/10 bg-white/[0.03] px-5 transition-all duration-300 hover:border-white/20 focus-within:border-red-500/40 focus-within:bg-white/[0.05]">
+                      <span className="mr-1 bg-gradient-to-r from-zinc-400 to-zinc-600 bg-clip-text text-lg font-medium text-transparent">
+                        redr.lol/
+                      </span>
+
                       <Input
                         autoFocus
                         value={username}
                         onChange={(event) => setUsername(cleanUsername(event.target.value))}
-                        placeholder="anthryve"
-                        className="h-auto border-0 bg-transparent p-0 text-lg font-semibold text-white shadow-none outline-none placeholder:text-[#444] focus-visible:ring-0"
+                        placeholder="username"
+                        className="h-12 flex-1 border-0 bg-transparent px-0 text-[22px] font-bold tracking-[-0.04em] text-white placeholder:font-medium placeholder:text-white/35 shadow-none focus-visible:ring-0"
                       />
                     </div>
-                    <div className="mt-4 flex items-center gap-2 text-sm">
-                      {usernameStatus === "checking" && <Loader2 className="h-4 w-4 animate-spin text-[#888]" />}
-                      {usernameStatus === "available" && <Check className="h-4 w-4 text-emerald-400" />}
-                      {(usernameStatus === "taken" || usernameStatus === "invalid") && <X className="h-4 w-4 text-red-300" />}
-                      <span className={usernameStatus === "available" ? "text-emerald-300" : usernameStatus === "taken" || usernameStatus === "invalid" ? "text-red-200" : "text-[#777]"}>
-                        {usernameMessage}
-                      </span>
+
+                    <div className="relative z-10 mt-4 flex items-center gap-2 text-sm">
+                      {usernameStatus === "checking" && (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin text-zinc-500" />
+                          <span className="text-zinc-500">{usernameMessage}</span>
+                        </>
+                      )}
+
+                      {usernameStatus === "available" && (
+                        <>
+                          <div className="h-2 w-2 rounded-full bg-emerald-400" />
+                          <span className="text-emerald-400">{usernameMessage}</span>
+                        </>
+                      )}
+
+                      {(usernameStatus === "taken" || usernameStatus === "invalid") && (
+                        <>
+                          <div className="h-2 w-2 rounded-full bg-red-400" />
+                          <span className="text-red-300">{usernameMessage}</span>
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -327,24 +359,48 @@ export default function Signup() {
                     <p className="mt-3 text-sm leading-6 text-[#888]">Add an email so your profile can be recovered and managed safely.</p>
                   </div>
 
-                  <div className="rounded-[24px] border border-white/[0.07] bg-[#101010] p-5 transition-colors focus-within:border-red-500/30">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#666]">Email address</p>
+                  <div className="group rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.04] to-white/[0.02] p-5 backdrop-blur-xl transition-all duration-300 hover:border-white/20 focus-within:border-red-500/40 focus-within:shadow-[0_0_30px_rgba(239,68,68,0.12)]">
+
+                    <div className="flex items-center justify-between">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">
+                        Email Address
+                      </p>
+
+                      <Mail className="h-4 w-4 text-zinc-500 transition-colors duration-300 group-focus-within:text-red-400" />
+                    </div>
+
                     <Input
                       autoFocus
                       type="email"
                       value={email}
                       onChange={(event) => setEmail(event.target.value)}
                       placeholder="you@example.com"
-                      className="mt-3 h-auto border-0 bg-transparent p-0 text-lg font-semibold text-white shadow-none outline-none placeholder:text-[#444] focus-visible:ring-0"
+                      className="mt-4 h-12 rounded-xl border border-white/10 bg-white/[0.03] px-4 text-base font-medium text-white placeholder:text-zinc-600 shadow-none transition-all duration-300 focus:border-red-500/40 focus:bg-white/[0.05] focus-visible:ring-0"
                     />
+
                     <div className="mt-4 flex items-center gap-2 text-sm">
-                      {emailStatus === "checking" && <Loader2 className="h-4 w-4 animate-spin text-[#888]" />}
-                      {emailStatus === "available" && <Check className="h-4 w-4 text-emerald-400" />}
-                      {(emailStatus === "taken" || emailStatus === "invalid") && <X className="h-4 w-4 text-red-300" />}
-                      <span className={emailStatus === "available" ? "text-emerald-300" : emailStatus === "taken" || emailStatus === "invalid" ? "text-red-200" : "text-[#777]"}>
-                        {emailMessage}
-                      </span>
+                      {emailStatus === "checking" && (
+                        <>
+                          <Loader2 className="h-3.5 w-3.5 animate-spin text-zinc-500" />
+                          <span className="text-zinc-500">{emailMessage}</span>
+                        </>
+                      )}
+
+                      {emailStatus === "available" && (
+                        <>
+                          <div className="h-2 w-2 rounded-full bg-emerald-400" />
+                          <span className="text-emerald-400">{emailMessage}</span>
+                        </>
+                      )}
+
+                      {(emailStatus === "taken" || emailStatus === "invalid") && (
+                        <>
+                          <div className="h-2 w-2 rounded-full bg-red-400" />
+                          <span className="text-red-300">{emailMessage}</span>
+                        </>
+                      )}
                     </div>
+
                   </div>
 
                   {emailStatus === "available" && (
@@ -388,17 +444,26 @@ export default function Signup() {
                     <p className="mt-3 text-sm leading-6 text-[#888]">One last step, then we will open the premium onboarding flow.</p>
                   </div>
 
-                  <div className="rounded-[24px] border border-white/[0.07] bg-[#101010] p-5 transition-colors focus-within:border-red-500/30">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#666]">Password</p>
-                    <Input
-                      autoFocus
-                      type="password"
-                      value={password}
-                      onChange={(event) => setPassword(event.target.value)}
-                      placeholder="At least 6 characters"
-                      className="mt-3 h-auto border-0 bg-transparent p-0 text-lg font-semibold text-white shadow-none outline-none placeholder:text-[#444] focus-visible:ring-0"
-                    />
-                  </div>
+                  <div className="group rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.04] to-white/[0.02] p-5 backdrop-blur-xl transition-all duration-300 hover:border-white/20 focus-within:border-red-500/40 focus-within:shadow-[0_0_30px_rgba(239,68,68,0.12)]">
+
+  <div className="flex items-center justify-between">
+    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">
+      Password
+    </p>
+
+    <Lock className="h-4 w-4 text-zinc-500 transition-colors duration-300 group-focus-within:text-red-400" />
+  </div>
+
+  <Input
+    autoFocus
+    type="password"
+    value={password}
+    onChange={(event) => setPassword(event.target.value)}
+    placeholder="At least 6 characters"
+    className="mt-4 h-12 rounded-xl border border-white/10 bg-white/[0.03] px-4 text-base font-medium tracking-tight text-white placeholder:text-zinc-600 shadow-none transition-all duration-300 hover:border-white/15 focus:border-red-500/40 focus:bg-white/[0.05] focus-visible:ring-0"
+  />
+
+</div>
 
                   <button
                     type="button"

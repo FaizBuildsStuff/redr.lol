@@ -4,13 +4,19 @@ import { sql } from "@/lib/db";
 export async function POST(req: Request) {
   try {
     const { username, type } = await req.json();
-    if (!username || !type) return NextResponse.json({ error: "Missing parameters" }, { status: 400 });
+    if (!username || !type)
+      return NextResponse.json(
+        { error: "Missing parameters" },
+        { status: 400 },
+      );
 
     const cleanUsername = username.trim().toLowerCase();
 
     // 1. Get user id
-    const users = await sql`SELECT id FROM users WHERE LOWER(username) = ${cleanUsername}`;
-    if (users.length === 0) return NextResponse.json({ error: "User not found" }, { status: 404 });
+    const users =
+      await sql`SELECT id FROM users WHERE LOWER(username) = ${cleanUsername}`;
+    if (users.length === 0)
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     const userId = users[0].id;
 
     if (type === "profile") {
@@ -35,6 +41,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Failed to increment clicks:", error);
-    return NextResponse.json({ error: "Failed to increment clicks" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to increment clicks" },
+      { status: 500 },
+    );
   }
 }

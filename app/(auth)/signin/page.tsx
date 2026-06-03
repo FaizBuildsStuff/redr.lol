@@ -4,16 +4,22 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   ArrowRight,
-  Disc3,
-  ShieldCheck,
+  BarChart3,
+  Check,
+  LayoutDashboard,
   Loader2,
+  Lock,
+  Mail,
+  Palette,
+  ShieldCheck,
+  Sparkles,
 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 
-const Signin = () => {
+export default function Signin() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,15 +27,15 @@ const Signin = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const handleSignin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSignin = async (event: React.FormEvent) => {
+    event.preventDefault();
     setError(null);
 
-    // Form validation
     if (!email.trim()) {
       setError("Email is required.");
       return;
     }
+
     if (!password) {
       setError("Password is required.");
       return;
@@ -40,25 +46,14 @@ const Signin = () => {
     try {
       const response = await fetch("/api/auth/signin", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to sign in.");
 
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to sign in.");
-      }
-
-      // Store in local storage to track login status
       localStorage.setItem("is_logged_in", "true");
-
-      // Redirect user to the dashboard
       router.push("/dashboard");
       router.refresh();
     } catch (err: any) {
@@ -69,406 +64,271 @@ const Signin = () => {
   };
 
   return (
-    <section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#050505] px-5 py-14 text-[#F5F1E8] sm:px-6 sm:py-20">
-
-      {/* Background */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-
-        {/* Main Glow */}
-        <div className="absolute left-1/2 top-0 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-red-600/10 blur-[140px]" />
-
-        {/* Bottom Glow */}
-        <div className="absolute bottom-[-10%] right-[-5%] h-[400px] w-[400px] rounded-full bg-red-500/10 blur-[120px]" />
-
-        {/* Mesh */}
-        <div
-          className="absolute inset-0 opacity-[0.04]"
-          style={{
-            backgroundImage: `
-              radial-gradient(circle at top left, rgba(239,68,68,0.10), transparent 25%),
-              radial-gradient(circle at bottom right, rgba(220,38,38,0.08), transparent 30%)
-            `,
-          }}
-        />
-
-        {/* Noise */}
-        <div className="absolute inset-0 opacity-[0.025] mix-blend-soft-light">
-          <div
-            className="h-full w-full"
-            style={{
-              backgroundImage:
-                "url('https://grainy-gradients.vercel.app/noise.svg')",
-            }}
-          />
-        </div>
-
-        {/* Doodle Ring */}
-        <motion.div
-          animate={{
-            rotate: [0, 10, -10, 0],
-            y: [0, -10, 0],
-          }}
-          transition={{
-            duration: 14,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="absolute left-[6%] top-[10%] hidden xl:block opacity-[0.06]"
-        >
-          <svg
-            width="220"
-            height="220"
-            viewBox="0 0 220 220"
-            fill="none"
-          >
-            <path
-              d="M40 110C40 60 180 60 180 110C180 160 40 160 40 110Z"
-              stroke="#ef4444"
-              strokeWidth="4"
-              strokeDasharray="12 12"
-              strokeLinecap="round"
-            />
-          </svg>
-        </motion.div>
-
-        {/* Doodle Arrow */}
-        <motion.div
-          animate={{
-            y: [0, -14, 0],
-            rotate: [0, 8, -8, 0],
-          }}
-          transition={{
-            duration: 12,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="absolute right-[7%] top-[12%] hidden xl:block opacity-[0.06]"
-        >
-          <svg
-            width="200"
-            height="200"
-            viewBox="0 0 200 200"
-            fill="none"
-          >
-            <path
-              d="M35 100C80 25 170 60 130 165"
-              stroke="#ef4444"
-              strokeWidth="4"
-              strokeLinecap="round"
-              strokeDasharray="10 12"
-            />
-
-            <path
-              d="M118 143L130 165L154 151"
-              stroke="#ef4444"
-              strokeWidth="4"
-              strokeLinecap="round"
-            />
-          </svg>
-        </motion.div>
+    <section className="relative min-h-screen overflow-hidden bg-[#050505] px-5 py-8 text-[#F5F1E8] sm:px-6 lg:px-10">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(149,0,0,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(149,0,0,0.08)_1px,transparent_1px)] bg-[size:54px_54px] opacity-30" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(149,0,0,0.18),transparent_34%),linear-gradient(180deg,rgba(5,5,5,0)_0%,#050505_84%)]" />
+        <div className="absolute right-[-12%] top-[-12%] h-[520px] w-[520px] rounded-full bg-red-600/10 blur-[140px]" />
+        <div className="absolute bottom-[-18%] left-[-10%] h-[460px] w-[460px] rounded-full bg-white/[0.035] blur-[130px]" />
       </div>
 
-      {/* Card */}
-      <motion.div
-        initial={{
-          opacity: 0,
-          y: 24,
-        }}
-        animate={{
-          opacity: 1,
-          y: 0,
-        }}
-        transition={{
-          duration: 0.7,
-        }}
-        className="relative w-full max-w-[500px] overflow-hidden rounded-[30px] border border-white/[0.06] bg-[#0B0B0B]/90 shadow-[0_0_120px_rgba(255,0,0,0.05)] backdrop-blur-3xl"
-      >
-
-        {/* Glow */}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-red-500/[0.07] via-transparent to-transparent" />
-
-        {/* Inner */}
-        <div className="relative px-6 py-6 sm:px-8 sm:py-8">
-
-          {/* Top */}
+      <div className="relative mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-7xl items-center gap-8 lg:grid-cols-[minmax(0,0.95fr)_minmax(420px,1.05fr)]">
+        <motion.aside
+          initial={{ opacity: 0, x: -24 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.7 }}
+          className="hidden min-h-[680px] overflow-hidden rounded-[30px] border border-white/[0.06] bg-[#0A0A0A]/80 p-8 shadow-[0_30px_120px_rgba(0,0,0,0.55)] backdrop-blur-2xl lg:block"
+        >
           <div className="flex items-center justify-between">
-
-            {/* Logo */}
-            <div className="flex items-center gap-4">
-
-              <motion.div
-                animate={{
-                  rotate: [0, 6, -6, 0],
-                }}
-                transition={{
-                  duration: 8,
-                  repeat: Infinity,
-                }}
-                className="flex h-14 w-14 items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/10"
-              >
-                <Disc3 className="h-6 w-6 text-red-400" />
-              </motion.div>
-
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/10">
+                <Sparkles className="h-5 w-5 text-red-300" />
+              </div>
               <div>
-
-                <h2 className="text-[1.7rem] font-medium tracking-[-0.08em] text-white">
-                  redr.lol
-                </h2>
-
-                <p className="mt-1 text-sm text-[#787878]">
-                  welcome back
-                </p>
+                <p className="text-sm font-semibold text-white">redr.lol</p>
+                <p className="text-xs text-[#777]">secure identity console</p>
               </div>
             </div>
-
-            {/* Status */}
-            <div className="hidden items-center gap-2 rounded-full border border-green-500/10 bg-green-500/10 px-3 py-1.5 sm:flex">
-
-              <div className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
-
-              <span className="text-[11px] uppercase tracking-[0.14em] text-green-200">
-                secure
-              </span>
+            <div className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-200">
+              online
             </div>
           </div>
 
-          {/* Heading */}
-          <motion.div
-            initial={{
-              opacity: 0,
-              y: 20,
-            }}
-            animate={{
-              opacity: 1,
-              y: 0,
-            }}
-            transition={{
-              duration: 0.7,
-            }}
-            className="mt-10"
-          >
-
-            <h1 className="text-[2.7rem] font-medium leading-[0.84] tracking-[-0.09em] text-[#F5F1E8] sm:text-[3.7rem]">
-
-              <span className="tracking-[-0.05em]">
-                welcome
-              </span>
-
-              <br />
-
-              <motion.span
-                animate={{
-                  opacity: [0.92, 1, 0.92],
-                }}
-                transition={{
-                  duration: 4,
-                  repeat: Infinity,
-                }}
-                className="tracking-[-0.06em] text-red-500"
-              >
-                back
-              </motion.span>
+          <div className="mt-14">
+            <h1 className="max-w-lg text-6xl font-semibold leading-[0.92] tracking-[-0.06em] text-white">
+              Return to your profile command center.
             </h1>
+            <p className="mt-6 max-w-md text-sm leading-7 text-[#9A9A9A]">
+              Manage your profile chamber, update socials, inspect analytics, tune media, and keep your public identity sharp.
+            </p>
+          </div>
 
-            <p className="mt-7 max-w-md text-[15.5px] font-normal leading-[1.85] tracking-[0.012em] text-[#A1A1A1] [text-rendering:optimizeLegibility] [-webkit-font-smoothing:antialiased]">
-              Sign in to continue customizing your digital identity
-              and manage your profile experience.
+          <div className="mt-12 rounded-[26px] border border-white/[0.06] bg-[#0D0D0D] p-5">
+            <div className="flex items-center justify-between border-b border-white/[0.06] pb-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/10">
+                  <LayoutDashboard className="h-5 w-5 text-red-300" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-white">Dashboard snapshot</p>
+                  <p className="text-xs text-[#777]">Profile health restored</p>
+                </div>
+              </div>
+              <motion.div
+                animate={{ opacity: [0.35, 1, 0.35] }}
+                transition={{ duration: 2.4, repeat: Infinity }}
+                className="h-2 w-2 rounded-full bg-emerald-400"
+              />
+            </div>
+
+            <div className="mt-5 grid gap-4">
+              {[
+                ["Profile views", "12.8k", BarChart3],
+                ["Customize page", "Ready", Palette],
+                ["Security", "Protected", ShieldCheck],
+              ].map(([label, value, Icon], index) => {
+                const RowIcon = Icon as typeof BarChart3;
+                return (
+                  <motion.div
+                    key={label as string}
+                    initial={{ opacity: 0, y: 14 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 + index * 0.1 }}
+                    className="flex items-center justify-between rounded-2xl border border-white/[0.06] bg-white/[0.025] p-4"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/[0.04]">
+                        <RowIcon className="h-4 w-4 text-red-300" />
+                      </div>
+                      <p className="text-sm font-medium text-[#B0B0B0]">{label as string}</p>
+                    </div>
+                    <p className="text-sm font-semibold text-white">{value as string}</p>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+
+          <motion.div
+            animate={{ y: [0, -8, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            className="mt-5 rounded-[26px] border border-red-500/15 bg-[linear-gradient(135deg,rgba(149,0,0,0.18),rgba(255,255,255,0.035))] p-5"
+          >
+            <p className="text-sm font-semibold text-white">Premium layer active</p>
+            <p className="mt-2 text-xs leading-5 text-[#999]">
+              Your login returns you directly to customization, analytics, links, badges, templates, and media controls.
             </p>
           </motion.div>
+        </motion.aside>
 
-          {/* Error Message */}
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-6 rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-4 text-sm text-red-400"
-            >
-              {error}
-            </motion.div>
-          )}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.65 }}
+          className="mx-auto w-full max-w-xl overflow-hidden rounded-[32px] border border-white/[0.07] bg-[#0B0B0B]/92 shadow-[0_24px_110px_rgba(149,0,0,0.10)] backdrop-blur-3xl"
+        >
+          <div className="border-b border-white/[0.06] px-6 py-5 sm:px-8">
+            <div className="flex items-center justify-between gap-4">
+              <Link href="/" className="text-sm font-semibold tracking-tight text-white">
+                redr<span className="text-red-500">.lol</span>
+              </Link>
+              <Link href="/signup" className="text-xs font-medium text-[#888] transition-colors hover:text-white">
+                Create account
+              </Link>
+            </div>
 
-          {/* Form */}
-          <form onSubmit={handleSignin}>
-            <motion.div
-              initial={{
-                opacity: 0,
-                y: 20,
-              }}
-              animate={{
-                opacity: 1,
-                y: 0,
-              }}
-              transition={{
-                duration: 0.8,
-                delay: 0.1,
-              }}
-              className="mt-10 space-y-3"
-            >
-
-              {/* Email */}
-              <div className="group relative overflow-hidden rounded-[24px] border border-white/[0.05] bg-[#111111] transition-all duration-300 focus-within:border-red-500/20 focus-within:bg-[#131313]">
-
-                {/* Glow */}
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-red-500/[0.07] via-transparent to-transparent opacity-0 transition-opacity duration-500 group-focus-within:opacity-100" />
-
-                {/* Label */}
-                <div className="flex items-center justify-between px-5 pt-4">
-
-                  <span className="text-[10px] uppercase tracking-[0.18em] text-[#707070]">
-                    email address
-                  </span>
-
-                  <motion.div
-                    animate={{
-                      opacity: [0.5, 1, 0.5],
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                    }}
-                    className="h-1.5 w-1.5 rounded-full bg-red-500"
-                  />
+            <div className="mt-6 grid grid-cols-3 gap-2">
+              {["Identify", "Authenticate", "Dashboard"].map((label, index) => (
+                <div key={label} className="space-y-2">
+                  <div className={`h-1.5 rounded-full ${index < 2 ? "bg-red-500" : "bg-white/[0.08]"}`} />
+                  <p className={`text-[10px] font-semibold uppercase tracking-[0.14em] ${index < 2 ? "text-white" : "text-[#555]"}`}>
+                    {label}
+                  </p>
                 </div>
+              ))}
+            </div>
+          </div>
 
-                {/* Input */}
-                <div className="px-5 pb-4 pt-2">
-
-                  <Input
-                    required
-                    type="email"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="h-auto border-0 bg-transparent p-0 text-[15px] font-normal tracking-[0.01em] text-white shadow-none outline-none focus-visible:ring-0 placeholder:text-[#5C5C5C]"
-                  />
-                </div>
+          <div className="px-6 py-8 sm:px-8 sm:py-10">
+            <div>
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/10">
+                <Lock className="h-5 w-5 text-red-300" />
               </div>
+              <h1 className="mt-6 text-3xl font-semibold tracking-[-0.04em] text-white">
+                Welcome back.
+              </h1>
+              <p className="mt-3 text-sm leading-6 text-[#888]">
+                Sign in to continue customizing your digital identity and manage your profile experience.
+              </p>
+            </div>
 
-              {/* Password */}
-              <div className="group relative overflow-hidden rounded-[24px] border border-white/[0.05] bg-[#111111] transition-all duration-300 focus-within:border-red-500/20 focus-within:bg-[#131313]">
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-6 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200"
+              >
+                {error}
+              </motion.div>
+            )}
 
-                {/* Glow */}
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-red-500/[0.07] via-transparent to-transparent opacity-0 transition-opacity duration-500 group-focus-within:opacity-100" />
+            <form onSubmit={handleSignin} className="mt-8 space-y-4">
+              <div className="group relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.04] to-white/[0.02] p-5 backdrop-blur-xl transition-all duration-300 hover:border-white/20 focus-within:border-red-500/40 focus-within:shadow-[0_0_40px_rgba(239,68,68,0.15)]">
 
-                {/* Label */}
-                <div className="flex items-center justify-between px-5 pt-4">
+  <div className="pointer-events-none absolute inset-0 z-0 opacity-0 bg-gradient-to-r from-red-500/5 via-transparent to-red-500/5 transition-opacity duration-300 group-focus-within:opacity-100" />
 
-                  <span className="text-[10px] uppercase tracking-[0.18em] text-[#707070]">
-                    password
-                  </span>
+  <div className="relative z-10 flex items-center justify-between">
+    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">
+      Email Address
+    </p>
 
-                  <motion.div
-                    animate={{
-                      opacity: [0.5, 1, 0.5],
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                    }}
-                    className="h-1.5 w-1.5 rounded-full bg-red-500"
-                  />
-                </div>
+    <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04]">
+      <Mail className="h-4 w-4 text-zinc-400" />
+    </div>
+  </div>
 
-                {/* Input */}
-                <div className="px-5 pb-4 pt-2">
+  <Input
+    autoFocus
+    required
+    type="email"
+    value={email}
+    onChange={(event) => setEmail(event.target.value)}
+    placeholder="you@example.com"
+    className="relative z-10 mt-3 h-14 rounded-2xl border border-white/10 bg-white/[0.04] px-5 text-base font-medium text-white placeholder:text-zinc-500 shadow-none transition-all duration-300 focus:border-red-500/40 focus:bg-white/[0.06] focus-visible:ring-0"
+  />
 
-                  <Input
-                    required
-                    type="password"
-                    placeholder="••••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="h-auto border-0 bg-transparent p-0 text-[15px] font-normal tracking-[0.01em] text-white shadow-none outline-none focus-visible:ring-0 placeholder:text-[#5C5C5C]"
-                  />
-                </div>
-              </div>
+  <div className="relative z-10 mt-4 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
-              {/* Row */}
-              <div className="flex items-center justify-between px-1 pt-2">
+</div>
 
-                {/* Remember */}
-                <div className="flex items-center gap-3">
+              <div className="group relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.04] to-white/[0.02] p-5 backdrop-blur-xl transition-all duration-300 hover:border-white/20 focus-within:border-red-500/40 focus-within:shadow-[0_0_40px_rgba(239,68,68,0.15)]">
 
+  <div className="pointer-events-none absolute inset-0 z-0 opacity-0 bg-gradient-to-r from-red-500/5 via-transparent to-red-500/5 transition-opacity duration-300 group-focus-within:opacity-100" />
+
+  <div className="relative z-10 flex items-center justify-between">
+    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">
+      Password
+    </p>
+
+    <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04]">
+      <Lock className="h-4 w-4 text-zinc-400" />
+    </div>
+  </div>
+
+  <Input
+    required
+    type="password"
+    value={password}
+    onChange={(event) => setPassword(event.target.value)}
+    placeholder="Enter your password"
+    className="relative z-10 mt-3 h-14 rounded-2xl border border-white/10 bg-white/[0.04] px-5 text-base font-medium text-white placeholder:text-zinc-500 shadow-none transition-all duration-300 focus:border-red-500/40 focus:bg-white/[0.06] focus-visible:ring-0"
+  />
+
+  <div className="relative z-10 mt-4 flex items-center justify-between">
+    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
+    <div className="mx-3 flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.03] px-2 py-1">
+      <Lock className="h-3 w-3 text-zinc-500" />
+      <span className="text-[10px] font-medium uppercase tracking-wider text-zinc-500">
+        Secure
+      </span>
+    </div>
+
+    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+  </div>
+
+</div>
+
+              <div className="flex flex-col gap-3 pt-1 sm:flex-row sm:items-center sm:justify-between">
+                <label className="flex items-center gap-3 text-sm text-[#8C8C8C]">
                   <Checkbox
                     checked={rememberMe}
                     onCheckedChange={(checked) => setRememberMe(!!checked)}
                     className="border-white/20 data-[state=checked]:border-red-500 data-[state=checked]:bg-red-500"
                   />
+                  Remember me
+                </label>
 
-                  <span className="text-sm text-[#8C8C8C]">
-                    remember me
-                  </span>
-                </div>
-
-                {/* Forgot */}
-                <Link
-                  href="#"
-                  className="text-sm text-[#9A9A9A] transition-colors duration-300 hover:text-white"
-                >
-                  forgot password?
+                <Link href="#" className="text-sm text-[#9A9A9A] transition-colors hover:text-white">
+                  Forgot password?
                 </Link>
               </div>
 
-              {/* Button */}
               <button
                 type="submit"
                 disabled={loading}
-                className="group relative mt-3 flex h-[64px] w-full items-center justify-center overflow-hidden rounded-[22px] bg-red-600 text-sm font-medium text-white transition-all duration-500 hover:-translate-y-[2px] hover:bg-red-500 disabled:opacity-50 disabled:pointer-events-none"
+                className="group flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-red-600 text-sm font-semibold text-white transition-all hover:bg-red-500 disabled:pointer-events-none disabled:opacity-50"
               >
-
-                {/* Glow */}
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-red-500 via-red-400 to-red-700 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-
-                {/* Shine */}
-                <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[22px]">
-                  <div className="absolute left-[-120%] top-0 h-full w-[60%] rotate-[20deg] bg-white/20 blur-xl transition-all duration-1000 group-hover:left-[140%]" />
-                </div>
-
-                {/* Text */}
                 {loading ? (
-                  <span className="relative z-10 flex items-center gap-2 tracking-[0.04em]">
-                    signing in...
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  </span>
+                  <>
+                    Signing in <Loader2 className="h-4 w-4 animate-spin" />
+                  </>
                 ) : (
-                  <span className="relative z-10 flex items-center gap-2 tracking-[0.04em]">
-                    sign in
-
-                    <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                  </span>
+                  <>
+                    Sign in <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </>
                 )}
               </button>
+            </form>
 
-              {/* Security */}
-              <div className="flex items-center justify-center gap-2 pt-2">
+            <div className="mt-6 flex items-center justify-center gap-2 rounded-2xl border border-emerald-500/10 bg-emerald-500/[0.055] px-4 py-3">
+              <ShieldCheck className="h-4 w-4 text-emerald-300" />
+              <span className="text-xs font-medium text-emerald-100/80">
+                Encrypted session handoff, protected by signed cookies.
+              </span>
+            </div>
 
-                <ShieldCheck className="h-4 w-4 text-green-400" />
-
-                <span className="text-[13px] tracking-[0.03em] text-[#777]">
-                  encrypted and securely protected
-                </span>
-              </div>
-            </motion.div>
-          </form>
-
-          {/* Bottom */}
-          <div className="mt-8 text-center">
-
-            <p className="text-sm text-[#777]">
-              don&apos;t have an account?{" "}
-
-              <Link
-                href="/signup"
-                className="font-medium text-white transition-colors duration-300 hover:text-red-300"
-              >
-                create one
-              </Link>
-            </p>
+            <div className="mt-8 text-center">
+              <p className="text-sm text-[#777]">
+                Don&apos;t have an account?{" "}
+                <Link href="/signup" className="font-medium text-white transition-colors hover:text-red-300">
+                  Claim your profile
+                </Link>
+              </p>
+            </div>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
     </section>
   );
-};
-
-export default Signin;
+}
