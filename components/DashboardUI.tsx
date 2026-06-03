@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { LucideIcon, Sparkles } from "lucide-react";
 
@@ -112,30 +112,62 @@ export function MetricCard({
   );
 }
 
-export function BarsChart({ data }: { data: Array<{ views?: number; link_clicks?: number; profile_clicks?: number }> }) {
+export function BarsChart({ data }: { data: Array<{ views?: number; link_clicks?: number; profile_clicks?: number; date?: string }> }) {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
   const values = data.length ? data.map((item) => item.views || 0) : [0];
   const max = Math.max(...values, 1);
   const padded = data.length ? data.slice(-12) : Array.from({ length: 12 }, () => ({ views: 0 }));
 
   return (
-    <div className="flex h-64 items-end gap-2">
+    <div className="relative mt-4 flex h-52 w-full items-end justify-start gap-2 sm:gap-4">
+      {/* Horizontal guide lines */}
+      <div className="absolute inset-0 flex flex-col justify-between py-2 pointer-events-none">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="w-full border-t border-white/[0.04]" />
+        ))}
+      </div>
+
       {padded.map((item, index) => {
-        const height = Math.max(6, ((item.views || 0) / max) * 100);
+        const height = Math.max(4, ((item.views || 0) / max) * 100);
         return (
-          <motion.div
+          <div
             key={index}
-            initial={{ height: 0 }}
-            animate={{ height: `${height}%` }}
-            transition={{ duration: 0.65, delay: index * 0.035 }}
-            className="min-w-0 flex-1 rounded-t-xl bg-gradient-to-t from-white/35 via-white/70 to-white"
-          />
+            className="group relative z-10 flex h-full w-full max-w-[42px] items-end justify-center cursor-crosshair"
+            onMouseEnter={() => setHoveredIndex(index)}
+            onMouseLeave={() => setHoveredIndex(null)}
+          >
+            <motion.div
+              initial={{ height: 0 }}
+              animate={{ height: `${height}%` }}
+              transition={{ duration: 0.65, delay: index * 0.035 }}
+              className="w-full rounded-t-[6px] bg-gradient-to-t from-white/10 via-white/40 to-white/90 opacity-70 transition-all duration-300 group-hover:from-red-500/20 group-hover:via-red-500/70 group-hover:to-red-400 group-hover:opacity-100 group-hover:shadow-[0_0_24px_rgba(248,113,113,0.4)]"
+            />
+            {hoveredIndex === index && (
+              <motion.div
+                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.15 }}
+                className="absolute bottom-full left-1/2 z-50 mb-3 -translate-x-1/2 pointer-events-none"
+              >
+                <div className="flex w-max flex-col items-center gap-1 rounded-2xl border border-white/[0.08] bg-[#0A0A0A]/95 px-4 py-2.5 shadow-[0_10px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40">
+                    {item.date ? new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'No Data'}
+                  </span>
+                  <span className="text-sm font-bold tracking-tight text-white">{item.views || 0} Views</span>
+                </div>
+              </motion.div>
+            )}
+          </div>
         );
       })}
     </div>
   );
 }
 
-export function LineChart({ data }: { data: Array<{ views?: number }> }) {
+export function LineChart({ data }: { data: Array<{ views?: number; date?: string }> }) {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
   const points = data.length ? data.slice(-12) : Array.from({ length: 12 }, () => ({ views: 0 }));
   const max = Math.max(...points.map((item) => item.views || 0), 1);
   const width = 1000;
@@ -150,7 +182,7 @@ export function LineChart({ data }: { data: Array<{ views?: number }> }) {
     .join(" ");
 
   return (
-    <div className="h-72 w-full">
+    <div className="relative mt-4 h-64 w-full">
       <svg viewBox={`0 0 ${width} ${height}`} className="h-full w-full overflow-visible" preserveAspectRatio="none">
         <defs>
           <linearGradient id="whiteGraphFill" x1="0" y1="0" x2="0" y2="1">
@@ -164,6 +196,33 @@ export function LineChart({ data }: { data: Array<{ views?: number }> }) {
         <path d={`${path} L${width},${height} L0,${height} Z`} fill="url(#whiteGraphFill)" />
         <path d={path} fill="none" stroke="rgba(255,255,255,0.9)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
+      <div className="absolute inset-0 flex">
+        {points.map((item, index) => (
+          <div
+            key={index}
+            className="group relative flex-1 h-full cursor-crosshair"
+            onMouseEnter={() => setHoveredIndex(index)}
+            onMouseLeave={() => setHoveredIndex(null)}
+          >
+            <div className="absolute inset-y-0 left-1/2 w-[1px] -translate-x-1/2 bg-gradient-to-b from-transparent via-red-500/50 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+            {hoveredIndex === index && (
+              <motion.div
+                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.15 }}
+                className="absolute left-1/2 top-4 z-50 -translate-x-1/2 pointer-events-none"
+              >
+                <div className="flex w-max flex-col items-center gap-1 rounded-2xl border border-white/[0.08] bg-[#0A0A0A]/95 px-4 py-2.5 shadow-[0_10px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40">
+                    {item.date ? new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'No Data'}
+                  </span>
+                  <span className="text-sm font-bold tracking-tight text-white">{item.views || 0} Views</span>
+                </div>
+              </motion.div>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
