@@ -117,7 +117,7 @@ export function BarsChart({ data }: { data: Array<{ views?: number; link_clicks?
 
   const values = data.length ? data.map((item) => item.views || 0) : [0];
   const max = Math.max(...values, 1);
-  const padded = data.length ? data.slice(-12) : Array.from({ length: 12 }, () => ({ views: 0 }));
+  const padded = data.length ? data.slice(-12) : Array.from({ length: 12 }, () => ({ views: 0, date: "" }));
 
   return (
     <div className="relative mt-4 flex h-52 w-full items-end justify-start gap-2 sm:gap-4">
@@ -168,7 +168,7 @@ export function BarsChart({ data }: { data: Array<{ views?: number; link_clicks?
 export function LineChart({ data }: { data: Array<{ views?: number; date?: string }> }) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
-  const points = data.length ? data.slice(-12) : Array.from({ length: 12 }, () => ({ views: 0 }));
+  const points = data.length ? data.slice(-12) : Array.from({ length: 12 }, () => ({ views: 0, date: "" }));
   const max = Math.max(...points.map((item) => item.views || 0), 1);
   const width = 1000;
   const height = 280;
@@ -204,7 +204,6 @@ export function LineChart({ data }: { data: Array<{ views?: number; date?: strin
             onMouseEnter={() => setHoveredIndex(index)}
             onMouseLeave={() => setHoveredIndex(null)}
           >
-            <div className="absolute inset-y-0 left-1/2 w-[1px] -translate-x-1/2 bg-gradient-to-b from-transparent via-red-500/50 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
             {hoveredIndex === index && (
               <motion.div
                 initial={{ opacity: 0, y: 10, scale: 0.95 }}
