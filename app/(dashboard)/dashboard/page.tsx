@@ -4,19 +4,22 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
-  Disc3,
-  User,
-  Mail,
-  Calendar,
-  ExternalLink,
-  Copy,
-  Check,
-  LogOut,
-  Sparkles,
-  Layers,
   Activity,
+  ArrowUpRight,
+  BarChart3,
+  Check,
+  Copy,
+  ExternalLink,
+  Link2,
+  LogOut,
+  MousePointerClick,
+  Palette,
+  Radio,
+  ShieldCheck,
+  User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BarsChart, DashboardLoading, DashboardShell, MetricCard, Panel } from "@/components/DashboardUI";
 
 interface UserProfile {
   id: number;
@@ -25,13 +28,21 @@ interface UserProfile {
   discord_id?: string;
 }
 
+interface Stats {
+  views: number;
+  profile_clicks: number;
+  link_clicks: number;
+  link_ctr: number;
+  graph_data: any[];
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [savingDiscord, setSavingDiscord] = useState(false);
-  const [stats, setStats] = useState<{ views: number, profile_clicks: number, link_clicks: number, link_ctr: number, graph_data: any[] }>({ views: 0, profile_clicks: 0, link_clicks: 0, link_ctr: 0, graph_data: [] });
+  const [stats, setStats] = useState<Stats>({ views: 0, profile_clicks: 0, link_clicks: 0, link_ctr: 0, graph_data: [] });
 
   useEffect(() => {
     async function checkAuth() {
@@ -42,15 +53,8 @@ export default function DashboardPage() {
         if (data.user) {
           setUser(data.user);
         } else {
-          // If no active session cookie, try local storage fallback or redirect
-          const localLoggedIn = localStorage.getItem("is_logged_in");
-          if (!localLoggedIn) {
-            router.push("/signin");
-          } else {
-            // Local storage says logged in, but cookie is missing/expired. Redirect to signin to refresh
-            localStorage.removeItem("is_logged_in");
-            router.push("/signin");
-          }
+          localStorage.removeItem("is_logged_in");
+          router.push("/signin");
         }
       } catch (err) {
         console.error("Auth check failed:", err);
@@ -60,9 +64,6 @@ export default function DashboardPage() {
       }
     }
 
-    checkAuth();
-
-    // Fetch stats polling
     const fetchStats = async () => {
       try {
         const res = await fetch("/api/user/analytics");
@@ -70,11 +71,12 @@ export default function DashboardPage() {
           const data = await res.json();
           if (data.views !== undefined) setStats(data);
         }
-      } catch (err) {}
+      } catch {}
     };
+
+    checkAuth();
     fetchStats();
     const interval = setInterval(fetchStats, 5000);
-
     return () => clearInterval(interval);
   }, [router]);
 
@@ -99,14 +101,8 @@ export default function DashboardPage() {
   const handleDisconnectDiscord = async () => {
     try {
       setSavingDiscord(true);
-      const res = await fetch("/api/user/discord", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-      });
-      if (res.ok) {
-        setUser((prev) => (prev ? { ...prev, discord_id: undefined } : prev));
-        router.refresh();
-      }
+      const res = await fetch("/api/user/discord", { method: "DELETE" });
+      if (res.ok) setUser((prev) => (prev ? { ...prev, discord_id: undefined } : prev));
     } catch (error) {
       console.error("Failed to disconnect discord:", error);
     } finally {
@@ -114,533 +110,161 @@ export default function DashboardPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="relative flex min-h-screen items-center justify-center bg-[#0A0A0A] text-[#F5F1E8]">
-        {/* Glowing Orbs */}
-        <div className="absolute left-1/2 top-1/2 h-[350px] w-[350px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-red-600/10 blur-[120px]" />
-
-        <div className="flex flex-col items-center gap-4 text-center">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-            className="flex h-16 w-16 items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/10"
-          >
-            <Disc3 className="h-7 w-7 text-red-500" />
-          </motion.div>
-          <p className="text-sm font-medium tracking-[0.15em] uppercase text-[#8A8A8A] animate-pulse">
-            Loading your quantum chamber...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
+  if (loading) return <DashboardLoading label="Loading overview" />;
   if (!user) return null;
 
   return (
-    <section className="relative min-h-screen overflow-hidden bg-[#0A0A0A] px-4 md:px-10 pb-20 pt-8 md:pt-12">
-      {/* Background aesthetics */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        {/* Glow */}
-        <div className="absolute left-1/3 top-0 h-[600px] w-[600px] rounded-full bg-red-600/5 blur-[160px]" />
-        <div className="absolute bottom-0 right-1/4 h-[500px] w-[500px] rounded-full bg-red-500/5 blur-[140px]" />
-
-        {/* Soft Grid */}
-        <div
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage: `radial-gradient(circle at top left, rgba(239, 68, 68, 0.1), transparent 30%)`,
-          }}
-        />
-        {/* Noise overlay */}
-        <div className="absolute inset-0 opacity-[0.02] mix-blend-soft-light">
-          <div
-            className="h-full w-full"
-            style={{
-              backgroundImage: "url('https://grainy-gradients.vercel.app/noise.svg')",
-            }}
-          />
-        </div>
+    <DashboardShell
+      eyebrow="Dashboard overview"
+      title={`Welcome back, ${user.username}`}
+      description="A clean command center for your public profile, link traffic, Discord presence, and customization flow."
+      action={
+        <Button
+          onClick={handleLogout}
+          className="h-11 rounded-2xl border border-white/[0.08] bg-white/[0.035] px-5 text-sm font-semibold text-white hover:bg-white/[0.07]"
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          Sign out
+        </Button>
+      }
+    >
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <MetricCard label="Total views" value={stats.views.toLocaleString()} detail="Live profile impressions" icon={BarChart3} />
+        <MetricCard label="Profile clicks" value={stats.profile_clicks.toLocaleString()} detail="All tracked interactions" icon={MousePointerClick} />
+        <MetricCard label="Link clicks" value={stats.link_clicks.toLocaleString()} detail="Outbound social traffic" icon={Link2} />
+        <MetricCard label="Link CTR" value={`${stats.link_ctr}%`} detail="Clicks divided by views" icon={Activity} />
       </div>
 
-      <div className="mx-auto max-w-5xl relative z-10">
-
-        {/* Heading */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 border-b border-white/5 pb-8">
-          <div>
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="flex items-center gap-2 text-red-400 text-xs font-semibold uppercase tracking-[0.2em]"
-            >
-              <Sparkles className="h-4 w-4" /> Account Space
-            </motion.div>
-
-            <motion.h1
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="mt-2 text-4xl font-medium tracking-tight text-white sm:text-5xl"
-            >
-              Hello, <span className="text-red-500 font-semibold">{user.username}</span> dashboard
-            </motion.h1>
-
-            <motion.p
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="mt-2 text-sm text-[#8C8C8C]"
-            >
-              Manage your cyber identity, review custom link traffic, and configure layouts.
-            </motion.p>
-          </div>
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            <Button
-              onClick={handleLogout}
-              variant="outline"
-              className="h-12 gap-2 rounded-2xl border-white/10 bg-white/[0.03] px-6 text-sm text-white hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20 transition-all duration-300"
-            >
-              <LogOut className="h-4 w-4" />
-              Sign Out
-            </Button>
-          </motion.div>
-        </div>
-
-        {/* DASHBOARD */}
-        <div className="mt-12 space-y-6">
-
-          {/* TOP STATS */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-
-            {[
-              {
-                title: "Total Views",
-                value: stats.views.toLocaleString(),
-                growth: "Live",
-                color: "from-red-500/20 to-red-500/5",
-              },
-              {
-                title: "Profile Clicks",
-                value: stats.profile_clicks.toLocaleString(),
-                growth: "Live",
-                color: "from-purple-500/20 to-purple-500/5",
-              },
-              {
-                title: "Link CTR",
-                value: `${stats.link_ctr}%`,
-                growth: "Live",
-                color: "from-indigo-500/20 to-indigo-500/5",
-              },
-              
-            ].map((item, i) => (
-              <motion.div
-                key={item.title}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  delay: i * 0.08,
-                }}
-                whileHover={{
-                  y: -4,
-                  scale: 1.01,
-                }}
-                className="
-        group
-        relative
-        overflow-hidden
-        rounded-[28px]
-        border
-        border-white/10
-        bg-white/[0.03]
-        p-6
-        backdrop-blur-3xl
-      "
-              >
-
-                {/* Glow */}
-                <div
-                  className={`absolute inset-0 bg-gradient-to-br ${item.color} opacity-0 transition-opacity duration-500 group-hover:opacity-100`}
-                />
-
-                <div className="relative z-10">
-
-                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/40">
-                    {item.title}
-                  </p>
-
-                  <div className="mt-4 flex items-end justify-between">
-
-                    <h3 className="text-4xl font-bold tracking-tight text-white">
-                      {item.value}
-                    </h3>
-
-                    <div className="rounded-full border border-green-500/20 bg-green-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-green-400">
-                      {item.growth}
-                    </div>
-
-                  </div>
-
+      <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(360px,0.85fr)]">
+        <div className="space-y-6">
+          <Panel className="overflow-hidden p-6">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex items-center gap-4">
+                <div className="flex h-16 w-16 items-center justify-center rounded-[22px] border border-white/[0.08] bg-white/[0.04]">
+                  <User className="h-7 w-7 text-white" />
                 </div>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* MAIN GRID */}
-          <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
-
-            {/* LEFT */}
-            <div className="space-y-6">
-
-              {/* USER PROFILE */}
-              <motion.div
-                initial={{ opacity: 0, y: 25 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="
-        relative
-        overflow-hidden
-        rounded-[34px]
-        border
-        border-white/10
-        bg-white/[0.03]
-        p-6
-        backdrop-blur-3xl
-      "
-              >
-
-                {/* Glow */}
-                <div className="absolute left-0 top-0 h-[220px] w-[220px] rounded-full bg-red-500/10 blur-[120px]" />
-
-                <div className="relative z-10">
-
-                  <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-
-                    {/* LEFT */}
-                    <div className="flex items-center gap-5">
-
-                      <div className="relative">
-
-                        <div className="absolute inset-0 rounded-3xl bg-red-500/20 blur-xl" />
-
-                        <div className="relative flex h-20 w-20 items-center justify-center rounded-3xl border border-white/10 bg-black/40 backdrop-blur-xl">
-                          <User className="h-9 w-9 text-red-400" />
-                        </div>
-
-                      </div>
-
-                      <div>
-
-                        <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-green-500/20 bg-green-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.15em] text-green-400">
-                          <div className="h-2 w-2 rounded-full bg-green-400 shadow-[0_0_10px_rgba(74,222,128,0.8)]" />
-                          Online
-                        </div>
-
-                        <h2 className="text-3xl font-semibold tracking-tight text-white">
-                          @{user.username}
-                        </h2>
-
-                        <div className="mt-2 flex items-center gap-2 text-sm text-white/40">
-                          <Mail className="h-4 w-4" />
-                          {user.email}
-                        </div>
-
-                      </div>
-
-                    </div>
-
-                    {/* ACTIONS */}
-                    <div className="flex flex-wrap gap-3">
-
-                      <Button
-                        onClick={() =>
-                          router.push("/dashboard/customize")
-                        }
-                        className="
-                h-12
-                rounded-2xl
-                bg-red-500
-                px-5
-                text-sm
-                font-semibold
-                text-white
-                transition-all
-                duration-300
-                hover:scale-[1.02]
-                hover:bg-red-400
-                hover:shadow-[0_0_40px_rgba(239,68,68,0.35)]
-              "
-                      >
-                        Customize Profile
-                      </Button>
-
-                      <Button
-                        onClick={() =>
-                          router.push("/dashboard/links")
-                        }
-                        className="
-                h-12
-                rounded-2xl
-                border
-                border-white/10
-                bg-white/[0.03]
-                px-5
-                text-sm
-                font-semibold
-                text-white
-                transition-all
-                duration-300
-                hover:bg-white/[0.06]
-              "
-                      >
-                        Manage Links
-                      </Button>
-
-                    </div>
+                <div>
+                  <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-200">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />
+                    Active profile
                   </div>
-
-                  {/* LINK */}
-                  <div className="mt-8 flex flex-col gap-3 rounded-3xl border border-white/10 bg-black/30 p-5 sm:flex-row sm:items-center sm:justify-between">
-
-                    <div>
-
-                      <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/35">
-                        Public Profile URL
-                      </p>
-
-                      <div className="mt-2 flex items-center gap-2 text-lg font-semibold text-white">
-                        redr.lol/{user.username}
-                      </div>
-
-                    </div>
-
-                    <div className="flex gap-3">
-
-                      <button
-                        onClick={handleCopyLink}
-                        className="
-                flex
-                h-12
-                items-center
-                gap-2
-                rounded-2xl
-                border
-                border-white/10
-                bg-white/[0.03]
-                px-5
-                text-sm
-                font-semibold
-                text-white
-                transition-all
-                hover:bg-white/[0.06]
-              "
-                      >
-                        {copied ? (
-                          <Check className="h-4 w-4 text-green-400" />
-                        ) : (
-                          <Copy className="h-4 w-4" />
-                        )}
-
-                        {copied ? "Copied" : "Copy"}
-                      </button>
-
-                      <a
-                        href={`/${user.username}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="
-                flex
-                h-12
-                items-center
-                gap-2
-                rounded-2xl
-                bg-gradient-to-r
-                from-red-500
-                to-purple-600
-                px-5
-                text-sm
-                font-semibold
-                text-white
-                transition-all
-                duration-300
-                hover:scale-[1.02]
-              "
-                      >
-                        Visit
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
-
-                    </div>
-                  </div>
+                  <h2 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-white">@{user.username}</h2>
+                  <p className="mt-1 text-sm text-white/42">{user.email}</p>
                 </div>
-              </motion.div>
+              </div>
 
-              {/* ANALYTICS GRAPH */}
-              <motion.div
-                initial={{ opacity: 0, y: 25 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="
-        relative
-        overflow-hidden
-        rounded-[34px]
-        border
-        border-white/10
-        bg-white/[0.03]
-        p-6
-        backdrop-blur-3xl
-      "
-              >
-
-                {/* Glow */}
-                <div className="absolute right-0 top-0 h-[240px] w-[240px] rounded-full bg-purple-500/10 blur-[120px]" />
-
-                <div className="relative z-10">
-
-                  <div className="mb-8 flex items-center justify-between">
-
-                    <div>
-                      <h3 className="text-xl font-semibold text-white">
-                        Engagement Analytics
-                      </h3>
-
-                      <p className="mt-1 text-sm text-white/40">
-                        Real-time profile interaction overview
-                      </p>
-                    </div>
-
-                    <div className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-xs font-semibold uppercase tracking-[0.15em] text-white/40">
-                      Last 30 Days
-                    </div>
-
-                  </div>
-
-                  {/* DYNAMIC GRAPH */}
-                  <div className="flex h-[260px] items-end gap-3">
-
-                    {stats.graph_data.map((dayData: any, i) => {
-                      const maxViews = Math.max(...stats.graph_data.map((d: any) => d.views), 1);
-                      const heightPct = (dayData.views / maxViews) * 100;
-                      return (
-                        <motion.div
-                          key={i}
-                          initial={{ height: 0 }}
-                          animate={{ height: `${Math.max(5, heightPct)}%` }}
-                          transition={{
-                            duration: 0.8,
-                            delay: i * 0.05,
-                          }}
-                          className="
-                  relative
-                  flex-1
-                  rounded-t-[20px]
-                  bg-gradient-to-t
-                  from-red-500
-                  via-red-400
-                  to-purple-500
-                  opacity-90
-                "
-                        >
-                          <div className="absolute inset-0 rounded-t-[20px] bg-white/10" />
-                        </motion.div>
-                      );
-                    })}
-
-                    {Array.from({ length: Math.max(0, 12 - stats.graph_data.length) }).map((_, i) => (
-                      <motion.div
-                        key={`empty-${i}`}
-                        initial={{ height: 0 }}
-                        animate={{ height: '5%' }}
-                        className="relative flex-1 rounded-t-[20px] bg-white/5 opacity-50"
-                      />
-                    ))}
-
-                  </div>
-
-                </div>
-              </motion.div>
+              <div className="flex flex-wrap gap-3">
+                <Button onClick={() => router.push("/dashboard/customize")} className="h-11 rounded-2xl bg-white px-5 text-sm font-semibold text-black hover:bg-white/85">
+                  <Palette className="mr-2 h-4 w-4" />
+                  Customize
+                </Button>
+                <Button onClick={() => router.push("/dashboard/links")} className="h-11 rounded-2xl border border-white/[0.08] bg-white/[0.035] px-5 text-sm font-semibold text-white hover:bg-white/[0.07]">
+                  <Link2 className="mr-2 h-4 w-4" />
+                  Links
+                </Button>
+              </div>
             </div>
 
-            {/* RIGHT SIDEBAR */}
-            <div className="space-y-6">
+            <div className="mt-7 flex flex-col gap-4 rounded-2xl border border-white/[0.07] bg-black/20 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/35">Public URL</p>
+                <p className="mt-2 break-all text-lg font-semibold text-white">redr.lol/{user.username}</p>
+              </div>
+              <div className="flex gap-3">
+                <button onClick={handleCopyLink} className="flex h-11 items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.035] px-4 text-sm font-semibold text-white hover:bg-white/[0.07]">
+                  {copied ? <Check className="h-4 w-4 text-emerald-300" /> : <Copy className="h-4 w-4" />}
+                  {copied ? "Copied" : "Copy"}
+                </button>
+                <a href={`/${user.username}`} target="_blank" rel="noreferrer" className="flex h-11 items-center gap-2 rounded-xl bg-white px-4 text-sm font-semibold text-black hover:bg-white/85">
+                  Open
+                  <ExternalLink className="h-4 w-4" />
+                </a>
+              </div>
+            </div>
+          </Panel>
 
+          <Panel className="p-6">
+            <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-white">Views graph</h3>
+                <p className="mt-1 text-sm text-white/42">Minimal dark and white activity bars.</p>
+              </div>
+              <div className="rounded-full border border-white/[0.08] bg-white/[0.035] px-3 py-1 text-xs text-white/50">Last 12 days</div>
+            </div>
+            <BarsChart data={stats.graph_data} />
+          </Panel>
+        </div>
 
-              {/* DISCORD */}
-              <motion.div
-                initial={{ opacity: 0, y: 25 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.42 }}
-                className="
-        relative
-        overflow-hidden
-        rounded-[34px]
-        border
-        border-white/10
-        bg-white/[0.03]
-        p-6
-        backdrop-blur-3xl
-      "
-              >
-                <div className="absolute bottom-0 right-0 h-[180px] w-[180px] rounded-full bg-indigo-500/10 blur-[100px]" />
-                <div className="relative z-10">
-                  <div className="mb-6 flex items-center gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-indigo-500/20 bg-indigo-500/10">
-                      <Disc3 className="h-4 w-4 text-indigo-400" />
-                    </div>
+        <div className="space-y-6">
+          <Panel className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-white">Discord presence</h3>
+                <p className="mt-1 text-sm text-white/42">Show live presence on your profile.</p>
+              </div>
+              <Radio className="h-5 w-5 text-white/70" />
+            </div>
+
+            <div className="mt-6 rounded-2xl border border-white/[0.07] bg-black/20 p-4">
+              {user.discord_id ? (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <span className="h-2 w-2 rounded-full bg-emerald-300" />
                     <div>
-                      <h3 className="text-base font-semibold text-white">Discord</h3>
-                      <p className="text-xs text-white/40">Live profile presence</p>
+                      <p className="text-sm font-semibold text-white">Connected</p>
+                      <p className="text-xs text-white/40">Presence sync is enabled.</p>
                     </div>
                   </div>
-
-                  {user.discord_id ? (
-                    <div className="space-y-4">
-                      <div className="rounded-xl border border-green-500/20 bg-green-500/10 p-3">
-                        <div className="flex items-center gap-3">
-                          <div className="h-2 w-2 rounded-full bg-green-400 shadow-[0_0_12px_rgba(74,222,128,0.8)]" />
-                          <div>
-                            <p className="text-xs font-semibold text-white">Connected</p>
-                            <p className="text-[10px] text-white/40">Syncing live activity</p>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          onClick={() => (window.location.href = "/api/auth/discord/login")}
-                          className="h-9 flex-1 rounded-lg bg-indigo-500 text-xs font-semibold text-white hover:bg-indigo-400 transition-all"
-                        >
-                          Reconnect
-                        </Button>
-                        <Button
-                          onClick={handleDisconnectDiscord}
-                          disabled={savingDiscord}
-                          className="h-9 flex-1 rounded-lg border border-red-500/20 bg-red-500/10 text-xs font-semibold text-red-400 hover:bg-red-500/20 transition-all"
-                        >
-                          Disconnect
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <Button
-                      onClick={() => (window.location.href = "/api/auth/discord/login")}
-                      className="h-12 w-full rounded-xl bg-indigo-500 text-sm font-semibold text-white hover:bg-indigo-400 hover:shadow-[0_0_20px_rgba(99,102,241,0.3)] transition-all"
-                    >
-                      Connect Discord
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button onClick={() => (window.location.href = "/api/auth/discord/login")} className="h-10 rounded-xl bg-white text-xs font-semibold text-black hover:bg-white/85">
+                      Reconnect
                     </Button>
-                  )}
+                    <Button onClick={handleDisconnectDiscord} disabled={savingDiscord} className="h-10 rounded-xl border border-white/[0.08] bg-white/[0.035] text-xs font-semibold text-white hover:bg-white/[0.07]">
+                      Disconnect
+                    </Button>
+                  </div>
                 </div>
-              </motion.div>
+              ) : (
+                <Button onClick={() => (window.location.href = "/api/auth/discord/login")} className="h-11 w-full rounded-xl bg-white text-sm font-semibold text-black hover:bg-white/85">
+                  Connect Discord
+                </Button>
+              )}
             </div>
-          </div>
-        </div>
+          </Panel>
 
+          <Panel className="p-6">
+            <h3 className="text-lg font-semibold text-white">Quick actions</h3>
+            <div className="mt-5 grid gap-3">
+              {[
+                ["Customize profile", "/dashboard/customize", Palette],
+                ["Manage socials", "/dashboard/links", Link2],
+                ["View analytics", "/dashboard/analytics", BarChart3],
+              ].map(([label, href, Icon]) => {
+                const RowIcon = Icon as typeof Palette;
+                return (
+                  <button key={label as string} onClick={() => router.push(href as string)} className="flex items-center justify-between rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4 text-left hover:bg-white/[0.05]">
+                    <span className="flex items-center gap-3 text-sm font-semibold text-white">
+                      <RowIcon className="h-4 w-4 text-white/60" />
+                      {label as string}
+                    </span>
+                    <ArrowUpRight className="h-4 w-4 text-white/35" />
+                  </button>
+                );
+              })}
+            </div>
+          </Panel>
+
+          <Panel className="p-6">
+            <div className="flex items-center gap-3">
+              <ShieldCheck className="h-5 w-5 text-emerald-300" />
+              <div>
+                <p className="text-sm font-semibold text-white">Account protected</p>
+                <p className="mt-1 text-xs leading-5 text-white/42">Signed cookie sessions keep dashboard writes scoped to your account.</p>
+              </div>
+            </div>
+          </Panel>
+        </div>
       </div>
-    </section>
+    </DashboardShell>
   );
 }

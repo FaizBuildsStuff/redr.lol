@@ -15,7 +15,7 @@ export async function GET() {
 
     // Fetch the latest user info from the database including all customization fields
     const [dbUser] = await sql`
-      SELECT username, email, discord_id, typewriter_heading, typewriter_quotes, active_badges, owned_badges,
+      SELECT username, email, discord_id, typewriter_heading, typewriter_quotes, custom_links, active_badges, owned_badges,
         location, background_url, background_type, audios, audio_shuffle, audio_player_enabled, background_audio_enabled, discord_profile_transparency, onboarding_completed
       FROM users
       WHERE id = ${user.userId}
@@ -31,6 +31,7 @@ export async function GET() {
         discord_id: dbUser.discord_id,
         typewriter_heading: dbUser.typewriter_heading,
         typewriter_quotes: dbUser.typewriter_quotes,
+        custom_links: dbUser.custom_links,
         active_badges: dbUser.active_badges,
         owned_badges: dbUser.owned_badges,
         location: dbUser.location,

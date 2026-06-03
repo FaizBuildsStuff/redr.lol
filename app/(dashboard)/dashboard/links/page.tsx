@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { Check, Globe2, Link2, Loader2, Plus, Save, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,6 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { DashboardLoading, DashboardShell, Panel } from "@/components/DashboardUI";
 
 interface CustomLink {
   id: string;
@@ -21,63 +23,49 @@ interface CustomLink {
   active: boolean;
 }
 
-const socials = [
-  { id: "twitter", icon: "𝕏" },
-  { id: "youtube", icon: "▶" },
-  { id: "discord", icon: "◎" },
-  { id: "spotify", icon: "◉" },
-  { id: "instagram", icon: "◌" },
-  { id: "github", icon: "◈" },
-  { id: "tiktok", icon: "♪" },
-  { id: "telegram", icon: "✈" },
-  { id: "paypal", icon: "$" },
-  { id: "twitch", icon: "◍" },
+interface UserResponse {
+  user?: {
+    custom_links?: CustomLink[];
+  };
+}
+
+const defaultLinks: CustomLink[] = [
+  { id: "1", title: "Website", url: "https://redr.lol", icon: "web", active: true },
+];
+
+const platforms = [
+  "Website",
+  "Twitter / X",
+  "Discord",
+  "YouTube",
+  "Instagram",
+  "GitHub",
+  "Spotify",
+  "Twitch",
+  "TikTok",
 ];
 
 export default function LinksPage() {
   const router = useRouter();
-
   const [loading, setLoading] = useState(true);
-
-  const [links, setLinks] = useState<CustomLink[]>([
-    {
-      id: "1",
-      title: "Twitter",
-      url: "https://twitter.com",
-      icon: "𝕏",
-      active: true,
-    },
-    {
-      id: "2",
-      title: "Discord",
-      url: "https://discord.gg",
-      icon: "◎",
-      active: true,
-    },
-    {
-      id: "3",
-      title: "Github",
-      url: "https://github.com",
-      icon: "◈",
-      active: true,
-    },
-  ]);
-
+  const [links, setLinks] = useState<CustomLink[]>(defaultLinks);
   const [adding, setAdding] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newUrl, setNewUrl] = useState("");
-  const [newIcon, setNewIcon] = useState("𝕏");
-
   const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     async function checkAuth() {
       try {
         const res = await fetch("/api/auth/me");
-        const data = await res.json();
-
+        const data: UserResponse = await res.json();
         if (!data.user) {
           router.push("/signin");
+          return;
+        }
+        if (Array.isArray(data.user.custom_links) && data.user.custom_links.length > 0) {
+          setLinks(data.user.custom_links);
         }
       } catch {
         router.push("/signin");
@@ -85,515 +73,196 @@ export default function LinksPage() {
         setLoading(false);
       }
     }
-
     checkAuth();
   }, [router]);
 
-  const addLink = (e: React.FormEvent) => {
-    e.preventDefault();
+  const addLink = (event: React.FormEvent) => {
+    event.preventDefault();
+    const title = newTitle.trim();
+    const url = newUrl.trim();
+    if (!title || !url) return;
 
-    const item = {
+    const item: CustomLink = {
       id: Date.now().toString(),
-      title: newTitle,
-      url: newUrl.startsWith("http")
-        ? newUrl
-        : `https://${newUrl}`,
-      icon: newIcon,
+      title,
+      url: url.startsWith("http") ? url : `https://${url}`,
+      icon: "web",
       active: true,
     };
 
-    setLinks([...links, item]);
-
+    setLinks((current) => [...current, item]);
     setNewTitle("");
     setNewUrl("");
     setAdding(false);
+    setSaved(false);
   };
 
   const deleteLink = (id: string) => {
-    setLinks(links.filter((x) => x.id !== id));
+    setLinks((current) => current.filter((item) => item.id !== id));
+    setSaved(false);
   };
 
   const toggleLink = (id: string) => {
-    setLinks(
-      links.map((x) =>
-        x.id === id ? { ...x, active: !x.active } : x
-      )
-    );
+    setLinks((current) => current.map((item) => (item.id === id ? { ...item, active: !item.active } : item)));
+    setSaved(false);
   };
 
   const saveLinks = async () => {
     try {
       setSaving(true);
-
-      await fetch("/api/user/profile", {
+      setSaved(false);
+      const res = await fetch("/api/user/profile", {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          custom_links: links,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ custom_links: links }),
       });
-    } catch (e) {
-      console.log(e);
+      if (res.ok) {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2000);
+      }
+    } catch (error) {
+      console.error(error);
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-black text-white">
-        Loading...
-      </div>
-    );
-  }
+  if (loading) return <DashboardLoading label="Loading links" />;
 
   return (
-    <section className="relative min-h-screen overflow-hidden bg-black px-3 pb-20 pt-8 sm:px-6 lg:px-10">
-
-      {/* Background Effects */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute left-20 top-20 h-72 w-72 rounded-full bg-white/5 blur-[120px]" />
-        <div className="absolute right-0 top-0 h-[500px] w-[500px] rounded-full bg-neutral-700/10 blur-[160px]" />
-        <div className="absolute bottom-0 left-1/3 h-[400px] w-[400px] rounded-full bg-white/5 blur-[150px]" />
-
-        <div
-          className="absolute inset-0 opacity-[0.04]"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px)",
-            backgroundSize: "80px 80px",
-          }}
-        />
-      </div>
-
-      <div className="relative z-10 mx-auto max-w-7xl">
-
-        {/* TOP */}
-<div className="relative mb-12 overflow-hidden rounded-[32px] border border-white/10 bg-white/[0.03] p-6 backdrop-blur-3xl sm:p-8">
-
-  {/* BACKGROUND GLOWS */}
-  <div className="pointer-events-none absolute inset-0 overflow-hidden">
-    <div className="absolute left-0 top-0 h-[250px] w-[250px] rounded-full bg-red-500/10 blur-[120px]" />
-    <div className="absolute right-0 top-0 h-[300px] w-[300px] rounded-full bg-white/5 blur-[140px]" />
-    <div className="absolute bottom-0 left-1/2 h-[200px] w-[200px] -translate-x-1/2 rounded-full bg-red-500/10 blur-[100px]" />
-  </div>
-
-  <div className="relative z-10 flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
-
-    {/* LEFT */}
-    <div className="max-w-2xl">
-
-      <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-red-500/20 bg-red-500/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-red-400 backdrop-blur-xl">
-        <div className="h-2 w-2 rounded-full bg-red-400 shadow-[0_0_12px_rgba(248,113,113,0.8)]" />
-        Creator Link Hub
-      </div>
-
-      <h1 className="text-3xl font-semibold leading-tight tracking-tight text-white sm:text-5xl">
-        Link your social media profiles
-      </h1>
-
-      <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/45 sm:text-base">
-        Connect all your socials, communities, products and external platforms
-        inside one modern creator profile experience.
-      </p>
-
-    </div>
-
-    {/* RIGHT BUTTONS */}
-    <div className="flex flex-wrap items-center gap-3">
-
-      {/* ADD LINK BUTTON */}
-      <Dialog open={adding} onOpenChange={setAdding}>
-        <DialogTrigger asChild>
-          <Button
-            className="
-            group
-            relative
-            h-12
-            overflow-hidden
-            rounded-2xl
-            border
-            border-red-500/20
-            bg-red-500/10
-            px-5
-            text-sm
-            font-semibold
-            text-red-400
-            backdrop-blur-xl
-            transition-all
-            duration-300
-            hover:scale-[1.02]
-            hover:border-red-500/40
-            hover:bg-red-500/20
-            hover:text-white
-            hover:shadow-[0_0_40px_rgba(239,68,68,0.25)]
-          "
-          >
-
-            <div className="absolute inset-0 bg-gradient-to-r from-red-500/0 via-red-500/10 to-red-500/0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-
-            <span className="relative z-10 flex items-center gap-2">
-              +
-              Add Link
-            </span>
-
-          </Button>
-        </DialogTrigger>
-
-        {/* DIALOG */}
-        <DialogContent
-          className="
-          overflow-hidden
-          border
-          border-white/10
-          bg-[#070707]
-          text-white
-          backdrop-blur-3xl
-          sm:max-w-[480px]
-        "
-        >
-
-          {/* GLOW */}
-          <div className="pointer-events-none absolute left-1/2 top-0 h-[250px] w-[250px] -translate-x-1/2 rounded-full bg-white/10 blur-[120px]" />
-
-          <DialogHeader className="relative z-10">
-            <DialogTitle className="text-2xl font-semibold tracking-tight">
-              Create New Link
-            </DialogTitle>
-
-            <DialogDescription className="mt-2 text-sm leading-relaxed text-white/40">
-              Connect socials, portfolios, communities and external platforms beautifully.
-            </DialogDescription>
-          </DialogHeader>
-
-          <form
-            onSubmit={addLink}
-            className="relative z-10 mt-6 space-y-5"
-          >
-
-            {/* TITLE */}
-            <div>
-              <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-white/40">
-                Link Title
-              </label>
-
-              <input
-                required
-                value={newTitle}
-                onChange={(e) => setNewTitle(e.target.value)}
-                placeholder="Twitter"
-                className="
-                h-12
-                w-full
-                rounded-2xl
-                border
-                border-white/10
-                bg-white/[0.03]
-                px-4
-                text-sm
-                text-white
-                outline-none
-                transition-all
-                focus:border-red-500/30
-                focus:bg-white/[0.05]
-              "
-              />
-            </div>
-
-            {/* URL */}
-            <div>
-              <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-white/40">
-                Destination URL
-              </label>
-
-              <input
-                required
-                value={newUrl}
-                onChange={(e) => setNewUrl(e.target.value)}
-                placeholder="https://"
-                className="
-                h-12
-                w-full
-                rounded-2xl
-                border
-                border-white/10
-                bg-white/[0.03]
-                px-4
-                text-sm
-                text-white
-                outline-none
-                transition-all
-                focus:border-red-500/30
-                focus:bg-white/[0.05]
-              "
-              />
-            </div>
-
-            {/* PLATFORM SELECT */}
-<div>
-  <label className="mb-3 block text-xs font-semibold uppercase tracking-[0.18em] text-white/35">
-    Platform Type
-  </label>
-
-  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-
-    {[
-      { id: "𝕏", name: "Twitter" },
-      { id: "◎", name: "Discord" },
-      { id: "◈", name: "Github" },
-      { id: "▶", name: "YouTube" },
-      { id: "◌", name: "Instagram" },
-      { id: "🌐", name: "Custom URL" },
-    ].map((platform) => (
-      <button
-        type="button"
-        key={platform.name}
-        onClick={() => setNewIcon(platform.id)}
-        className={`
-        group
-        relative
-        overflow-hidden
-        rounded-3xl
-        border
-        p-4
-        text-left
-        transition-all
-        duration-300
-
-        ${
-          newIcon === platform.id
-            ? "border-red-500/40 bg-red-500/10 shadow-[0_0_40px_rgba(239,68,68,0.15)]"
-            : "border-white/10 bg-white/[0.03] hover:border-white/20 hover:bg-white/[0.05]"
-        }
-      `}
-      >
-
-        {/* Glow */}
-        <div className="absolute inset-0 bg-gradient-to-b from-white/[0.04] to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-
-        {/* Content */}
-        <div className="relative z-10">
-
-          {/* Icon */}
-          <div
-            className={`
-            mb-4
-            flex
-            h-14
-            w-14
-            items-center
-            justify-center
-            rounded-2xl
-            border
-            text-2xl
-            backdrop-blur-xl
-            transition-all
-            duration-300
-
-            ${
-              newIcon === platform.id
-                ? "border-red-500/30 bg-red-500/10 text-red-400"
-                : "border-white/10 bg-black/30 text-white"
-            }
-          `}
-          >
-            {platform.id}
-          </div>
-
-          {/* Text */}
-          <h4 className="text-sm font-semibold text-white">
-            {platform.name}
-          </h4>
-
-          <p className="mt-1 text-xs leading-relaxed text-white/40">
-            {platform.name === "Custom URL"
-              ? "Use your own website or custom external link."
-              : `Connect your ${platform.name} profile.`}
-          </p>
-
-        </div>
-
-        {/* Active Dot */}
-        <div
-          className={`
-          absolute
-          right-4
-          top-4
-          h-3
-          w-3
-          rounded-full
-          transition-all
-          duration-300
-
-          ${
-            newIcon === platform.id
-              ? "bg-red-400 shadow-[0_0_20px_rgba(248,113,113,0.9)]"
-              : "bg-white/10"
-          }
-        `}
-        />
-
-      </button>
-    ))}
-  </div>
-</div>
-
-            {/* WHITE BUTTON */}
-            <Button
-              type="submit"
-              className="
-              h-12
-              w-full
-              rounded-2xl
-              bg-white
-              text-sm
-              font-semibold
-              text-black
-              transition-all
-              duration-300
-              hover:scale-[1.01]
-              hover:bg-neutral-200
-              shadow-[0_10px_40px_rgba(255,255,255,0.15)]
-            "
-            >
-              Create Link
-            </Button>
-
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      {/* SAVE BUTTON */}
-      <Button
-        onClick={saveLinks}
-        disabled={saving}
-        className="
-        group
-        relative
-        h-12
-        overflow-hidden
-        rounded-2xl
-        border
-        border-red-500/20
-        bg-red-500
-        px-6
-        text-sm
-        font-semibold
-        text-white
-        transition-all
-        duration-300
-        hover:scale-[1.02]
-        hover:bg-red-400
-        hover:shadow-[0_0_50px_rgba(239,68,68,0.45)]
-      "
-      >
-
-        <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-
-        <span className="relative z-10">
-          {saving ? "Saving..." : "Save Changes"}
-        </span>
-
-      </Button>
-
-    </div>
-  </div>
-</div>
-
-        {/* MAIN GLASS PANEL */}
-        <div className="rounded-[36px] border border-white/10 bg-white/[0.03] p-5 backdrop-blur-3xl sm:p-8">
-
-          <div className="mb-8 flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-semibold text-white">
-                Social Links
-              </h2>
-
-              <p className="mt-1 text-sm text-white/40">
-                Manage all profile connections
-              </p>
-            </div>
-
-            <div className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-xs font-medium text-white/50">
-              {links.length} active links
-            </div>
-          </div>
-
-          {/* GRID */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-
-            <AnimatePresence>
-              {links.map((link) => (
-                <motion.div
-                  key={link.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  whileHover={{ y: -4, scale: 1.02 }}
-                  className={`group relative overflow-hidden rounded-[28px] border p-5 transition-all duration-300 ${
-                    link.active
-                      ? "border-white/10 bg-white/[0.03] hover:border-white/20 hover:bg-white/[0.05]"
-                      : "border-white/5 bg-white/[0.01] opacity-40"
-                  }`}
-                >
-
-                  {/* Glow */}
-                  <div className="absolute inset-0 bg-gradient-to-b from-white/[0.04] to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-
-                  <div className="relative z-10">
-
-                    {/* Icon */}
-                    <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-black/40 text-2xl text-white backdrop-blur-xl">
-                      {link.icon}
-                    </div>
-
-                    {/* Text */}
-                    <h3 className="text-sm font-semibold text-white">
-                      {link.title}
-                    </h3>
-
-                    <p className="mt-1 truncate text-xs text-white/40">
-                      {link.url}
-                    </p>
-
-                    {/* Bottom */}
-                    <div className="mt-5 flex items-center justify-between">
-
+    <DashboardShell
+      eyebrow="Links"
+      title="Social link hub"
+      description="A minimalist connection manager for social media, websites, communities, and external profile destinations."
+      action={
+        <div className="flex flex-wrap gap-3">
+          <Dialog open={adding} onOpenChange={setAdding}>
+            <DialogTrigger asChild>
+              <Button className="h-11 rounded-2xl border border-white/[0.08] bg-white/[0.035] px-5 text-sm font-semibold text-white hover:bg-white/[0.07]">
+                <Plus className="mr-2 h-4 w-4" />
+                Add link
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="border-white/[0.08] bg-[#070707] text-white sm:max-w-[520px]">
+              <DialogHeader>
+                <DialogTitle>Create social link</DialogTitle>
+                <DialogDescription className="text-white/45">
+                  Use the web icon for social media and external destinations.
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={addLink} className="mt-4 space-y-4">
+                <div>
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-white/38">Platform</label>
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                    {platforms.map((name) => (
                       <button
-                        onClick={() =>
-                          toggleLink(link.id)
-                        }
-                        className={`rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-wider transition-all ${
-                          link.active
-                            ? "bg-white text-black"
-                            : "bg-white/10 text-white/50"
+                        type="button"
+                        key={name}
+                        onClick={() => setNewTitle(name)}
+                        className={`rounded-2xl border p-3 text-left text-xs font-semibold transition-all ${
+                          newTitle === name
+                            ? "border-white/40 bg-white text-black"
+                            : "border-white/[0.08] bg-white/[0.025] text-white/60 hover:bg-white/[0.06] hover:text-white"
                         }`}
                       >
-                        {link.active
-                          ? "Active"
-                          : "Hidden"}
+                        <Globe2 className="mb-2 h-4 w-4" />
+                        {name}
                       </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-white/38">Title</label>
+                  <input
+                    required
+                    value={newTitle}
+                    onChange={(event) => setNewTitle(event.target.value)}
+                    placeholder="Website"
+                    className="h-12 w-full rounded-2xl border border-white/[0.08] bg-white/[0.035] px-4 text-sm text-white outline-none focus:border-white/20"
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-white/38">URL</label>
+                  <input
+                    required
+                    value={newUrl}
+                    onChange={(event) => setNewUrl(event.target.value)}
+                    placeholder="https://example.com"
+                    className="h-12 w-full rounded-2xl border border-white/[0.08] bg-white/[0.035] px-4 text-sm text-white outline-none focus:border-white/20"
+                  />
+                </div>
+                <Button type="submit" className="h-12 w-full rounded-2xl bg-white text-sm font-semibold text-black hover:bg-white/85">
+                  Create link
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
 
-                      <button
-                        onClick={() =>
-                          deleteLink(link.id)
-                        }
-                        className="text-xs text-white/30 transition-all hover:text-red-400"
-                      >
-                        Delete
-                      </button>
+          <Button onClick={saveLinks} disabled={saving} className="h-11 rounded-2xl bg-white px-5 text-sm font-semibold text-black hover:bg-white/85">
+            {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : saved ? <Check className="mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
+            {saving ? "Saving" : saved ? "Saved" : "Save"}
+          </Button>
+        </div>
+      }
+    >
+      <Panel className="p-6">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-white">Connections</h2>
+            <p className="mt-1 text-sm text-white/42">{links.filter((item) => item.active).length} active of {links.length} links</p>
+          </div>
+          <div className="rounded-full border border-white/[0.08] bg-white/[0.035] px-3 py-1 text-xs text-white/50">Web icon mode</div>
+        </div>
 
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <AnimatePresence>
+            {links.map((link) => (
+              <motion.div
+                key={link.id}
+                layout
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.96 }}
+                className={`rounded-[24px] border p-5 transition-all ${
+                  link.active
+                    ? "border-white/[0.08] bg-white/[0.025]"
+                    : "border-white/[0.05] bg-black/20 opacity-55"
+                }`}
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex min-w-0 items-center gap-4">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white text-black">
+                      <Globe2 className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="truncate text-sm font-semibold text-white">{link.title}</h3>
+                      <p className="mt-1 truncate text-xs text-white/42">{link.url}</p>
                     </div>
                   </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
+                  <button onClick={() => deleteLink(link.id)} className="text-white/32 transition-colors hover:text-white">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
 
-          </div>
+                <div className="mt-5 flex items-center justify-between gap-3">
+                  <button
+                    onClick={() => toggleLink(link.id)}
+                    className={`rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] ${
+                      link.active ? "bg-white text-black" : "bg-white/[0.08] text-white/50"
+                    }`}
+                  >
+                    {link.active ? "Active" : "Hidden"}
+                  </button>
+                  <a href={link.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-xs font-semibold text-white/55 hover:text-white">
+                    <Link2 className="h-3.5 w-3.5" />
+                    Open
+                  </a>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
-      </div>
-    </section>
+      </Panel>
+    </DashboardShell>
   );
 }

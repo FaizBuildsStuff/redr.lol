@@ -3,8 +3,9 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Disc3 } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
+import { DashboardLoading } from "@/components/DashboardUI";
 
 interface UserProfile {
   id: number;
@@ -50,23 +51,7 @@ export default function DashboardLayout({
   }, [router]);
 
   if (loading) {
-    return (
-      <div className="relative flex min-h-screen items-center justify-center bg-[#0A0A0A] text-[#F5F1E8]">
-        <div className="absolute left-1/2 top-1/2 h-[350px] w-[350px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-red-600/10 blur-[120px]" />
-        <div className="flex flex-col items-center gap-4 text-center">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-            className="flex h-16 w-16 items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/10"
-          >
-            <Disc3 className="h-7 w-7 text-red-500" />
-          </motion.div>
-          <p className="text-sm font-medium tracking-[0.15em] uppercase text-[#8A8A8A] animate-pulse">
-            Syncing identity core...
-          </p>
-        </div>
-      </div>
-    );
+    return <DashboardLoading label="Syncing identity core" />;
   }
 
   if (!user) return null;
@@ -91,7 +76,7 @@ export default function DashboardLayout({
           onClick={() => setMobileOpen(!mobileOpen)}
           className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.03] text-[#8C8C8C] hover:text-white hover:border-white/10 hover:bg-white/[0.06] transition-all duration-200"
         >
-          <Menu className="h-4.5 w-4.5" />
+          <Menu className="h-4 w-4" />
         </button>
       </div>
 
