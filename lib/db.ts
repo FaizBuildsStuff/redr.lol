@@ -68,7 +68,11 @@ export async function initDb() {
       ADD COLUMN IF NOT EXISTS banned_until TIMESTAMP WITH TIME ZONE,
       ADD COLUMN IF NOT EXISTS timeout_until TIMESTAMP WITH TIME ZONE,
       ADD COLUMN IF NOT EXISTS force_logout_at TIMESTAMP WITH TIME ZONE,
-      ADD COLUMN IF NOT EXISTS discord_avatar VARCHAR(255);
+      ADD COLUMN IF NOT EXISTS discord_avatar VARCHAR(255),
+      ADD COLUMN IF NOT EXISTS google_id VARCHAR(255),
+      ADD COLUMN IF NOT EXISTS google_avatar VARCHAR(255),
+      ADD COLUMN IF NOT EXISTS google_access_token TEXT,
+      ADD COLUMN IF NOT EXISTS google_refresh_token TEXT;
     `;
     await sql`
       CREATE TABLE IF NOT EXISTS system_logs (
