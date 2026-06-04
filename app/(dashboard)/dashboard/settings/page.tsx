@@ -65,11 +65,33 @@ export default function SettingsPage() {
     setSuccess(null);
     setError(null);
 
-    // Mock API delay & response
-    setTimeout(() => {
+    try {
+      const res = await fetch("/api/user/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username,
+          email,
+          currentPassword,
+          newPassword
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to update settings.");
+      }
+
+      setSuccess(data.message || "Account settings saved successfully! Your public profile is updated.");
+      
+      // Clear password fields on success
+      setCurrentPassword("");
+      setNewPassword("");
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
       setSubmitting(false);
-      setSuccess("Account settings saved successfully! Your public profile is updated.");
-    }, 1000);
+    }
   };
 
   if (loading) {
