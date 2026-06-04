@@ -1067,7 +1067,7 @@ function DiscordProfileCard({ user, discordData, connections }: DiscordProfileCa
               {discordData?.user?.avatar && user.discord_id ? (
                 <img
                   className="w-full h-full rounded-full object-cover border-[5px] border-white/10 dark:border-[#0A0A0A]/95 relative z-10"
-                  src={`https://cdn.discordapp.com/avatars/${user.discord_id}/${discordData.user.avatar}.png?size=512`}
+                  src={`https://cdn.discordapp.com/avatars/${user.discord_id}/${discordData.user.avatar}.${discordData.user.avatar.startsWith("a_") ? "gif" : "png"}?size=512`}
                   onError={(e) => { (e.target as HTMLImageElement).src = "/assets/images/no-image-found.jpg"; }}
                   alt="Avatar"
                 />

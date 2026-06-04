@@ -14,7 +14,7 @@ export async function GET(request: Request) {
     
     if (search) {
       users = await sql`
-        SELECT id, username, email, role, created_at, banned_until, timeout_until
+        SELECT id, username, email, role, created_at, banned_until, timeout_until, discord_id, discord_avatar
         FROM users
         WHERE LOWER(username) LIKE ${`%${search}%`} OR LOWER(email) LIKE ${`%${search}%`}
         ORDER BY id DESC
@@ -22,7 +22,7 @@ export async function GET(request: Request) {
       `;
     } else {
       users = await sql`
-        SELECT id, username, email, role, created_at, banned_until, timeout_until
+        SELECT id, username, email, role, created_at, banned_until, timeout_until, discord_id, discord_avatar
         FROM users
         ORDER BY id DESC
         LIMIT 50

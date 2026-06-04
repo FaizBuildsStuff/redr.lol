@@ -15,7 +15,7 @@ export async function GET() {
 
     // Fetch the latest user info from the database including all customization fields
     const [dbUser] = await sql`
-      SELECT username, email, discord_id, typewriter_heading, typewriter_quotes, custom_links, active_badges, owned_badges,
+      SELECT username, email, discord_id, discord_avatar, discord_access_token, typewriter_heading, typewriter_quotes, custom_links, active_badges, owned_badges,
         location, background_url, background_type, audios, audio_shuffle, audio_player_enabled, background_audio_enabled, discord_profile_transparency, onboarding_completed,
         role, banned_until, timeout_until, force_logout_at
       FROM users
@@ -43,10 +43,53 @@ export async function GET() {
       return NextResponse.json({ user: null, reason: "timeout" });
     }
 
+    // Backfill discord_avatar if the user has a discord_id but no stored avatar hash yet.
+    // This runs once silently in the background — after the first backfill it will never run again.
+    let discordAvatar = dbUser.discord_avatar;
+    if (dbUser.discord_id && !dbUser.discord_avatar) {
+      try {
+        // Use the stored access token if available, otherwise fall back to the proxy
+        let avatarHash: string | null = null;
+
+        if (dbUser.discord_access_token) {
+          const discordRes = await fetch("https://discord.com/api/v10/users/@me", {
+            headers: { Authorization: `Bearer ${dbUser.discord_access_token}` },
+            cache: "no-store",
+          });
+          if (discordRes.ok) {
+            const discordUser = await discordRes.json();
+            avatarHash = discordUser.avatar ?? null;
+          }
+        }
+
+        if (!avatarHash) {
+          // Fallback: use the public proxy (no auth needed)
+          const proxyRes = await fetch(`https://dcdn.dstn.to/profile/${dbUser.discord_id}`, {
+            cache: "no-store",
+          });
+          if (proxyRes.ok) {
+            const proxyData = await proxyRes.json();
+            avatarHash = proxyData?.user?.avatar ?? null;
+          }
+        }
+
+        if (avatarHash) {
+          discordAvatar = avatarHash;
+          // Persist so we don't need to fetch again next time
+          await sql`
+            UPDATE users SET discord_avatar = ${avatarHash} WHERE id = ${user.userId}
+          `;
+        }
+      } catch {
+        // Non-fatal — avatar just won't show until next successful backfill
+      }
+    }
+
     return NextResponse.json({ 
       user: { 
         ...user, 
         discord_id: dbUser.discord_id,
+        discord_avatar: discordAvatar,
         typewriter_heading: dbUser.typewriter_heading,
         typewriter_quotes: dbUser.typewriter_quotes,
         custom_links: dbUser.custom_links,

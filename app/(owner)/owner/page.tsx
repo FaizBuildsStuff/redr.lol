@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Users, Server, ShieldAlert, Activity, Cpu, ActivitySquare } from "lucide-react";
+import Image from "next/image";
 
 export default function OwnerOverviewPage() {
   const [stats, setStats] = useState({
@@ -124,44 +125,65 @@ export default function OwnerOverviewPage() {
         })}
       </div>
 
-      {/* Activity Feed */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        className="rounded-[24px] border border-white/5 bg-[#0D0D0D] p-6 shadow-2xl backdrop-blur-xl"
-      >
-        <div className="flex items-center gap-3 border-b border-white/5 pb-4 mb-4">
-          <Activity className="h-5 w-5 text-red-500" />
-          <h2 className="text-sm font-bold uppercase tracking-widest text-white">
-            Recent System Events
-          </h2>
+      {logs.length > 0 ? (
+  logs.map((log) => (
+    <div
+      key={log.id}
+      className="flex items-center justify-between rounded-xl bg-white/[0.02] p-4 border border-white/5"
+    >
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center gap-3">
+          <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
+          <p className="text-sm text-white font-mono uppercase tracking-wider">
+            {log.action}
+          </p>
         </div>
-        <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-          {logs.length > 0 ? logs.map((log) => (
-            <div key={log.id} className="flex items-center justify-between rounded-xl bg-white/[0.02] p-4 border border-white/5">
-              <div className="flex flex-col gap-1">
-                <div className="flex items-center gap-3">
-                  <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
-                  <p className="text-sm text-white font-mono uppercase tracking-wider">{log.action}</p>
-                </div>
-                <p className="text-xs text-[#8C8C8C] font-mono ml-5">
-                  Actor: {log.actor_username || "SYSTEM"} | Target: {log.target_username || "N/A"}
-                  {Object.keys(log.details || {}).length > 0 && ` | Details: ${JSON.stringify(log.details)}`}
-                </p>
-              </div>
-              <span className="text-[10px] text-[#555] font-mono whitespace-nowrap ml-4">
-                {new Date(log.created_at).toLocaleString()}
-              </span>
-            </div>
-          )) : (
-            <div className="flex flex-col items-center justify-center py-8 opacity-50">
-               <Activity className="h-8 w-8 text-white/20 mb-2" />
-               <p className="text-sm text-[#8C8C8C] font-mono">No recent system events.</p>
-            </div>
-          )}
-        </div>
-      </motion.div>
+
+        <p className="text-xs text-[#8C8C8C] font-mono ml-5">
+          Actor: {log.actor_username || "SYSTEM"} | Target:{" "}
+          {log.target_username || "N/A"}
+        </p>
+      </div>
+
+      <span className="text-[10px] text-[#555] font-mono whitespace-nowrap ml-4">
+        {new Date(log.created_at).toLocaleString()}
+      </span>
+    </div>
+  ))
+) : (
+  <div className="flex flex-col items-center justify-center py-8">
+    <div className="relative">
+      <Image
+        src="/honda.png"
+        alt="Honda"
+        width={220}
+        height={220}
+        className="drop-shadow-[0_0_35px_rgba(239,68,68,0.35)] animate-bounce"
+      />
+
+      <div className="absolute -top-2 -right-2 h-4 w-4 rounded-full bg-green-500 animate-ping" />
+      <div className="absolute -top-2 -right-2 h-4 w-4 rounded-full bg-green-500" />
+    </div>
+
+    <h3 className="mt-5 text-lg font-bold text-white">
+      Honda Monitoring Station
+    </h3>
+
+    <p className="mt-2 text-sm text-[#8C8C8C] text-center max-w-xs">
+      🚗 Honda is chilling peacefully.
+      <br />
+      No suspicious activity detected.
+    </p>
+
+    <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-xs font-mono text-[#B3B3B3]">
+      Engine: ONLINE ✅
+      <br />
+      Fuel: 87%
+      <br />
+      VTEC: Sleeping 😴
+    </div>
+  </div>
+)}
     </div>
   );
 }

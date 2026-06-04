@@ -13,6 +13,8 @@ interface UserProfile {
   email: string;
   onboarding_completed?: boolean;
   role?: string;
+  discord_id?: string | null;
+  discord_avatar?: string | null;
 }
 
 export default function DashboardLayout({

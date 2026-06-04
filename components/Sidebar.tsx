@@ -25,12 +25,15 @@ import {
   Check
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import UserAvatar from "@/components/UserAvatar";
 
 interface UserProfile {
   id: number;
   username: string;
   email: string;
   role?: string;
+  discord_id?: string | null;
+  discord_avatar?: string | null;
 }
 
 interface SidebarProps {
@@ -411,13 +414,13 @@ export default function Sidebar({ user, setMobileOpen }: SidebarProps) {
             {/* TRIGGER BASE CARD */}
             <div className="flex items-center justify-between relative overflow-hidden rounded-[24px] border border-white/[0.05] bg-white/[0.02] p-3 backdrop-blur-2xl">
               <div className="flex items-center gap-3">
-                {/* Avatar placeholder with dithered mesh */}
-                <div className="relative h-10 w-10 overflow-hidden rounded-xl border border-red-500/20 bg-gradient-to-br from-red-600 to-[#100303] flex items-center justify-center">
-                  <span className="text-sm font-black text-white tracking-widest uppercase">
-                    {user.username.slice(0, 2)}
-                  </span>
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,_var(--tw-gradient-stops))] from-white/10 to-transparent pointer-events-none" />
-                </div>
+                <UserAvatar
+                  discordId={user.discord_id}
+                  discordAvatar={user.discord_avatar}
+                  username={user.username}
+                  size={40}
+                  rounded="rounded-xl"
+                />
                 <div>
                   <h4 className="text-sm font-medium text-white truncate max-w-[100px]">
                     {user.username}

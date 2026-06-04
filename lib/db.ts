@@ -67,7 +67,8 @@ export async function initDb() {
       ADD COLUMN IF NOT EXISTS role VARCHAR(50) DEFAULT 'user',
       ADD COLUMN IF NOT EXISTS banned_until TIMESTAMP WITH TIME ZONE,
       ADD COLUMN IF NOT EXISTS timeout_until TIMESTAMP WITH TIME ZONE,
-      ADD COLUMN IF NOT EXISTS force_logout_at TIMESTAMP WITH TIME ZONE;
+      ADD COLUMN IF NOT EXISTS force_logout_at TIMESTAMP WITH TIME ZONE,
+      ADD COLUMN IF NOT EXISTS discord_avatar VARCHAR(255);
     `;
     await sql`
       CREATE TABLE IF NOT EXISTS system_logs (

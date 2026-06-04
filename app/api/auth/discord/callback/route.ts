@@ -71,6 +71,7 @@ export async function GET(req: NextRequest) {
       UPDATE users 
       SET 
         discord_id = ${discordUser.id},
+        discord_avatar = ${discordUser.avatar || null},
         discord_access_token = ${tokenData.access_token},
         discord_refresh_token = ${tokenData.refresh_token}
       WHERE id = ${session.userId}

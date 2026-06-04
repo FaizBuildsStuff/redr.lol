@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Users, Search, MoreVertical, ShieldAlert, Clock, LogOut, Star, UserCheck, CheckCircle2 } from "lucide-react";
+import UserAvatar from "@/components/UserAvatar";
 
 interface User {
   id: number;
@@ -12,6 +13,8 @@ interface User {
   created_at: string;
   banned_until: string | null;
   timeout_until: string | null;
+  discord_id: string | null;
+  discord_avatar: string | null;
 }
 
 export default function OwnerUsersPage() {
@@ -142,9 +145,13 @@ export default function OwnerUsersPage() {
                     <tr key={user.id} className="border-b border-white/[0.02] hover:bg-white/[0.01] transition-colors relative">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-red-600/20 to-black border border-white/5 font-black uppercase text-red-500">
-                            {user.username.slice(0, 2)}
-                          </div>
+                          <UserAvatar
+                            discordId={user.discord_id}
+                            discordAvatar={user.discord_avatar}
+                            username={user.username}
+                            size={40}
+                            rounded="rounded-xl"
+                          />
                           <div>
                             <p className="font-bold text-white">{user.username}</p>
                             <p className="text-xs text-[#666] font-mono">{user.email}</p>
