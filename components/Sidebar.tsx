@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -30,6 +30,7 @@ interface UserProfile {
   id: number;
   username: string;
   email: string;
+  role?: string;
 }
 
 interface SidebarProps {
@@ -39,12 +40,15 @@ interface SidebarProps {
 
 export default function Sidebar({ user, setMobileOpen }: SidebarProps) {
   const pathname = usePathname();
-  
+  const router = useRouter();
+
   // Sidebar State
   const [accountOpen, setAccountOpen] = useState(true);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [shared, setShared] = useState(false);
-  
+
+
+
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown on click outside
@@ -74,6 +78,12 @@ export default function Sidebar({ user, setMobileOpen }: SidebarProps) {
     navigator.clipboard.writeText(`https://redr.lol/${user.username}`);
     setShared(true);
     setTimeout(() => setShared(false), 2000);
+  };
+
+  const handleLogoClick = () => {
+    if (user.role === "owner") {
+      router.push("/owner");
+    }
   };
 
   const formattedUid = `UID ${String(user.id).padStart(3, "0")},${String(Math.floor(Math.random() * 900) + 100)}`;
@@ -115,7 +125,7 @@ export default function Sidebar({ user, setMobileOpen }: SidebarProps) {
 
   return (
     <div className="relative flex h-full flex-col justify-between">
-      
+
       {/* BACKGROUND GLOW EFFECTS (z-0: fully locked behind clicks) */}
       <div className="pointer-events-none absolute inset-0 z-0">
         {/* Top Glow: Saturated & shifted for high visibility */}
@@ -162,50 +172,53 @@ export default function Sidebar({ user, setMobileOpen }: SidebarProps) {
 
       {/* FOREGROUND CONTENT CONTAINER (z-10: elevated above glows for clean clicks) */}
       <div className="relative z-10 flex h-full flex-col justify-between flex-1">
-        
+
         <div>
           {/* LOGO AREA */}
-          <div className="relative flex items-center gap-4 rounded-[24px] border border-white/[0.05] bg-white/[0.025] px-4 py-4 backdrop-blur-3xl">
+          <div
+            className="relative flex items-center gap-4 rounded-[24px] border border-white/[0.05] bg-white/[0.025] px-4 py-4 backdrop-blur-3xl cursor-pointer"
+            onClick={handleLogoClick}
+          >
 
-  {/* Glow */}
-  <div className="absolute inset-0 rounded-[24px] bg-gradient-to-r from-red-500/5 via-transparent to-transparent" />
+            {/* Glow */}
+            <div className="absolute inset-0 rounded-[24px] bg-gradient-to-r from-red-500/5 via-transparent to-transparent" />
 
-  {/* Logo */}
-  <div className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl border border-red-500/15 bg-red-500/5 shadow-[0_0_25px_rgba(239,68,68,0.12)]">
+            {/* Logo */}
+            <div className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl border border-red-500/15 bg-red-500/5 shadow-[0_0_25px_rgba(239,68,68,0.12)]">
 
-    <img
-      src="/Logo.png"
-      alt="redr logo"
-      className="
+              <img
+                src="/Logo.png"
+                alt="redr logo"
+                className="
       h-8
       w-8
       object-contain
       drop-shadow-[0_0_12px_rgba(239,68,68,0.45)]
     "
-    />
+              />
 
-  </div>
+            </div>
 
-  {/* Text */}
-  <div className="relative">
+            {/* Text */}
+            <div className="relative">
 
-    <span className="text-xl font-semibold tracking-[-0.04em] text-white">
-      redr
-      <span className="font-bold text-red-500">
-        .lol
-      </span>
-    </span>
+              <span className="text-xl font-semibold tracking-[-0.04em] text-white">
+                redr
+                <span className="font-bold text-red-500">
+                  .lol
+                </span>
+              </span>
 
-    {/* Tiny Glow Dot */}
-    <div className="absolute -right-4 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.9)]" />
+              {/* Tiny Glow Dot */}
+              <div className="absolute -right-4 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.9)]" />
 
-  </div>
+            </div>
 
-</div>
+          </div>
 
           {/* NAVIGATION MENUS */}
           <div className="mt-8 space-y-6">
-            
+
             {/* Account Group Accordion */}
             <div>
               <button
@@ -239,11 +252,10 @@ export default function Sidebar({ user, setMobileOpen }: SidebarProps) {
                         onClick={() => {
                           if (setMobileOpen) setMobileOpen(false);
                         }}
-                        className={`flex w-full items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-300 cursor-pointer ${
-                          isActive
+                        className={`flex w-full items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-300 cursor-pointer ${isActive
                             ? "bg-gradient-to-r from-red-500/15 to-transparent text-white border border-red-500/10 shadow-[0_0_30px_rgba(239,68,68,0.08)]"
                             : "text-[#8C8C8C] hover:text-white hover:bg-white/[0.03] hover:translate-x-[2px]"
-                        }`}
+                          }`}
                       >
                         <Icon className={`h-4 w-4 ${isActive ? "text-red-500" : ""}`} />
                         {sub.name}
@@ -266,11 +278,10 @@ export default function Sidebar({ user, setMobileOpen }: SidebarProps) {
                     onClick={() => {
                       if (setMobileOpen) setMobileOpen(false);
                     }}
-                    className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-300 cursor-pointer ${
-                      isActive
+                    className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-300 cursor-pointer ${isActive
                         ? "bg-red-500/10 text-red-400 border-l-2 border-red-500 font-semibold"
                         : "text-[#8C8C8C] hover:text-white hover:bg-white/[0.02]"
-                    }`}
+                      }`}
                   >
                     <Icon className={`h-4 w-4 ${isActive ? "text-red-500" : ""}`} />
                     {link.name}
@@ -284,7 +295,7 @@ export default function Sidebar({ user, setMobileOpen }: SidebarProps) {
 
         {/* FOOTER WIDGET SECTION */}
         <div className="space-y-6 pt-6 border-t border-white/5 relative z-10">
-          
+
           {/* HELP CENTER & MY PAGE WIDGETS */}
           <div className="relative space-y-3 rounded-2xl bg-white/[0.02] border border-white/5 p-4 overflow-hidden">
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-red-500/[0.06] via-transparent to-transparent" />
@@ -302,7 +313,7 @@ export default function Sidebar({ user, setMobileOpen }: SidebarProps) {
               </a>
             </div>
 
-            
+
 
             <div className="pt-3 border-t border-white/5">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-[#555]">Check out your page</p>
@@ -395,7 +406,7 @@ export default function Sidebar({ user, setMobileOpen }: SidebarProps) {
               )}
             </AnimatePresence>
 
-            
+
 
             {/* TRIGGER BASE CARD */}
             <div className="flex items-center justify-between relative overflow-hidden rounded-[24px] border border-white/[0.05] bg-white/[0.02] p-3 backdrop-blur-2xl">

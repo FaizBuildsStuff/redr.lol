@@ -63,7 +63,21 @@ export async function initDb() {
       ADD COLUMN IF NOT EXISTS link_clicks INTEGER DEFAULT 0,
       ADD COLUMN IF NOT EXISTS devices JSONB DEFAULT '{"desktop": 0, "mobile": 0, "tablet": 0}'::jsonb,
       ADD COLUMN IF NOT EXISTS referrers JSONB DEFAULT '{}'::jsonb,
-      ADD COLUMN IF NOT EXISTS onboarding_completed BOOLEAN DEFAULT false;
+      ADD COLUMN IF NOT EXISTS onboarding_completed BOOLEAN DEFAULT false,
+      ADD COLUMN IF NOT EXISTS role VARCHAR(50) DEFAULT 'user',
+      ADD COLUMN IF NOT EXISTS banned_until TIMESTAMP WITH TIME ZONE,
+      ADD COLUMN IF NOT EXISTS timeout_until TIMESTAMP WITH TIME ZONE,
+      ADD COLUMN IF NOT EXISTS force_logout_at TIMESTAMP WITH TIME ZONE;
+    `;
+    await sql`
+      CREATE TABLE IF NOT EXISTS system_logs (
+        id SERIAL PRIMARY KEY,
+        actor_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        target_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        action VARCHAR(255) NOT NULL,
+        details JSONB DEFAULT '{}'::jsonb,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
     `;
     console.log("Database schema initialized successfully.");
   } catch (error) {

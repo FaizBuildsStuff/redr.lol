@@ -1,19 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@/lib/db";
-import { verifyToken } from "@/lib/session";
-import { cookies } from "next/headers";
+import { checkUserAuth, unauthorizedResponse } from "@/lib/user-auth";
 
 export async function PATCH(req: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get("session")?.value;
-    if (!sessionCookie) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const user = verifyToken(sessionCookie);
+    const user = await checkUserAuth();
     if (!user || !user.userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorizedResponse();
     }
 
     const body = await req.json();

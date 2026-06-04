@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { sql, initDb } from "@/lib/db";
 import { createToken } from "@/lib/session";
+import { logSystemEvent } from "@/lib/logger";
 
 export async function POST(request: Request) {
   try {
@@ -24,7 +25,7 @@ export async function POST(request: Request) {
 
     // 4. Fetch the user from Neon DB
     const users = await sql`
-      SELECT id, username, email, password FROM users 
+      SELECT id, username, email, password, banned_until, timeout_until FROM users 
       WHERE email = ${cleanEmail}
       LIMIT 1
     `;
@@ -38,12 +39,26 @@ export async function POST(request: Request) {
 
     const user = users[0];
 
-    // 5. Compare passwords
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return NextResponse.json(
         { error: "Invalid email or password." },
         { status: 400 }
+      );
+    }
+
+    // 6. Check if banned or timed out
+    const now = new Date();
+    if (user.banned_until && new Date(user.banned_until) > now) {
+      return NextResponse.json(
+        { error: "This account has been banned." },
+        { status: 403 }
+      );
+    }
+    if (user.timeout_until && new Date(user.timeout_until) > now) {
+      return NextResponse.json(
+        { error: `This account is on timeout until ${new Date(user.timeout_until).toLocaleString()}.` },
+        { status: 403 }
       );
     }
 
@@ -80,6 +95,9 @@ export async function POST(request: Request) {
       path: "/",
       maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
     });
+
+    // Log the successful signin asynchronously
+    logSystemEvent("user_signin", { ip: request.headers.get("x-forwarded-for") || "unknown" }, user.id);
 
     return response;
   } catch (error: any) {

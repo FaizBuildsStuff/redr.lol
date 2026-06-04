@@ -1,23 +1,13 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { verifyToken } from "@/lib/session";
 import { sql } from "@/lib/db";
+import { checkUserAuth, unauthorizedResponse } from "@/lib/user-auth";
 
 /* SAVE DISCORD ID */
 export async function POST(req: Request) {
   try {
-    const cookieStore = await cookies();
-
-    const sessionCookie =
-      cookieStore.get("session")?.value;
-
-    const user = verifyToken(sessionCookie);
-
-    if (!user) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+    const user = await checkUserAuth();
+    if (!user || !user.userId) {
+      return unauthorizedResponse();
     }
 
     const { discord_id } = await req.json();
@@ -58,18 +48,9 @@ export async function POST(req: Request) {
 export async function DELETE() {
   try {
 
-    const cookieStore = await cookies();
-
-    const sessionCookie =
-      cookieStore.get("session")?.value;
-
-    const user = verifyToken(sessionCookie);
-
-    if (!user) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+    const user = await checkUserAuth();
+    if (!user || !user.userId) {
+      return unauthorizedResponse();
     }
 
     await sql`

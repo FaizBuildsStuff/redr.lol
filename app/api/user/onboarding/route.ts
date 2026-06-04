@@ -1,16 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@/lib/db";
-import { verifyToken } from "@/lib/session";
+import { checkUserAuth, unauthorizedResponse } from "@/lib/user-auth";
 import { cookies } from "next/headers";
 
 export async function POST(req: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get("session")?.value;
-    const user = verifyToken(sessionCookie);
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const user = await checkUserAuth();
+    if (!user || !user.userId) {
+      return unauthorizedResponse();
     }
 
     const data = await req.json().catch(() => ({}));

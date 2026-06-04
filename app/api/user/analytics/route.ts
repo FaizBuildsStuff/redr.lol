@@ -1,16 +1,15 @@
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/db";
-import { verifyToken } from "@/lib/session";
+import { checkUserAuth, unauthorizedResponse } from "@/lib/user-auth";
 import { cookies } from "next/headers";
 
 export async function GET() {
   try {
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get("session")?.value;
-    if (!sessionCookie) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const session = await checkUserAuth();
 
-    const session = verifyToken(sessionCookie);
-    if (!session || !session.userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!session || !session.userId) {
+      return unauthorizedResponse();
+    }
 
     const users = await sql`
       SELECT views, profile_clicks, link_clicks, devices, referrers

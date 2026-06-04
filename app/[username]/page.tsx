@@ -18,7 +18,7 @@ export default async function UserProfilePage({ params }: PageProps) {
   let user = null;
   try {
     const users = await sql`
-      SELECT id, username, email, discord_id, discord_access_token, created_at, typewriter_heading, typewriter_quotes, custom_links, active_badges, location, background_url, background_type, audios, audio_shuffle, audio_player_enabled, background_audio_enabled, discord_profile_transparency
+      SELECT id, username, email, discord_id, discord_access_token, created_at, typewriter_heading, typewriter_quotes, custom_links, active_badges, location, background_url, background_type, audios, audio_shuffle, audio_player_enabled, background_audio_enabled, discord_profile_transparency, banned_until, timeout_until
       FROM users 
       WHERE LOWER(TRIM(username)) = ${cleanUsername}
       LIMIT 1
@@ -30,8 +30,15 @@ export default async function UserProfilePage({ params }: PageProps) {
     console.error("Failed to query user profile:", error);
   }
 
-  // If user does not exist in Neon DB, trigger a custom aesthetic 404 identity screen
-  if (!user) {
+  // If user does not exist, or if they are banned/timed out, trigger the void screen
+  let isVoided = !user;
+  if (user) {
+    const now = new Date();
+    if (user.banned_until && new Date(user.banned_until) > now) isVoided = true;
+    if (user.timeout_until && new Date(user.timeout_until) > now) isVoided = true;
+  }
+
+  if (isVoided || !user) {
     return (
       <div className="relative flex min-h-screen flex-col items-center justify-center bg-[#0A0A0A] text-[#F5F1E8] px-6">
         <div className="absolute left-1/2 top-1/2 h-[350px] w-[350px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-red-600/5 blur-[120px] pointer-events-none" />

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyToken } from "@/lib/session";
+import { checkUserAuth, unauthorizedResponse } from "@/lib/user-auth";
 import { sql } from "@/lib/db";
 
 interface Audio {
@@ -12,24 +12,8 @@ interface Audio {
 export async function POST(req: NextRequest) {
   try {
 
-    const session =
-      req.cookies.get("session")?.value;
-
-    if (!session) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    const user = verifyToken(session);
-
-    if (!user) {
-      return NextResponse.json(
-        { error: "Invalid token" },
-        { status: 401 }
-      );
-    }
+    const user = await checkUserAuth();
+    if (!user || !user.userId) return unauthorizedResponse();
 
     const {
       audio_url,
@@ -139,24 +123,8 @@ export async function DELETE(
 ) {
   try {
 
-    const session =
-      req.cookies.get("session")?.value;
-
-    if (!session) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    const user = verifyToken(session);
-
-    if (!user) {
-      return NextResponse.json(
-        { error: "Invalid token" },
-        { status: 401 }
-      );
-    }
+    const user = await checkUserAuth();
+    if (!user || !user.userId) return unauthorizedResponse();
 
     const { audioId } =
       await req.json();
@@ -231,24 +199,8 @@ export async function PATCH(
 ) {
   try {
 
-    const session =
-      req.cookies.get("session")?.value;
-
-    if (!session) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    const user = verifyToken(session);
-
-    if (!user) {
-      return NextResponse.json(
-        { error: "Invalid token" },
-        { status: 401 }
-      );
-    }
+    const user = await checkUserAuth();
+    if (!user || !user.userId) return unauthorizedResponse();
 
     const {
       shuffle,

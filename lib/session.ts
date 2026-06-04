@@ -7,17 +7,19 @@ interface SessionPayload {
   username: string;
   email: string;
   expiresAt: number;
+  issuedAt?: number;
 }
 
-export type UserSession = Omit<SessionPayload, "expiresAt">;
+export type UserSession = Omit<SessionPayload, "expiresAt" | "issuedAt"> & { issuedAt?: number };
 
 /**
  * Creates a signed JWT-like token containing user session details.
  * Uses HMAC-SHA256 signature for tamper protection.
  */
-export function createToken(payload: UserSession, durationInMs = 7 * 24 * 60 * 60 * 1000): string {
+export function createToken(payload: Omit<UserSession, "issuedAt">, durationInMs = 7 * 24 * 60 * 60 * 1000): string {
   const expiresAt = Date.now() + durationInMs;
-  const data: SessionPayload = { ...payload, expiresAt };
+  const issuedAt = Date.now();
+  const data: SessionPayload = { ...payload, expiresAt, issuedAt };
   const dataStr = JSON.stringify(data);
   
   // Create HMAC signature
@@ -59,6 +61,7 @@ export function verifyToken(token: string | undefined): UserSession | null {
       userId: data.userId,
       username: data.username,
       email: data.email,
+      issuedAt: data.issuedAt,
     };
   } catch (e) {
     return null;

@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DashboardLoading, DashboardShell, Panel } from "@/components/DashboardUI";
+import Link from "next/link";
 
 interface UserProfile {
   id: number;
@@ -87,7 +88,13 @@ export default function BadgesPage() {
         if (data.user) {
           setUser(data.user);
           setActiveBadges(data.user.active_badges || []);
-          setOwnedBadges(data.user.owned_badges || []);
+
+          // Ensure that any active badges are also treated as owned badges,
+          // in case they were added directly to active_badges but not owned_badges in the DB.
+          const active = data.user.active_badges || [];
+          const owned = data.user.owned_badges || [];
+          const combinedOwned = Array.from(new Set([...owned, ...active]));
+          setOwnedBadges(combinedOwned);
         } else {
           router.push("/signin");
         }
@@ -156,9 +163,16 @@ export default function BadgesPage() {
               Badges are treated as small signals, not decoration overload. Keep your active set intentional and premium.
             </p>
           </div>
-          <Button className="h-11 rounded-2xl bg-white px-5 text-sm font-semibold text-black hover:bg-white/85">
-            Request custom badge
-          </Button>
+          import Link from "next/link";
+
+          <Link
+            href="https://discord.gg/ECvnDYQQFx"
+            target="_blank"
+          >
+            <Button className="h-11 rounded-2xl bg-white px-5 text-sm font-semibold text-black hover:bg-white/85">
+              Request custom badge
+            </Button>
+          </Link>
         </div>
       </Panel>
 
@@ -169,7 +183,25 @@ export default function BadgesPage() {
               <h2 className="text-lg font-semibold text-white">My badges</h2>
               <p className="mt-1 text-sm text-white/42">Toggle visibility on your public profile.</p>
             </div>
-            {saving ? <Loader2 className="h-4 w-4 animate-spin text-white/50" /> : savedSuccess ? <CheckCircle2 className="h-4 w-4 text-emerald-300" /> : null}
+            <div className="flex items-center gap-3">
+              {activeBadges.length > 0 && (
+                <div className="flex items-center gap-2 rounded-2xl border border-white/[0.08] bg-white/[0.02] p-2">
+                  {BADGE_REGISTRY.filter((b) => activeBadges.includes(b.id)).map((badge) => {
+                    const Icon = badge.icon;
+                    return (
+                      <div
+                        key={`active-${badge.id}`}
+                        title={badge.name}
+                        className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-black"
+                      >
+                        <Icon className="h-5 w-5" />
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              {saving ? <Loader2 className="h-4 w-4 animate-spin text-white/50" /> : savedSuccess ? <CheckCircle2 className="h-4 w-4 text-emerald-300" /> : null}
+            </div>
           </div>
 
           {myBadges.length === 0 ? (

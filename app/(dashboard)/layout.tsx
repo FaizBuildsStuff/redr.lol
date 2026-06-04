@@ -12,6 +12,7 @@ interface UserProfile {
   username: string;
   email: string;
   onboarding_completed?: boolean;
+  role?: string;
 }
 
 export default function DashboardLayout({
@@ -48,6 +49,10 @@ export default function DashboardLayout({
       }
     }
     checkAuth();
+
+    // Poll every 10 seconds to enforce real-time kicks/bans
+    const interval = setInterval(checkAuth, 10000);
+    return () => clearInterval(interval);
   }, [router]);
 
   if (loading) {

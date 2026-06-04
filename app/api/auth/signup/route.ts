@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { sql, initDb } from "@/lib/db";
 import { createToken } from "@/lib/session";
+import { logSystemEvent } from "@/lib/logger";
 
 export async function GET(request: Request) {
   try {
@@ -183,6 +184,9 @@ export async function POST(request: Request) {
       path: "/",
       maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
     });
+
+    // Log the successful signup asynchronously
+    logSystemEvent("user_signup", { ip: request.headers.get("x-forwarded-for") || "unknown" }, newUser.id);
 
     return response;
   } catch (error: any) {

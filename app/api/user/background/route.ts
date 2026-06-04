@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyToken } from "@/lib/session";
+import { checkUserAuth, unauthorizedResponse } from "@/lib/user-auth";
 import { sql } from "@/lib/db";
 
 /* SAVE BACKGROUND */
@@ -8,25 +8,8 @@ export async function POST(
 ) {
   try {
 
-    const session =
-      req.cookies.get("session")?.value;
-
-    if (!session) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    const user =
-      verifyToken(session);
-
-    if (!user) {
-      return NextResponse.json(
-        { error: "Invalid token" },
-        { status: 401 }
-      );
-    }
+    const user = await checkUserAuth();
+    if (!user || !user.userId) return unauthorizedResponse();
 
     const {
       background_url,
@@ -95,16 +78,8 @@ export async function PATCH(
   req: NextRequest
 ) {
   try {
-    const session = req.cookies.get("session")?.value;
-
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const user = verifyToken(session);
-    if (!user) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
+    const user = await checkUserAuth();
+    if (!user || !user.userId) return unauthorizedResponse();
 
     const { background_audio_enabled } = await req.json();
 
@@ -134,25 +109,8 @@ export async function DELETE(
 ) {
   try {
 
-    const session =
-      req.cookies.get("session")?.value;
-
-    if (!session) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    const user =
-      verifyToken(session);
-
-    if (!user) {
-      return NextResponse.json(
-        { error: "Invalid token" },
-        { status: 401 }
-      );
-    }
+    const user = await checkUserAuth();
+    if (!user || !user.userId) return unauthorizedResponse();
 
     const result = await sql`
       UPDATE users
