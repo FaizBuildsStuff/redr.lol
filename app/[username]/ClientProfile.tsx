@@ -992,22 +992,7 @@ function DiscordProfileCard({ user, discordData, connections }: DiscordProfileCa
   // OAuth connections (from Discord API via access token)
   const oauthConnections = connections || [];
 
-  if (!discordData) {
-    return (
-      <InteractiveCard isProfile={true} className="text-left w-[400px]">
-        <div className="w-full h-[140px] bg-stone-200/50 dark:bg-stone-800/50 animate-pulse rounded-t-2xl"></div>
-        <div className="px-5 pb-5 mt-[-52px] relative z-10">
-          <div className="w-[90px] h-[90px] bg-stone-300/50 dark:bg-stone-700/50 rounded-full border-[5px] border-white/10 dark:border-[#0A0A0A]/95 animate-pulse"></div>
-          <div className="mt-4 flex flex-col gap-2">
-            <div className="w-1/2 h-6 bg-stone-200/50 dark:bg-stone-800/50 rounded animate-pulse"></div>
-            <div className="w-1/3 h-4 bg-stone-200/50 dark:bg-stone-800/50 rounded animate-pulse"></div>
-            <div className="w-full h-12 bg-stone-200/50 dark:bg-stone-800/50 rounded-xl mt-4 animate-pulse"></div>
-            <div className="w-full h-12 bg-stone-200/50 dark:bg-stone-800/50 rounded-xl mt-2 animate-pulse"></div>
-          </div>
-        </div>
-      </InteractiveCard>
-    );
-  }
+  // Removed the skeleton loader block so that users without discordData render their basic profile
 
   return (
     <InteractiveCard isProfile={true} className="text-left w-[400px]">

@@ -75,6 +75,36 @@ export default async function UserProfilePage({ params }: PageProps) {
       });
       if (profileRes.ok) {
         initialDiscordData = await profileRes.json();
+      } else if (user.discord_access_token) {
+        // Fallback to official Discord API if the proxy fails (e.g. no mutual servers)
+        const meRes = await fetch("https://discord.com/api/v10/users/@me", {
+          headers: { Authorization: `Bearer ${user.discord_access_token}` },
+          cache: 'no-store'
+        });
+        if (meRes.ok) {
+          const meData = await meRes.json();
+          initialDiscordData = {
+            user: meData,
+            user_profile: { bio: "", pronouns: "", theme_colors: [] },
+            badges: []
+          };
+        }
+      }
+
+      // Ultimate fallback: if their access token is expired or proxy failed
+      if (!initialDiscordData && process.env.DISCORD_BOT_TOKEN) {
+        const botRes = await fetch(`https://discord.com/api/v10/users/${user.discord_id}`, {
+          headers: { Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}` },
+          cache: 'no-store'
+        });
+        if (botRes.ok) {
+          const botData = await botRes.json();
+          initialDiscordData = {
+            user: botData,
+            user_profile: { bio: "", pronouns: "", theme_colors: [] },
+            badges: []
+          };
+        }
       }
 
       if (user.discord_access_token) {
