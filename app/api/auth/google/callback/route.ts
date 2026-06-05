@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
 
   if (error) {
     if (state.action === "connect") {
-      return popupRedirect(req, "/onboarding?error=google_auth_denied");
+      return popupRedirect(req, "/dashboard/settings?error=google_auth_denied");
     }
     return popupRedirect(req, "/signin?error=google_auth_denied");
   }
@@ -95,14 +95,8 @@ export async function GET(req: NextRequest) {
         WHERE id = ${session.userId}
       `;
 
-      // Check if onboarding is completed
-      const [dbUser] = await sql`SELECT onboarding_completed FROM users WHERE id = ${session.userId}`;
-
-      if (dbUser && !dbUser.onboarding_completed) {
-        return popupRedirect(req, "/onboarding?success=google_connected");
-      }
-
-      return popupRedirect(req, "/dashboard/customize?success=google_connected");
+      // Always redirect back to settings — the user is already logged in and onboarded
+      return popupRedirect(req, "/dashboard/settings?success=google_connected");
     }
 
     // LOGIN / SIGNUP FLOW

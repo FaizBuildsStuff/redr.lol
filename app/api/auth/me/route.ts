@@ -17,7 +17,7 @@ export async function GET() {
     const [dbUser] = await sql`
       SELECT username, email, discord_id, discord_avatar, discord_access_token, typewriter_heading, typewriter_quotes, custom_links, active_badges, owned_badges,
         location, background_url, background_type, audios, audio_shuffle, audio_player_enabled, background_audio_enabled, discord_profile_transparency, onboarding_completed,
-        role, banned_until, timeout_until, force_logout_at
+        role, banned_until, timeout_until, force_logout_at, display_name, google_id
       FROM users
       WHERE id = ${user.userId}
     `;
@@ -105,6 +105,8 @@ export async function GET() {
         discord_profile_transparency: dbUser.discord_profile_transparency,
         onboarding_completed: dbUser.onboarding_completed,
         role: dbUser.role,
+        display_name: dbUser.display_name ?? null,
+        google_id: dbUser.google_id ?? null,
       } 
     });
   } catch (error) {

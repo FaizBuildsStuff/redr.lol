@@ -15,10 +15,11 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { username, email, currentPassword, newPassword } = body;
+    const { username, email, displayName, currentPassword, newPassword } = body;
 
     const cleanUsername = username?.trim().toLowerCase();
     const cleanEmail = email?.trim().toLowerCase();
+    const cleanDisplayName = displayName?.trim() ?? "";
 
     if (!cleanUsername || !cleanEmail) {
       return NextResponse.json({ error: "Username and email are required." }, { status: 400 });
@@ -39,7 +40,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Please enter a valid email address." }, { status: 400 });
     }
 
-    // Check if the username or email is already taken by someone else
+    // Check conflicts
     const existingUsers = await sql`
       SELECT id, username, email FROM users 
       WHERE (username = ${cleanUsername} OR email = ${cleanEmail}) AND id != ${session.userId}
@@ -55,39 +56,38 @@ export async function POST(req: NextRequest) {
     }
 
     const [currentUser] = await sql`SELECT password FROM users WHERE id = ${session.userId}`;
-
     let finalPasswordHash = currentUser.password;
 
-    // Handle password change if newPassword is provided
     if (newPassword) {
       if (newPassword.length < 6) {
         return NextResponse.json({ error: "New password must be at least 6 characters long." }, { status: 400 });
       }
-      
       if (!currentPassword) {
         return NextResponse.json({ error: "Current password is required to set a new password." }, { status: 400 });
       }
-
       const isPasswordValid = await bcrypt.compare(currentPassword, currentUser.password);
       if (!isPasswordValid) {
         return NextResponse.json({ error: "Current password is incorrect." }, { status: 400 });
       }
-
       const salt = await bcrypt.genSalt(10);
       finalPasswordHash = await bcrypt.hash(newPassword, salt);
     }
 
-    // Update the database
+    // Ensure display_name column exists
+    await sql`
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS display_name VARCHAR(100) DEFAULT NULL
+    `.catch(() => null);
+
     await sql`
       UPDATE users 
       SET 
         username = ${cleanUsername},
         email = ${cleanEmail},
-        password = ${finalPasswordHash}
+        password = ${finalPasswordHash},
+        display_name = ${cleanDisplayName || null}
       WHERE id = ${session.userId}
     `;
 
-    // Create a new session token since username/email might have changed
     const newToken = createToken({
       userId: session.userId,
       username: cleanUsername,
@@ -96,19 +96,18 @@ export async function POST(req: NextRequest) {
 
     const response = NextResponse.json({
       success: true,
-      message: "Settings updated successfully."
+      message: "Settings updated successfully.",
     });
 
     response.cookies.set("session", newToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60, // 7 days
+      maxAge: 7 * 24 * 60 * 60,
       path: "/",
     });
 
     return response;
-
   } catch (error: any) {
     console.error("Settings API Error:", error);
     return NextResponse.json(

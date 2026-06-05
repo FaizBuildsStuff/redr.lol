@@ -72,7 +72,10 @@ export async function initDb() {
       ADD COLUMN IF NOT EXISTS google_id VARCHAR(255),
       ADD COLUMN IF NOT EXISTS google_avatar VARCHAR(255),
       ADD COLUMN IF NOT EXISTS google_access_token TEXT,
-      ADD COLUMN IF NOT EXISTS google_refresh_token TEXT;
+      ADD COLUMN IF NOT EXISTS google_refresh_token TEXT,
+      ADD COLUMN IF NOT EXISTS display_name VARCHAR(100) DEFAULT NULL,
+      ADD COLUMN IF NOT EXISTS email_marketing BOOLEAN DEFAULT true,
+      ADD COLUMN IF NOT EXISTS recovery_codes JSONB DEFAULT NULL;
     `;
     await sql`
       CREATE TABLE IF NOT EXISTS system_logs (
