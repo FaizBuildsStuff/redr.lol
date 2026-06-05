@@ -166,9 +166,8 @@ function ToggleSwitch({
     <button
       type="button"
       onClick={() => !loading && onChange(!enabled)}
-      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 transition-all duration-300 ${
-        enabled ? "border-red-600/60 bg-red-600" : "border-white/10 bg-[#1A1A1A]"
-      } ${loading ? "opacity-60 cursor-wait" : ""}`}
+      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 transition-all duration-300 ${enabled ? "border-red-600/60 bg-red-600" : "border-white/10 bg-[#1A1A1A]"
+        } ${loading ? "opacity-60 cursor-wait" : ""}`}
     >
       <motion.span
         animate={{ x: enabled ? 20 : 2 }}
@@ -514,11 +513,10 @@ export default function SettingsPage() {
               animate={{ opacity: 1, x: 0, scale: 1 }}
               exit={{ opacity: 0, x: 40, scale: 0.95 }}
               transition={{ type: "spring", stiffness: 380, damping: 28 }}
-              className={`flex max-w-sm items-start gap-2.5 rounded-xl border px-4 py-3 shadow-xl ${
-                t.type === "success"
+              className={`flex max-w-sm items-start gap-2.5 rounded-xl border px-4 py-3 shadow-xl ${t.type === "success"
                   ? "border-green-500/20 bg-[#091209]/90 text-green-400"
                   : "border-red-500/20 bg-[#130505]/90 text-red-400"
-              } backdrop-blur-xl`}
+                } backdrop-blur-xl`}
             >
               {t.type === "success" ? (
                 <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
@@ -607,35 +605,6 @@ export default function SettingsPage() {
             </form>
           </SectionCard>
 
-          {/* ══════════════ SECTION 2 – Language ══════════════ */}
-          <SectionCard
-            icon={<Globe className="h-4 w-4" />}
-            title="Language Settings"
-            subtitle="Choose the language you want to use on redr.lol."
-          >
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-              {languages.map((lang) => (
-                <button
-                  key={lang.code}
-                  type="button"
-                  onClick={() => {
-                    setLanguage(lang.code);
-                    push("success", `Language set to ${lang.label}.`);
-                  }}
-                  className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 text-left text-xs font-medium transition-all duration-200 ${
-                    language === lang.code
-                      ? "border-red-500/40 bg-red-500/10 text-red-400"
-                      : "border-white/[0.06] bg-[#111]/60 text-[#888] hover:border-white/10 hover:text-white"
-                  }`}
-                >
-                  {language === lang.code && (
-                    <div className="h-1.5 w-1.5 rounded-full bg-red-500 shrink-0" />
-                  )}
-                  {lang.label}
-                </button>
-              ))}
-            </div>
-          </SectionCard>
 
           {/* ══════════════ SECTION 3 – Discord Settings ══════════════ */}
           <SectionCard
