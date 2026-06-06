@@ -74,7 +74,10 @@ export default async function UserProfilePage({ params }: PageProps) {
         cache: 'no-store'
       });
       if (profileRes.ok) {
-        initialDiscordData = await profileRes.json();
+        const profileJson = await profileRes.json();
+        if (profileJson && profileJson.user) {
+          initialDiscordData = profileJson;
+        }
       } else if (user.discord_access_token) {
         // Fallback to official Discord API if the proxy fails (e.g. no mutual servers)
         const meRes = await fetch("https://discord.com/api/v10/users/@me", {
