@@ -75,7 +75,12 @@ export async function initDb() {
       ADD COLUMN IF NOT EXISTS google_refresh_token TEXT,
       ADD COLUMN IF NOT EXISTS display_name VARCHAR(100) DEFAULT NULL,
       ADD COLUMN IF NOT EXISTS email_marketing BOOLEAN DEFAULT true,
-      ADD COLUMN IF NOT EXISTS recovery_codes JSONB DEFAULT NULL;
+      ADD COLUMN IF NOT EXISTS recovery_codes JSONB DEFAULT NULL,
+      ADD COLUMN IF NOT EXISTS discord_bio TEXT,
+      ADD COLUMN IF NOT EXISTS discord_pronouns VARCHAR(255),
+      ADD COLUMN IF NOT EXISTS discord_banner VARCHAR(255),
+      ADD COLUMN IF NOT EXISTS discord_theme_colors JSONB,
+      ADD COLUMN IF NOT EXISTS discord_badges_data JSONB;
     `;
     await sql`
       CREATE TABLE IF NOT EXISTS system_logs (

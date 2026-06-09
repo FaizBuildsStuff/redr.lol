@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef } from "react";
 
 export interface LanyardData {
   spotify: any;
@@ -26,81 +26,121 @@ export interface LanyardData {
 
 export function useLanyard(discordId: string | null | undefined) {
   const [data, setData] = useState<LanyardData | null>(null);
-  const socketRef = useRef<WebSocket | null>(null);
-  const heartbeatRef = useRef<NodeJS.Timeout | null>(null);
-  const reconnectAttempts = useRef(0);
-  const maxReconnectAttempts = 5;
-  const baseReconnectDelay = 1000;
-
-  const cleanup = useCallback(() => {
-    if (heartbeatRef.current) {
-      clearInterval(heartbeatRef.current);
-      heartbeatRef.current = null;
-    }
-    if (socketRef.current) {
-      socketRef.current.close();
-      socketRef.current = null;
-    }
-  }, []);
-
-  const connect = useCallback(() => {
-    if (!discordId) return;
-
-    cleanup();
-
-    const ws = new WebSocket("wss://api.lanyard.rest/socket");
-    socketRef.current = ws;
-
-    ws.onopen = () => {
-      reconnectAttempts.current = 0;
-      ws.send(
-        JSON.stringify({
-          op: 2,
-          d: {
-            subscribe_to_id: discordId,
-          },
-        })
-      );
-    };
-
-    ws.onmessage = (event) => {
-      try {
-        const message = JSON.parse(event.data);
-
-        if (message.d?.heartbeat_interval) {
-          heartbeatRef.current = setInterval(() => {
-            if (ws.readyState === WebSocket.OPEN) {
-              ws.send(JSON.stringify({ op: 3 }));
-            }
-          }, message.d.heartbeat_interval);
-        }
-
-        if (message.t === "INIT_STATE" || message.t === "PRESENCE_UPDATE") {
-          setData(message.d);
-        }
-      } catch (error) {
-        console.error("Error parsing Lanyard WebSocket message:", error);
-      }
-    };
-
-    ws.onclose = (event) => {
-      cleanup();
-      if (!event.wasClean && reconnectAttempts.current < maxReconnectAttempts) {
-        const delay = baseReconnectDelay * Math.pow(2, reconnectAttempts.current);
-        reconnectAttempts.current++;
-        setTimeout(connect, delay);
-      }
-    };
-  }, [discordId, cleanup]);
 
   useEffect(() => {
-    if (discordId) {
-      connect();
-    } else {
+    if (!discordId) {
       setData(null);
+      return;
     }
-    return () => cleanup();
-  }, [discordId, connect, cleanup]);
+
+    let ws: WebSocket | null = null;
+    let heartbeat: ReturnType<typeof setInterval> | null = null;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+    let connectTimer: ReturnType<typeof setTimeout> | null = null;
+    let attempts = 0;
+    const MAX_ATTEMPTS = 5;
+    const BASE_DELAY = 3000;
+    // This flag is set to true the moment cleanup runs so that no
+    // callback scheduled in the future can open a new socket.
+    let dead = false;
+
+    function destroySocket() {
+      if (heartbeat) { clearInterval(heartbeat); heartbeat = null; }
+      if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+      if (ws) {
+        const s = ws;
+        ws = null;
+        // Null out all handlers BEFORE closing so the onclose handler
+        // never fires and never tries to schedule a reconnect.
+        s.onopen = null;
+        s.onmessage = null;
+        s.onerror = null;
+        s.onclose = null;
+        // Only call close() when the socket is fully OPEN to avoid the
+        // "WebSocket closed before connection established" browser warning.
+        if (s.readyState === WebSocket.OPEN) {
+          s.close(1000, "cleanup");
+        }
+        // If it's still CONNECTING we just dropped the handlers — the
+        // browser will complete the handshake and then idle; no warning.
+      }
+    }
+
+    function scheduleConnect(delay = 0) {
+      if (dead) return;
+      connectTimer = setTimeout(() => {
+        if (dead) return;
+        openSocket();
+      }, delay);
+    }
+
+    function openSocket() {
+      if (dead) return;
+      destroySocket();
+
+      try {
+        ws = new WebSocket("wss://api.lanyard.rest/socket");
+      } catch {
+        return; // WebSocket not available (SSR safety)
+      }
+
+      ws.onopen = () => {
+        if (dead || !ws) return;
+        attempts = 0;
+        ws.send(JSON.stringify({ op: 2, d: { subscribe_to_id: discordId } }));
+      };
+
+      ws.onmessage = (event) => {
+        if (dead) return;
+        try {
+          const msg = JSON.parse(event.data as string);
+          if (msg.d?.heartbeat_interval) {
+            if (heartbeat) clearInterval(heartbeat);
+            heartbeat = setInterval(() => {
+              if (ws?.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ op: 3 }));
+              }
+            }, msg.d.heartbeat_interval);
+          }
+          if (msg.t === "INIT_STATE" || msg.t === "PRESENCE_UPDATE") {
+            setData(msg.d);
+          }
+        } catch {
+          // ignore malformed frames
+        }
+      };
+
+      ws.onerror = () => {
+        // onclose fires right after; let it handle retry
+      };
+
+      ws.onclose = () => {
+        if (dead) return;
+        if (heartbeat) { clearInterval(heartbeat); heartbeat = null; }
+        ws = null;
+        if (attempts < MAX_ATTEMPTS) {
+          const delay = BASE_DELAY * Math.pow(2, attempts);
+          attempts++;
+          reconnectTimer = setTimeout(() => scheduleConnect(), delay);
+        }
+      };
+    }
+
+    // ⬇ Delay the initial connect by 150 ms.
+    // React 18 Strict Mode intentionally mounts → unmounts → remounts
+    // every component in development. If cleanup fires within 150 ms
+    // (it always does for the Strict-Mode ghost mount) the timer is
+    // cancelled and the socket is never created — eliminating the
+    // "WebSocket closed before connection established" warning entirely.
+    scheduleConnect(150);
+
+    return () => {
+      dead = true;
+      if (connectTimer) { clearTimeout(connectTimer); connectTimer = null; }
+      destroySocket();
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [discordId]);
 
   return { data };
 }

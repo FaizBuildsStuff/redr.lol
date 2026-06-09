@@ -10,6 +10,7 @@ import {
   Music, Eye
 } from "lucide-react";
 import { useLanyard } from "@/hooks/use-lanyard";
+import FloatingActivity from "@/components/FloatingActivity";
 
 // ========================================
 // Inline SVG Controls
@@ -480,21 +481,18 @@ function ClockWidget({
 // Shadow/Terminal Quote Widget Component
 // ========================================
 function ShadowWidget({ heading, quotesProp }: { heading?: string; quotesProp?: string[] }) {
-  const quotes = quotesProp && quotesProp.length > 0 ? quotesProp : [
-    "The world doesn't need heroes, it needs someone to pull the strings from the shadows.",
-    "True power lies not in being seen, but in orchestrating the unseen.",
-    "A masterpiece is never rushed, it is carefully constructed layer by layer.",
-    "You only see what I allow you to see.",
-  ];
+  const quotes = quotesProp && quotesProp.length > 0 ? quotesProp : [];
   const [currentQuote, setCurrentQuote] = useState('');
   const quoteIndex = useRef(0);
   const charIndex = useRef(0);
   const isDeleting = useRef(false);
 
   useEffect(() => {
+    if (quotes.length === 0) return;
     let typeTimeout: NodeJS.Timeout;
     const startTyping = () => {
       const currentFullQuote = quotes[quoteIndex.current];
+      if (!currentFullQuote) return;
       const deleting = isDeleting.current;
       const charIdx = charIndex.current;
       if (deleting) { setCurrentQuote(currentFullQuote.substring(0, charIdx - 1)); charIndex.current = charIdx - 1; }
@@ -523,15 +521,21 @@ function ShadowWidget({ heading, quotesProp }: { heading?: string; quotesProp?: 
             <path strokeLinecap="round" strokeLinejoin="round" d="M8 9l3 3-3 3m5 0h3" />
           </svg>
           <span className="font-['Cinzel'] font-bold text-[0.85rem] tracking-[2px] uppercase text-stone-900 dark:text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]">
-            {heading || "Web Designer & Developer"}
+            {heading || "New User"}
           </span>
         </div>
-        <div className="shadow-quote font-['Playfair_Display'] italic text-[0.95rem] md:text-[1rem] leading-relaxed text-stone-900 dark:text-white border-l-[3px] border-stone-400 dark:border-white/20 pl-4 opacity-95 min-h-[4.5em] flex items-center select-none">
-          <span>
-            &ldquo;{currentQuote}
-            <span className="typewriter-cursor inline-block font-normal ml-0.5 animate-[pulse_1s_infinite] select-none">|</span>&rdquo;
-          </span>
-        </div>
+        {quotes.length > 0 ? (
+          <div className="shadow-quote font-['Playfair_Display'] italic text-[0.95rem] md:text-[1rem] leading-relaxed text-stone-900 dark:text-white border-l-[3px] border-stone-400 dark:border-white/20 pl-4 opacity-95 min-h-[4.5em] flex items-center select-none">
+            <span>
+              &ldquo;{currentQuote}
+              <span className="typewriter-cursor inline-block font-normal ml-0.5 animate-[pulse_1s_infinite] select-none">|</span>&rdquo;
+            </span>
+          </div>
+        ) : (
+          <div className="shadow-quote font-['Playfair_Display'] italic text-[0.95rem] leading-relaxed text-stone-900/40 dark:text-white/30 border-l-[3px] border-stone-400/30 dark:border-white/10 pl-4 min-h-[4.5em] flex items-center select-none">
+            <span className="typewriter-cursor inline-block font-normal animate-[pulse_1s_infinite]">|</span>
+          </div>
+        )}
       </div>
     </InteractiveCard>
   );
@@ -714,12 +718,7 @@ function ScrambleLink({ href, label, icon, title, username }: ScrambleLinkProps)
 // Social Connection Grid Widget Component
 // ========================================
 function SocialWidget({ customLinks, username }: { customLinks?: any[], username?: string }) {
-  const links = customLinks && customLinks.length > 0 ? customLinks.filter(l => l.active !== false) : [
-    { title: "GitHub", url: "https://github.com/Camilo404", iconType: "github" },
-    { title: "YouTube", url: "https://www.youtube.com/channel/UChzlaSE1adSPVGYBBOQ1ibg", iconType: "youtube" },
-    { title: "Instagram", url: "https://www.instagram.com/camiloxtz/", iconType: "instagram" },
-    { title: "Steam", url: "https://steamcommunity.com/profiles/76561198832154348/", iconType: "steam" },
-  ];
+  const links = customLinks && customLinks.length > 0 ? customLinks.filter(l => l.active !== false) : [];
 
   const renderIcon = (type: string) => {
     switch (type) {
@@ -732,6 +731,9 @@ function SocialWidget({ customLinks, username }: { customLinks?: any[], username
       default: return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4.5 w-4.5"><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg>;
     }
   };
+
+  // Don't render the card at all for new users with no links set
+  if (links.length === 0) return null;
 
   return (
     <InteractiveCard className="social-card-container flex flex-col p-6 w-full text-left">
@@ -879,6 +881,7 @@ interface DiscordProfileCardProps {
   };
   discordData: DiscordData | null;
   connections: OAuthConnection[];
+  lanyard: any;
 }
 
 interface OAuthConnection {
@@ -937,8 +940,7 @@ const statusColors: Record<string, string> = {
   offline: "#747f8d",
 };
 
-function DiscordProfileCard({ user, discordData, connections }: DiscordProfileCardProps) {
-  const { data: lanyard } = useLanyard(user.discord_id || "");
+function DiscordProfileCard({ user, discordData, connections, lanyard }: DiscordProfileCardProps) {
   const [message, setMessage] = useState('');
   const [bannerError, setBannerError] = useState(false);
   const [bannerLoaded, setBannerLoaded] = useState(false);
@@ -1426,6 +1428,9 @@ export default function ClientProfile({ user, initialDiscordData, initialConnect
 
   const [discordData, setDiscordData] = useState<DiscordData | null>(initialDiscordData || null);
   const [connections] = useState<OAuthConnection[]>(initialConnections || []);
+
+  const { data: lanyard } = useLanyard(user.discord_id || "");
+  const floatingActivities = lanyard?.activities?.filter((a: any) => a.type !== 4) || [];
 
   useEffect(() => {
     if (bgVideoRef.current) {
@@ -2055,7 +2060,7 @@ export default function ClientProfile({ user, initialDiscordData, initialConnect
             <div className="grid grid-cols-1 lg:grid-cols-[400px_400px] gap-6 justify-center items-start w-fit mx-auto">
               {/* Left Column: Discord Profile Card */}
               <div className="flex justify-center w-full">
-                <DiscordProfileCard user={user} discordData={discordData} connections={connections} />
+                <DiscordProfileCard user={user} discordData={discordData} connections={connections} lanyard={lanyard} />
               </div>
 
               {/* Right Column: Stacked Bento Widgets */}
@@ -2074,6 +2079,7 @@ export default function ClientProfile({ user, initialDiscordData, initialConnect
           </motion.div>
         )}
       </AnimatePresence>
+      {floatingActivities.length > 0 && <FloatingActivity activities={floatingActivities} />}
     </div>
   );
 }

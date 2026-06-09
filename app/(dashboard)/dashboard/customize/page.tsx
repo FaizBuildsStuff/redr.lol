@@ -57,10 +57,8 @@ export default function CustomizePage() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const [typewriterHeading, setTypewriterHeading] = useState("Web Designer & Developer");
-  const [typewriterQuotes, setTypewriterQuotes] = useState<string[]>([
-    "The world doesn't need heroes, it needs someone to pull the strings from the shadows.",
-  ]);
+  const [typewriterHeading, setTypewriterHeading] = useState("");
+  const [typewriterQuotes, setTypewriterQuotes] = useState<string[]>([]);
 
   const [saving, setSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
