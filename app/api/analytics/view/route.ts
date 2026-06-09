@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/db";
-import { headers } from "next/headers";
+import { headers, cookies } from "next/headers";
 
 export async function POST(req: Request) {
   try {
@@ -8,6 +8,18 @@ export async function POST(req: Request) {
     if (!username) return NextResponse.json({ error: "Missing username" }, { status: 400 });
 
     const cleanUsername = username.trim().toLowerCase();
+
+    // 1. Get user id
+    const users = await sql`SELECT id FROM users WHERE LOWER(username) = ${cleanUsername}`;
+    if (users.length === 0) return NextResponse.json({ error: "User not found" }, { status: 404 });
+    const userId = users[0].id;
+
+    // Check cookie to prevent reload view inflation
+    const cookieStore = await cookies();
+    const cookieName = `viewed_${userId}`;
+    if (cookieStore.has(cookieName)) {
+      return NextResponse.json({ success: true, skipped: true });
+    }
 
     // Get headers
     const headersList = await headers();
@@ -30,10 +42,7 @@ export async function POST(req: Request) {
       }
     }
 
-    // 1. Get user id
-    const users = await sql`SELECT id FROM users WHERE LOWER(username) = ${cleanUsername}`;
-    if (users.length === 0) return NextResponse.json({ error: "User not found" }, { status: 404 });
-    const userId = users[0].id;
+
 
     // 2. Update users total views, devices, referrers
     await sql`
@@ -54,6 +63,14 @@ export async function POST(req: Request) {
       ON CONFLICT (user_id, date) DO UPDATE 
       SET views = daily_analytics.views + 1
     `;
+
+    // Set cookie to prevent re-counting for 30 days
+    cookieStore.set(cookieName, "1", {
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

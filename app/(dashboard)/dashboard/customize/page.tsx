@@ -12,6 +12,7 @@ import {
   X,
   Music,
   MapPin,
+  DoorOpen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,6 +45,7 @@ interface UserProfile {
   background_audio_enabled?: boolean;
   location?: string;
   discord_profile_transparency?: number;
+  enter_screen_text?: string;
 }
 
 interface Audio {
@@ -59,6 +61,7 @@ export default function CustomizePage() {
 
   const [typewriterHeading, setTypewriterHeading] = useState("");
   const [typewriterQuotes, setTypewriterQuotes] = useState<string[]>([]);
+  const [enterScreenText, setEnterScreenText] = useState("");
 
   const [saving, setSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
@@ -97,6 +100,7 @@ export default function CustomizePage() {
           setUser(data.user);
           if (data.user.discord_id) setInputDiscordId(data.user.discord_id);
           if (data.user.typewriter_heading) setTypewriterHeading(data.user.typewriter_heading);
+          if (data.user.enter_screen_text) setEnterScreenText(data.user.enter_screen_text);
           if (data.user.typewriter_quotes && data.user.typewriter_quotes.length > 0) {
             setTypewriterQuotes(data.user.typewriter_quotes);
           }
@@ -146,6 +150,7 @@ export default function CustomizePage() {
           typewriter_heading: typewriterHeading,
           typewriter_quotes: typewriterQuotes,
           discord_profile_transparency: discordProfileTransparency,
+          enter_screen_text: enterScreenText,
         }),
       });
       if (res.ok) {
@@ -830,7 +835,31 @@ export default function CustomizePage() {
           <div>
             <h2 className="mb-4 text-xl font-bold tracking-tight text-white/90">General Customization</h2>
             <div className="grid gap-4 lg:grid-cols-2">
-              
+
+              {/* INTRO SCREEN TEXT */}
+              <div className="relative overflow-hidden rounded-2xl border border-white/5 bg-white/[0.02] p-5 backdrop-blur-xl h-fit">
+                <div className="absolute top-0 left-0 h-32 w-32 rounded-full bg-emerald-500/10 blur-[80px]" />
+                <div className="relative z-10">
+                  <div className="mb-4 flex items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10">
+                      <DoorOpen className="h-4 w-4 text-emerald-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-semibold text-white">Intro Screen</h3>
+                      <p className="text-xs text-white/40">Text shown before profile loads</p>
+                    </div>
+                  </div>
+                  <Input
+                    type="text"
+                    value={enterScreenText}
+                    onChange={(e) => setEnterScreenText(e.target.value)}
+                    placeholder="click to enter..."
+                    className="h-9 rounded-lg border-white/10 bg-black/40 text-xs text-white focus:border-emerald-500/30"
+                  />
+                  <p className="mt-2 text-[10px] text-white/25">Saved with Apply Changes above.</p>
+                </div>
+              </div>
+
               {/* TYPEWRITER */}
               <div className="relative overflow-hidden rounded-2xl border border-white/5 bg-white/[0.02] p-5 backdrop-blur-xl">
                 <div className="absolute top-0 right-0 h-32 w-32 rounded-full bg-red-500/10 blur-[80px]" />

@@ -222,21 +222,6 @@ const Footer = () => {
               modern customization, profile effects, and creative freedom.
             </p>
 
-            {/* Mini Input */}
-            <div className="group relative mt-8 flex h-[58px] max-w-sm items-center overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] px-5 backdrop-blur-2xl transition-all duration-300 focus-within:border-red-500/20">
-
-              <span className="mr-1 text-sm text-[#777]">
-                redr.lol/
-              </span>
-
-              <input
-                type="text"
-                placeholder="username"
-                className="h-full w-full bg-transparent text-sm text-white outline-none placeholder:text-[#555]"
-              />
-
-              <div className="h-2 w-2 rounded-full bg-red-500" />
-            </div>
           </div>
 
           {/* Links */}

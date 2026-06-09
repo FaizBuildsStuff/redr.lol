@@ -1299,47 +1299,7 @@ function DiscordProfileCard({ user, discordData, connections, lanyard }: Discord
             </section>
           )}
 
-          {/* Activities / Rich Presence */}
-          {lanyard?.activities?.filter((a: any) => a.type !== 4).map((activity: any, idx: number) => (
-            <div key={idx} className="section activity-section mt-2">
-              <h3 className="section-title text-[10px] font-bold uppercase text-stone-400 dark:text-stone-400 tracking-widest mb-2">
-                {activity.type === 0 ? "Playing a game" : activity.type === 2 ? "Listening to Spotify" : activity.type === 3 ? "Watching" : "Activity"}
-              </h3>
-              <div className="flex gap-3 items-center p-2 rounded-xl bg-stone-50 dark:bg-white/5 border border-stone-100 dark:border-white/5">
-                <div className="w-14 h-14 rounded-lg bg-stone-200 dark:bg-neutral-800 flex-shrink-0 overflow-hidden relative">
-                  {activity.assets?.large_image ? (
-                    <img
-                      src={activity.assets.large_image.startsWith("spotify:")
-                        ? `https://i.scdn.co/image/${activity.assets.large_image.replace("spotify:", "")}`
-                        : activity.assets.large_image.startsWith("mp:")
-                          ? `https://media.discordapp.net/${activity.assets.large_image.replace("mp:", "")}`
-                          : `https://cdn.discordapp.com/app-assets/${activity.application_id}/${activity.assets.large_image}.png`}
-                      alt={activity.assets?.large_text || activity.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-black/10 dark:bg-black/40">
-                      <Tv className="w-5 h-5 text-stone-400 dark:text-white/20" />
-                    </div>
-                  )}
-                  {activity.assets?.small_image && (
-                    <img
-                      src={activity.assets.small_image.startsWith("mp:")
-                        ? `https://media.discordapp.net/${activity.assets.small_image.replace("mp:", "")}`
-                        : `https://cdn.discordapp.com/app-assets/${activity.application_id}/${activity.assets.small_image}.png`}
-                      alt={activity.assets?.small_text}
-                      className="absolute bottom-[-2px] right-[-2px] w-5 h-5 rounded-full border-2 border-stone-50 dark:border-[#111214] bg-stone-100 dark:bg-[#111214]"
-                    />
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-bold text-xs text-stone-900 dark:text-white truncate">{activity.name}</div>
-                  {activity.details && <div className="text-xs text-stone-500 dark:text-[#b5bac1] truncate">{activity.details}</div>}
-                  {activity.state && <div className="text-xs text-stone-500 dark:text-[#b5bac1] truncate">{activity.state}</div>}
-                </div>
-              </div>
-            </div>
-          ))}
+
 
           {/* OAuth Connections — shown if user connected via Discord OAuth */}
           {oauthConnections.length > 0 && (
@@ -1407,6 +1367,7 @@ interface ClientProfileProps {
     audio_shuffle?: boolean;
     audio_player_enabled?: boolean;
     discord_profile_transparency?: number;
+    enter_screen_text?: string;
   };
   initialDiscordData?: DiscordData | null;
   initialConnections?: OAuthConnection[];
@@ -2009,44 +1970,19 @@ export default function ClientProfile({ user, initialDiscordData, initialConnect
           <motion.div
             key="intro-screen"
             initial={{ opacity: 1 }}
-            exit={{ opacity: 0, scale: 1.08 }}
-            transition={{ duration: 0.55, ease: "easeInOut" }}
+            exit={{ opacity: 0, scale: 1.05 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             onClick={handleEnterChamber}
-            className="absolute inset-0 z-40 bg-[#F5F5F5] dark:bg-[#0A0A0A] flex flex-col items-center justify-center cursor-pointer p-6 transition-colors duration-500 select-none z-30"
+            className="absolute inset-0 z-40 bg-black flex flex-col items-center justify-center cursor-pointer transition-colors duration-700 select-none"
           >
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              <div className="absolute left-1/2 top-1/2 h-[300px] w-[300px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-red-600/10 blur-[100px] animate-pulse" />
-            </div>
-
-            <div className="relative z-10 text-center space-y-8 flex flex-col items-center">
-              <motion.div
-                animate={{ scale: [1, 1.05, 1], borderColor: ["rgba(239,68,68,0.2)", "rgba(239,68,68,0.5)", "rgba(239,68,68,0.2)"] }}
-                transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
-                className="flex h-24 w-24 items-center justify-center rounded-full border border-red-500/20 bg-[#0A0303] shadow-[0_0_40px_rgba(239,68,68,0.1)] relative"
-              >
-                <Disc3 className="h-10 w-10 text-red-500 animate-spin" style={{ animationDuration: "8s" }} />
-                <div className="absolute -inset-2 rounded-full border border-dashed border-red-500/5 animate-spin" style={{ animationDuration: "12s" }} />
-              </motion.div>
-
-              <div className="space-y-2">
-                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-stone-500 dark:text-stone-400">Chamber Security Active</p>
-                <h1 className="text-xl font-bold uppercase tracking-[0.2em] text-stone-900 dark:text-white">
-                  Unlock @{discordData?.user?.username || user.username}
-                </h1>
-                <p className="text-xs text-stone-600 dark:text-[#8C8C8C] max-w-[280px] leading-relaxed mx-auto">
-                  Tapping the chamber de-crypts visual styles and streams background wave frequencies.
-                </p>
-              </div>
-
-              <motion.div
-                animate={{ opacity: [0.3, 1, 0.3] }}
-                transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
-                className="flex items-center gap-2 rounded-full border border-red-500/20 dark:border-red-500/10 bg-red-500/5 px-6 py-2.5"
-              >
-                <LockOpen className="h-3.5 w-3.5 text-red-450 dark:text-red-400" />
-                <span className="text-[10px] uppercase font-bold tracking-[0.18em] text-red-500 dark:text-red-400">Tap to Decipher</span>
-              </motion.div>
-            </div>
+            <motion.div
+              animate={{ opacity: [0.4, 1, 0.4] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <h1 className="text-sm md:text-base font-medium tracking-[0.2em] text-white/80 lowercase">
+                {user.enter_screen_text || "click to enter..."}
+              </h1>
+            </motion.div>
           </motion.div>
         ) : (
           /* BENTO GRID */

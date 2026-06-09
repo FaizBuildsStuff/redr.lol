@@ -80,7 +80,8 @@ export async function initDb() {
       ADD COLUMN IF NOT EXISTS discord_pronouns VARCHAR(255),
       ADD COLUMN IF NOT EXISTS discord_banner VARCHAR(255),
       ADD COLUMN IF NOT EXISTS discord_theme_colors JSONB,
-      ADD COLUMN IF NOT EXISTS discord_badges_data JSONB;
+      ADD COLUMN IF NOT EXISTS discord_badges_data JSONB,
+      ADD COLUMN IF NOT EXISTS enter_screen_text VARCHAR(255) DEFAULT 'click to enter...';
     `;
     await sql`
       CREATE TABLE IF NOT EXISTS system_logs (
