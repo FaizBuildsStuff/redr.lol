@@ -1375,6 +1375,7 @@ interface ClientProfileProps {
 
 export default function ClientProfile({ user, initialDiscordData, initialConnections }: ClientProfileProps) {
   const [entered, setEntered] = useState(false);
+  const [showFloatingActivity, setShowFloatingActivity] = useState(false);
   const backgroundAudioEnabled = user.background_audio_enabled ?? false;
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.3);
@@ -1392,6 +1393,19 @@ export default function ClientProfile({ user, initialDiscordData, initialConnect
 
   const { data: lanyard } = useLanyard(user.discord_id || "");
   const floatingActivities = lanyard?.activities?.filter((a: any) => a.type !== 4) || [];
+
+  useEffect(() => {
+    if (!entered) {
+      setShowFloatingActivity(false);
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setShowFloatingActivity(true);
+    }, 700);
+
+    return () => window.clearTimeout(timer);
+  }, [entered]);
 
   useEffect(() => {
     if (bgVideoRef.current) {
@@ -2015,7 +2029,16 @@ export default function ClientProfile({ user, initialDiscordData, initialConnect
           </motion.div>
         )}
       </AnimatePresence>
-      {floatingActivities.length > 0 && <FloatingActivity activities={floatingActivities} />}
+      {showFloatingActivity && floatingActivities.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 28, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="pointer-events-none fixed inset-x-0 bottom-0 z-[1000] flex justify-center"
+        >
+          <FloatingActivity activities={floatingActivities} />
+        </motion.div>
+      )}
     </div>
   );
 }
