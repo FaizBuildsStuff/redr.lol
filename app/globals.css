@@ -123,10 +123,34 @@
   }
   body {
     @apply bg-background text-foreground;
+    min-height: 125vh !important;
   }
   html {
-    @apply font-sans;
+    @apply font-sans bg-background;
+    zoom: 0.8;
+    min-height: 125vh !important;
   }
+}
+
+/* ========================================
+   Zoom Fix overrides
+   ======================================== */
+.min-h-screen {
+  min-height: 125vh !important;
+}
+.h-screen {
+  height: 125vh !important;
+}
+.min-h-full {
+  min-height: 125vh !important;
+}
+html {
+  min-height: 125vh !important;
+  background-color: #0A0A0A !important;
+}
+body {
+  min-height: 125vh !important;
+  background-color: #0A0A0A !important;
 }
 
 /* ========================================

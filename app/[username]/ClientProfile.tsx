@@ -1349,9 +1349,11 @@ function DiscordProfileCard({ user, discordData, connections, lanyard }: Discord
 // ClientProfile Main Page Component
 // ========================================
 interface ClientProfileProps {
+  skipIntro?: boolean;
   user: {
     id: number;
     username: string;
+    alias?: string | null;
     email: string;
     created_at: string;
     discord_id?: string;
@@ -1373,8 +1375,8 @@ interface ClientProfileProps {
   initialConnections?: OAuthConnection[];
 }
 
-export default function ClientProfile({ user, initialDiscordData, initialConnections }: ClientProfileProps) {
-  const [entered, setEntered] = useState(false);
+export default function ClientProfile({ skipIntro = false, user, initialDiscordData, initialConnections }: ClientProfileProps) {
+  const [entered, setEntered] = useState(skipIntro);
   const [showFloatingActivity, setShowFloatingActivity] = useState(false);
   const backgroundAudioEnabled = user.background_audio_enabled ?? false;
   const [isPlaying, setIsPlaying] = useState(false);
@@ -1390,9 +1392,38 @@ export default function ClientProfile({ user, initialDiscordData, initialConnect
 
   const [discordData, setDiscordData] = useState<DiscordData | null>(initialDiscordData || null);
   const [connections] = useState<OAuthConnection[]>(initialConnections || []);
+  const displayName = user.alias?.trim() || user.username;
 
   const { data: lanyard } = useLanyard(user.discord_id || "");
   const floatingActivities = lanyard?.activities?.filter((a: any) => a.type !== 4) || [];
+
+  useEffect(() => {
+    const baseTitle = displayName || "redr.lol";
+    const characters = baseTitle.split("");
+    const revealFrames = characters.map((_, index) => characters.slice(0, index + 1).join(""));
+    const frames = [
+      baseTitle,
+      ...revealFrames,
+      ...revealFrames.map((value) => `/${value}`),
+      ...revealFrames.map((value) => `\\${value}`),
+      ...revealFrames.map((value) => `$${value}`),
+      ...revealFrames.map((value) => `• ${value}`),
+      baseTitle,
+    ];
+    let frameIndex = 0;
+
+    const interval = window.setInterval(() => {
+      document.title = frames[frameIndex % frames.length];
+      frameIndex += 1;
+    }, 420);
+
+    document.title = baseTitle;
+
+    return () => {
+      window.clearInterval(interval);
+      document.title = "redr.lol";
+    };
+  }, [displayName]);
 
   useEffect(() => {
     if (!entered) {

@@ -14,8 +14,12 @@ export async function GET() {
     }
 
     // Fetch the latest user info from the database including all customization fields
+    await sql`
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS alias VARCHAR(100) DEFAULT NULL
+    `.catch(() => null);
+
     const [dbUser] = await sql`
-      SELECT username, email, discord_id, discord_avatar, discord_access_token, typewriter_heading, typewriter_quotes, custom_links, active_badges, owned_badges,
+      SELECT username, email, alias, discord_id, discord_avatar, discord_access_token, typewriter_heading, typewriter_quotes, custom_links, active_badges, owned_badges,
         location, background_url, background_type, audios, audio_shuffle, audio_player_enabled, background_audio_enabled, discord_profile_transparency, onboarding_completed,
         role, banned_until, timeout_until, force_logout_at, display_name, google_id, enter_screen_text
       FROM users
@@ -91,6 +95,7 @@ export async function GET() {
         id: user.userId,
         discord_id: dbUser.discord_id,
         discord_avatar: discordAvatar,
+        alias: dbUser.alias ?? null,
         typewriter_heading: dbUser.typewriter_heading,
         typewriter_quotes: dbUser.typewriter_quotes,
         custom_links: dbUser.custom_links,

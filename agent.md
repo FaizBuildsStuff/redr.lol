@@ -72,7 +72,7 @@ When querying usernames, normalize case. Prefer:
 LOWER(TRIM(username)) = LOWER(TRIM(${username}))
 ```
 
-When adding profile fields, update the runtime schema in `lib/db.ts:initDb()` and consider whether `scripts/db-init.js` or a migration script also needs the field.
+When adding profile fields, update the runtime schema in `lib/db.ts:initDb()` and consider whether `scripts/db-init.js` or a migration script also needs the field. Profile aliases should be surfaced through `/api/user/profile`, `/api/auth/me`, the customize screen, and the public profile experience.
 
 ## Auth Rules
 
@@ -83,7 +83,7 @@ Protected API routes should:
 3. Return `401` if missing or invalid.
 4. Use `user.userId` from the verified token for writes.
 
-Do not trust client-provided user IDs for profile mutations.
+Do not trust client-provided user IDs for profile mutations. Alias edits should be validated server-side and reflected in the public profile tab/title experience.
 
 ## Lucide and Brand Icons
 

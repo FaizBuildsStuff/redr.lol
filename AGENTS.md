@@ -79,3 +79,4 @@ Keep `suppressHydrationWarning` on the root `<html>` in `app/layout.tsx`; `next-
 - Discord OAuth routes live under `app/api/auth/discord`.
 - Lanyard presence is consumed by `hooks/use-lanyard.ts`.
 - Public profiles are rendered by `app/[username]/page.tsx` and `app/[username]/ClientProfile.tsx`.
+- Profile aliases are editable from the customize page and are surfaced on the public profile, including the browser tab title animation.

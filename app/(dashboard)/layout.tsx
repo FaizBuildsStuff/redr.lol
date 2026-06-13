@@ -64,7 +64,7 @@ export default function DashboardLayout({
   if (!user) return null;
 
   return (
-    <div className="relative flex min-h-screen bg-[#0A0A0A] text-[#F5F1E8] font-['Satoshi'] antialiased">
+    <div className="relative flex min-h-[125vh] bg-[#0A0A0A] text-[#F5F1E8] font-['Satoshi'] antialiased">
       
       {/* BACKGROUND MESH */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -144,7 +144,7 @@ export default function DashboardLayout({
       </AnimatePresence>
 
       {/* MAIN CONTAINER PANEL */}
-      <main className="flex-1 md:pl-[260px] pt-[60px] md:pt-0 min-h-screen flex flex-col">
+      <main className="flex-1 md:pl-[260px] pt-[60px] md:pt-0 min-h-[125vh] flex flex-col">
         <div className="flex-1">
           {children}
         </div>

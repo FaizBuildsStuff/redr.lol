@@ -37,8 +37,8 @@ app/
       templates/page.tsx             Template gallery
 
   [username]/
-    page.tsx                         Server-side profile lookup and Discord prefetch
-    ClientProfile.tsx                Public interactive profile chamber
+    page.tsx                         Server-side profile lookup, Discord prefetch, and alias-aware profile loading
+    ClientProfile.tsx                Public interactive profile chamber with alias-driven tab-title animation
 
   api/
     analytics/click/route.ts
@@ -148,6 +148,7 @@ audio_player_enabled BOOLEAN DEFAULT false
 background_audio_enabled BOOLEAN DEFAULT false
 location VARCHAR(255)
 discord_profile_transparency NUMERIC DEFAULT 0.40
+alias VARCHAR(100)
 views INTEGER DEFAULT 0
 profile_clicks INTEGER DEFAULT 0
 link_clicks INTEGER DEFAULT 0
@@ -222,7 +223,7 @@ Credential auth routes:
 - `POST /api/auth/signup`: validates username/email/password, lowercases username/email, hashes with `bcryptjs`, inserts user, sets cookies.
 - `POST /api/auth/signin`: validates email/password and sets cookies.
 - `POST /api/auth/signout` and `GET /api/auth/signout`: clears cookies.
-- `GET /api/auth/me`: verifies cookie and returns latest profile/session fields from the database.
+- `GET /api/auth/me`: verifies cookie and returns latest profile/session fields from the database, including the saved alias.
 
 Cookies:
 
@@ -238,7 +239,8 @@ OAuth:
 
 Profile rendering:
 
-- `app/[username]/page.tsx` prefetches Discord profile data from `https://dcdn.dstn.to/profile/{discord_id}`.
+- `app/[username]/page.tsx` prefetches Discord profile data from `https://dcdn.dstn.to/profile/{discord_id}` and reads the user's saved alias.
+- `app/[username]/ClientProfile.tsx` uses the alias for the public profile experience and animates the browser tab title with a premium-style reveal.
 - If an access token exists, it also fetches Discord connections from `https://discord.com/api/v10/users/@me/connections`.
 - `hooks/use-lanyard.ts` subscribes to `wss://api.lanyard.rest/socket` for live Discord presence.
 

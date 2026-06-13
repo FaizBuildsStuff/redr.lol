@@ -45,7 +45,7 @@ export function DashboardShell({
   children: React.ReactNode;
 }) {
   return (
-    <section className="relative min-h-screen overflow-hidden bg-[#050505] px-4 pb-20 pt-7 sm:px-6 lg:px-10 lg:pt-10">
+    <section className="relative min-h-[125vh] overflow-hidden bg-[#050505] px-4 pb-20 pt-7 sm:px-6 lg:px-10 lg:pt-10">
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.028)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.028)_1px,transparent_1px)] bg-[size:56px_56px]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.06),transparent_28%),linear-gradient(180deg,rgba(5,5,5,0)_0%,#050505_80%)]" />

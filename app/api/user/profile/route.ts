@@ -13,6 +13,10 @@ export async function PATCH(req: NextRequest) {
     const userId = user.userId;
     let hasUpdates = false;
 
+    await sql`
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS alias VARCHAR(100) DEFAULT NULL
+    `.catch(() => null);
+
     // Run individual tagged-template updates for each provided field.
     // The neon driver requires tagged template syntax — raw function calls don't work reliably.
 
@@ -99,13 +103,29 @@ export async function PATCH(req: NextRequest) {
       hasUpdates = true;
     }
 
+    if (body.alias !== undefined) {
+      const cleanAlias = typeof body.alias === "string" ? body.alias.trim().toLowerCase() : "";
+      if (cleanAlias && !/^[a-z0-9_][a-z0-9_-]*$/.test(cleanAlias)) {
+        return NextResponse.json(
+          { error: "Alias can only contain lowercase letters, numbers, underscores, and hyphens." },
+          { status: 400 }
+        );
+      }
+
+      await sql`
+        UPDATE users SET alias = ${cleanAlias || null}
+        WHERE id = ${userId}
+      `;
+      hasUpdates = true;
+    }
+
     if (!hasUpdates) {
       return NextResponse.json({ message: "No updates provided" });
     }
 
     // Return the updated user row
     const [updated] = await sql`
-      SELECT id, username, email, typewriter_heading, typewriter_quotes,
+      SELECT id, username, email, alias, typewriter_heading, typewriter_quotes,
              custom_links, active_badges, theme, music_active, sparkles_active, custom_font, discord_profile_transparency, enter_screen_text
       FROM users
       WHERE id = ${userId}
