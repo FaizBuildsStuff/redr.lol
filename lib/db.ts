@@ -93,6 +93,22 @@ export async function initDb() {
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `;
+    await sql`
+      CREATE TABLE IF NOT EXISTS help_articles (
+        id SERIAL PRIMARY KEY,
+        slug VARCHAR(255) UNIQUE NOT NULL,
+        title VARCHAR(500) NOT NULL,
+        category VARCHAR(100) NOT NULL,
+        category_icon VARCHAR(50) NOT NULL DEFAULT '📄',
+        excerpt TEXT NOT NULL,
+        content TEXT NOT NULL,
+        read_time INTEGER DEFAULT 3,
+        popular BOOLEAN DEFAULT false,
+        published BOOLEAN DEFAULT true,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
     console.log("Database schema initialized successfully.");
   } catch (error) {
     console.error("Error during database schema initialization:", error);

@@ -16,19 +16,19 @@ import { Button } from "@/components/ui/button";
 const navLinks = [
   {
     label: "help center",
-    href: "#",
+    href: "help-center",
   },
   {
     label: "discord",
-    href: "#",
+    href: "https://discord.gg/ECvnDYQQFx",
   },
   {
     label: "leaderboard",
-    href: "#",
+    href: "leaderboard",
   },
   {
     label: "pricing",
-    href: "#",
+    href: "pricing",
   },
 ];
 
@@ -162,23 +162,7 @@ const Header = () => {
                     repeat: Infinity,
                     ease: "easeInOut",
                   }}
-                  className="
-  group
-  relative
-  flex
-  h-11
-  w-11
-  items-center
-  justify-center
-  overflow-hidden
-  rounded-2xl
-  border
-  border-red-500/15
-  bg-red-500/5
-  backdrop-blur-2xl
-  shadow-[0_0_30px_rgba(239,68,68,0.12)]
-"
-                >
+                  className="group relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl border  border-red-500/15  bg-red-500/5 backdrop-blur-2xl shadow-[0_0_30px_rgba(239,68,68,0.12)]">
 
                   {/* Glow */}
                   <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 via-transparent to-transparent opacity-80" />
@@ -187,36 +171,14 @@ const Header = () => {
                   <img
                     src="/Logo.png"
                     alt="redr logo"
-                    className="
-    relative
-    z-10
-    h-7
-    w-7
-    object-contain
-    drop-shadow-[0_0_14px_rgba(239,68,68,0.45)]
-  "
+                    className="relative z-10 h-7 w-7 object-contain drop-shadow-[0_0_14px_rgba(239,68,68,0.45)]"
                   />
-
-                  {/* Tiny Glow Dot */}
-                  <div className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.9)]" />
-
                 </motion.div>
-
                 {/* Text */}
                 <div>
-
                   <h2 className="text-lg font-medium tracking-[-0.06em] text-white">
                     red.rose
                   </h2>
-
-                  <div className="mt-1 flex items-center gap-2">
-
-                    <div className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
-
-                    <span className="text-[11px] uppercase tracking-[0.16em] text-[#8A8A8A]">
-                      online
-                    </span>
-                  </div>
                 </div>
               </Link>
 
@@ -279,19 +241,17 @@ const Header = () => {
                 ) : (
                   <>
                     {/* Login */}
-                    <Link href="/signin">
-                      <Button
-                        variant="ghost"
-                        className="h-12 rounded-2xl px-6 text-sm text-[#B0B0B0] transition-all duration-300 hover:bg-white/[0.03] hover:text-white"
-                      >
-                        login
-                      </Button>
-                    </Link>
+                    <Button
+                      asChild
+                      variant="ghost"
+                      className="h-12 rounded-2xl px-6 text-sm text-[#B0B0B0] transition-all duration-300 hover:bg-white/[0.03] hover:text-white"
+                    >
+                      <Link href="/signin">login</Link>
+                    </Button>
 
                     {/* Signup */}
-                    <Link href="/signup">
-                      <button className="group relative flex h-12 items-center justify-center overflow-hidden rounded-2xl bg-red-600 px-7 text-sm font-medium text-white transition-all duration-500 hover:-translate-y-[2px] hover:bg-red-500">
-
+                    <Button asChild className="group relative flex h-12 items-center justify-center overflow-hidden rounded-2xl bg-red-600 px-7 text-sm font-medium text-white transition-all duration-500 hover:-translate-y-[2px] hover:bg-red-500">
+                      <Link href="/signup">
                         {/* Glow */}
                         <div className="absolute inset-0 bg-gradient-to-r from-red-500 via-red-400 to-red-700 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
 
@@ -304,8 +264,8 @@ const Header = () => {
                         <span className="relative z-10 tracking-[0.04em]">
                           sign up
                         </span>
-                      </button>
-                    </Link>
+                      </Link>
+                    </Button>
                   </>
                 )}
               </div>
@@ -395,30 +355,27 @@ const Header = () => {
                     </>
                   ) : (
                     <>
-                      <Link href="/signin" className="w-full">
-                        <Button
-                          variant="ghost"
-                          onClick={() => setOpen(false)}
-                          className="h-12 w-full rounded-2xl border border-white/10 bg-white/[0.03] text-white hover:bg-white/[0.05]"
-                        >
+                      <Button
+                        asChild
+                        variant="ghost"
+                        onClick={() => setOpen(false)}
+                        className="h-12 w-full rounded-2xl border border-white/10 bg-white/[0.03] text-white hover:bg-white/[0.05]"
+                      >
+                        <Link href="/signin" onClick={() => setOpen(false)}>
                           login
-                        </Button>
-                      </Link>
+                        </Link>
+                      </Button>
 
-                      <Link href="/signup" className="w-full">
-                        <button
-                          onClick={() => setOpen(false)}
-                          className="group relative flex h-12 w-full items-center justify-center overflow-hidden rounded-2xl bg-red-600 text-sm font-medium text-white"
-                        >
-
+                      <Button asChild className="group relative flex h-12 w-full items-center justify-center overflow-hidden rounded-2xl bg-red-600 text-sm font-medium text-white">
+                        <Link href="/signup" onClick={() => setOpen(false)}>
                           {/* Glow */}
                           <div className="absolute inset-0 bg-gradient-to-r from-red-500 via-red-400 to-red-700 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
 
                           <span className="relative z-10">
                             sign up
                           </span>
-                        </button>
-                      </Link>
+                        </Link>
+                      </Button>
                     </>
                   )}
                 </div>

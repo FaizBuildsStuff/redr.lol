@@ -87,7 +87,8 @@ export async function GET() {
 
     return NextResponse.json({ 
       user: { 
-        ...user, 
+        ...user,
+        id: user.userId,
         discord_id: dbUser.discord_id,
         discord_avatar: discordAvatar,
         typewriter_heading: dbUser.typewriter_heading,

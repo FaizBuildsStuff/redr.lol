@@ -2,9 +2,35 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Check, Crown } from "lucide-react";
+import { Check, ChevronDown, Crown } from "lucide-react";
 
 const PricingSection = () => {
+  const comparisonRows = [
+    { label: "Profile customization", starter: "Basic themes", premium: "Full visual control" },
+    { label: "Animations", starter: "Limited", premium: "Advanced motion effects" },
+    { label: "Badges & identity", starter: "Standard", premium: "Exclusive badge suite" },
+    { label: "Analytics", starter: "Core insights", premium: "Deeper growth data" },
+    { label: "Banner & metadata", starter: "Basic", premium: "Advanced branding" },
+  ];
+
+  const faqs = [
+    {
+      question: "Can I start free and upgrade later?",
+      answer: "Yes. You can begin with the free tier and upgrade anytime when you want more control, effects, or branding options.",
+    },
+    {
+      question: "What makes Premium different?",
+      answer: "Premium unlocks an expanded set of layouts, badges, animations, banners, and creative tools designed for a more polished profile experience.",
+    },
+    {
+      question: "Do I need technical skills to use it?",
+      answer: "No. Everything is designed to feel intuitive and polished, so you can shape your profile with minimal effort.",
+    },
+    {
+      question: "Is billing recurring?",
+      answer: "Yes. Premium is billed in a simple recurring plan, and you can cancel whenever you want.",
+    },
+  ];
   return (
     <section className="relative overflow-hidden bg-[#0A0A0A] px-6 py-36 text-[#F5F1E8]">
       {/* Background */}
@@ -425,6 +451,77 @@ const PricingSection = () => {
             </div>
           </motion.div>
         </div>
+
+        <motion.section
+          initial={{ opacity: 0, y: 28 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.1 }}
+          viewport={{ once: true }}
+          className="mt-24 overflow-hidden rounded-[36px] border border-white/10 bg-[#080808]/85 p-6 shadow-[0_0_90px_rgba(239,68,68,0.08)] backdrop-blur-2xl md:p-8"
+        >
+          <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
+            <div className="space-y-4">
+              <p className="text-sm uppercase tracking-[0.32em] text-red-300">comparison</p>
+              <h3 className="text-3xl font-semibold tracking-[-0.04em] text-white sm:text-4xl">
+                Choose the path that matches your momentum.
+              </h3>
+              <p className="max-w-xl text-sm leading-7 text-[#9A9A9A] sm:text-[15px]">
+                The free plan is perfect for getting started, while Premium gives you the tools to turn your profile into a striking, memorable experience.
+              </p>
+              <div className="rounded-[24px] border border-white/10 bg-white/[0.03] p-5">
+                <p className="text-sm font-medium text-white">Why creators upgrade</p>
+                <ul className="mt-4 space-y-3 text-sm text-[#C8C8C8]">
+                  <li className="flex items-center gap-3"><span className="h-2 w-2 rounded-full bg-red-400" /> More visual identity controls</li>
+                  <li className="flex items-center gap-3"><span className="h-2 w-2 rounded-full bg-red-400" /> Motion-rich profile storytelling</li>
+                  <li className="flex items-center gap-3"><span className="h-2 w-2 rounded-full bg-red-400" /> A more premium, polished presentation</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="overflow-hidden rounded-[24px] border border-white/10 bg-[#0C0C0D]/80">
+              <div className="grid grid-cols-[1.2fr_0.8fr_0.8fr] border-b border-white/10 bg-white/[0.03] px-4 py-4 text-xs uppercase tracking-[0.24em] text-[#9A9A9A]">
+                <span>feature</span>
+                <span>free</span>
+                <span>premium</span>
+              </div>
+              {comparisonRows.map((row) => (
+                <div key={row.label} className="grid grid-cols-[1.2fr_0.8fr_0.8fr] border-b border-white/10 px-4 py-4 text-sm text-[#D7D7D7] last:border-b-0">
+                  <span className="text-white">{row.label}</span>
+                  <span className="text-[#9A9A9A]">{row.starter}</span>
+                  <span className="text-red-200">{row.premium}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </motion.section>
+
+        <motion.section
+          initial={{ opacity: 0, y: 28 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.15 }}
+          viewport={{ once: true }}
+          className="mt-8 rounded-[36px] border border-white/10 bg-[#070707]/80 p-6 backdrop-blur-2xl md:p-8"
+        >
+          <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-sm uppercase tracking-[0.32em] text-red-300">faq</p>
+              <h3 className="text-2xl font-semibold tracking-[-0.03em] text-white">Questions creators usually ask</h3>
+            </div>
+            <p className="text-sm text-[#9A9A9A]">Straight answers before you decide.</p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            {faqs.map((faq) => (
+              <details key={faq.question} className="group rounded-[22px] border border-white/10 bg-white/[0.03] p-5">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-left text-sm font-medium text-white">
+                  <span>{faq.question}</span>
+                  <ChevronDown className="h-4 w-4 transition duration-300 group-open:rotate-180" />
+                </summary>
+                <p className="mt-3 text-sm leading-7 text-[#9A9A9A]">{faq.answer}</p>
+              </details>
+            ))}
+          </div>
+        </motion.section>
       </div>
     </section>
   );

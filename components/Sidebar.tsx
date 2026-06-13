@@ -89,7 +89,10 @@ export default function Sidebar({ user, setMobileOpen }: SidebarProps) {
     }
   };
 
-  const formattedUid = `UID ${String(user.id).padStart(3, "0")},${String(Math.floor(Math.random() * 900) + 100)}`;
+  const userId = user?.id ?? (user as { userId?: number } | null)?.userId ?? (user as { user_id?: number } | null)?.user_id;
+  const formattedUid = userId != null
+    ? `UID ${String(userId).padStart(3, "0")},${String(Math.floor(Math.random() * 900) + 100)}`
+    : "UID unavailable";
 
   const navLinks = [
     {
