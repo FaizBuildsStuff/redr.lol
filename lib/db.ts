@@ -81,6 +81,8 @@ export async function initDb() {
       ADD COLUMN IF NOT EXISTS discord_banner VARCHAR(255),
       ADD COLUMN IF NOT EXISTS discord_theme_colors JSONB,
       ADD COLUMN IF NOT EXISTS discord_badges_data JSONB,
+      ADD COLUMN IF NOT EXISTS custom_cursor_url VARCHAR(255),
+      ADD COLUMN IF NOT EXISTS active_audio_id VARCHAR(255),
       ADD COLUMN IF NOT EXISTS enter_screen_text VARCHAR(255) DEFAULT 'click to enter...';
     `;
     await sql`
@@ -106,6 +108,19 @@ export async function initDb() {
         popular BOOLEAN DEFAULT false,
         published BOOLEAN DEFAULT true,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+    await sql`
+      CREATE TABLE IF NOT EXISTS profile_templates (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        name VARCHAR(255) NOT NULL,
+        tags JSONB DEFAULT '[]'::jsonb,
+        visibility VARCHAR(50) DEFAULT 'public',
+        profile_data JSONB NOT NULL,
+        uses INTEGER DEFAULT 0,
+        stars INTEGER DEFAULT 0,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `;

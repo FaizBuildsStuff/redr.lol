@@ -21,7 +21,7 @@ export default async function UserProfilePage({ params, searchParams }: PageProp
   let user = null;
   try {
     const users = await sql`
-      SELECT id, username, email, alias, discord_id, discord_access_token, created_at, typewriter_heading, typewriter_quotes, custom_links, active_badges, location, background_url, background_type, audios, audio_shuffle, audio_player_enabled, background_audio_enabled, discord_profile_transparency, banned_until, timeout_until, enter_screen_text
+      SELECT id, username, email, alias, discord_id, discord_access_token, created_at, typewriter_heading, typewriter_quotes, custom_links, active_badges, location, background_url, background_type, audios, audio_shuffle, audio_player_enabled, background_audio_enabled, active_audio_id, custom_cursor_url, discord_profile_transparency, banned_until, timeout_until, enter_screen_text
       FROM users 
       WHERE LOWER(TRIM(username)) = ${cleanUsername}
       LIMIT 1
@@ -122,7 +122,7 @@ export default async function UserProfilePage({ params, searchParams }: PageProp
     }
   }
 
-  return <ClientProfile skipIntro={skipIntro} user={{
+  return <ClientProfile skipIntro={skipIntro} isPreview={skipIntro} user={{
     id: user.id,
     username: user.username,
     alias: user.alias,
@@ -140,6 +140,8 @@ export default async function UserProfilePage({ params, searchParams }: PageProp
     audio_shuffle: user.audio_shuffle,
     audio_player_enabled: user.audio_player_enabled,
     background_audio_enabled: user.background_audio_enabled,
+    active_audio_id: user.active_audio_id,
+    custom_cursor_url: user.custom_cursor_url,
     discord_profile_transparency: user.discord_profile_transparency,
     enter_screen_text: user.enter_screen_text
   }} initialDiscordData={initialDiscordData} initialConnections={initialConnections} />;

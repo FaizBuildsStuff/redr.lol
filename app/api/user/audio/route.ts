@@ -205,17 +205,16 @@ export async function PATCH(
     const {
       shuffle,
       player_enabled,
+      active_audio_id,
     } = await req.json();
 
     const result = await sql`
       UPDATE users
       SET
-        audio_shuffle = ${shuffle},
-        audio_player_enabled =
-          ${player_enabled}
-
+        audio_shuffle = COALESCE(${shuffle}, audio_shuffle),
+        audio_player_enabled = COALESCE(${player_enabled}, audio_player_enabled),
+        active_audio_id = COALESCE(${active_audio_id}, active_audio_id)
       WHERE id = ${user.userId}
-
       RETURNING *;
     `;
 

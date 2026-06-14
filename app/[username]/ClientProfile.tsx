@@ -242,7 +242,7 @@ function EtherealShadow({
           <video
             ref={bgVideoRef}
             autoPlay
-            muted={backgroundAudioEnabled}
+            muted={backgroundAudioEnabled ? isMuted : true}
             loop
             playsInline
             className="h-full w-full object-cover"
@@ -576,7 +576,7 @@ const BADGE_REGISTRY = {
 // ========================================
 // Badge Icon Only (marquee — icon only, hover card for details)
 // ========================================
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { createPortal } from "react-dom";
 
 function BadgeIconOnly({ badgeId }: { badgeId: string }) {
   const badge = BADGE_REGISTRY[badgeId as keyof typeof BADGE_REGISTRY];
@@ -584,65 +584,98 @@ function BadgeIconOnly({ badgeId }: { badgeId: string }) {
 
   const { name, desc, tier, gradient, glow, bg, border, Icon, color } = badge;
   const [hovered, setHovered] = useState(false);
+  const triggerRef = useRef<HTMLDivElement>(null);
+  const [coords, setCoords] = useState({ x: -1000, y: -1000 });
+
+  useEffect(() => {
+    if (hovered && triggerRef.current) {
+      const updateCoords = () => {
+        if (!triggerRef.current) return;
+        const r = triggerRef.current.getBoundingClientRect();
+        const zoomStr = getComputedStyle(document.documentElement).zoom;
+        const zoom = zoomStr && zoomStr !== 'normal' ? parseFloat(zoomStr) : 1;
+        setCoords({
+          x: (r.left + r.width / 2) / zoom,
+          y: r.top / zoom,
+        });
+      };
+      updateCoords();
+      window.addEventListener('scroll', updateCoords, true);
+      window.addEventListener('resize', updateCoords, true);
+      return () => {
+        window.removeEventListener('scroll', updateCoords, true);
+        window.removeEventListener('resize', updateCoords, true);
+      };
+    }
+  }, [hovered]);
 
   return (
-    <HoverCard openDelay={50} closeDelay={100}>
-      <HoverCardTrigger asChild>
+    <>
+      <div
+        ref={triggerRef}
+        className="relative flex-shrink-0 cursor-default"
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+      >
+        {/* Icon-only circle */}
         <div
-          className="relative flex-shrink-0 cursor-default"
-          onMouseEnter={() => setHovered(true)}
-          onMouseLeave={() => setHovered(false)}
+          className="flex h-10 w-10 items-center justify-center rounded-full select-none"
+          style={{
+            background: bg,
+            border: `1.5px solid ${hovered ? color : border}`,
+            transform: hovered ? 'scale(1.18)' : 'scale(1)',
+            boxShadow: hovered ? `0 0 18px ${glow}, 0 0 6px ${glow}` : 'none',
+            transition: 'transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease, border-color 0.22s ease',
+          }}
         >
-          {/* Icon-only circle */}
-          <div
-            className="flex h-10 w-10 items-center justify-center rounded-full select-none"
+          <Icon
+            className="h-5 w-5"
             style={{
-              background: bg,
-              border: `1.5px solid ${hovered ? color : border}`,
-              transform: hovered ? 'scale(1.18)' : 'scale(1)',
-              boxShadow: hovered ? `0 0 18px ${glow}, 0 0 6px ${glow}` : 'none',
-              transition: 'transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease, border-color 0.22s ease',
+              color,
+              filter: hovered ? `drop-shadow(0 0 6px ${glow})` : 'none',
+              transition: 'filter 0.2s ease',
+            }}
+          />
+        </div>
+      </div>
+
+      {hovered && typeof document !== 'undefined' && createPortal(
+        <div
+          className="fixed z-[99999] pointer-events-none"
+          style={{
+            left: coords.x,
+            top: coords.y,
+            transform: 'translate(-50%, calc(-100% - 14px))',
+          }}
+        >
+          <div
+            className="w-52 rounded-2xl p-3.5 shadow-2xl border-none animate-in fade-in zoom-in-95 duration-200"
+            style={{
+              background: 'rgba(8, 8, 8, 0.97)',
+              border: `1px solid ${border}`,
+              boxShadow: `0 16px 48px rgba(0,0,0,0.6), 0 0 0 1px ${border}, 0 0 24px ${glow}`,
+              backdropFilter: 'blur(24px)',
             }}
           >
-            <Icon
-              className="h-5 w-5"
-              style={{
-                color,
-                filter: hovered ? `drop-shadow(0 0 6px ${glow})` : 'none',
-                transition: 'filter 0.2s ease',
-              }}
-            />
+            <div className="flex items-center gap-2.5 mb-2">
+              <div
+                className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl"
+                style={{ background: gradient, boxShadow: `0 0 18px ${glow}` }}
+              >
+                <Icon className="h-4 w-4 text-white" />
+              </div>
+              <div>
+                <p className="text-[12px] font-bold text-white leading-tight">{name}</p>
+                <p className="text-[9px] font-extrabold uppercase tracking-[0.15em] mt-0.5" style={{ color }}>{tier}</p>
+              </div>
+            </div>
+            <div className="h-px mb-2" style={{ background: border }} />
+            <p className="text-[10px] leading-relaxed" style={{ color: 'rgba(160,160,160,0.9)' }}>{desc}</p>
           </div>
-        </div>
-      </HoverCardTrigger>
-      <HoverCardContent
-        side="top"
-        align="center"
-        sideOffset={14}
-        className="z-[9999] w-52 rounded-2xl p-3.5 shadow-2xl border-none"
-        style={{
-          background: 'rgba(8, 8, 8, 0.97)',
-          border: `1px solid ${border}`,
-          boxShadow: `0 16px 48px rgba(0,0,0,0.6), 0 0 0 1px ${border}, 0 0 24px ${glow}`,
-          backdropFilter: 'blur(24px)',
-        }}
-      >
-        <div className="flex items-center gap-2.5 mb-2">
-          <div
-            className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl"
-            style={{ background: gradient, boxShadow: `0 0 18px ${glow}` }}
-          >
-            <Icon className="h-4 w-4 text-white" />
-          </div>
-          <div>
-            <p className="text-[12px] font-bold text-white leading-tight">{name}</p>
-            <p className="text-[9px] font-extrabold uppercase tracking-[0.15em] mt-0.5" style={{ color }}>{tier}</p>
-          </div>
-        </div>
-        <div className="h-px mb-2" style={{ background: border }} />
-        <p className="text-[10px] leading-relaxed" style={{ color: 'rgba(160,160,160,0.9)' }}>{desc}</p>
-      </HoverCardContent>
-    </HoverCard>
+        </div>,
+        document.body
+      )}
+    </>
   );
 }
 
@@ -1154,14 +1187,15 @@ function DiscordProfileCard({ user, discordData, connections, lanyard }: Discord
             return (
               <div className="text-xs pb-3 border-b border-stone-200/50 dark:border-white/5 flex items-center gap-2 text-stone-700 dark:text-stone-300">
                 {customStatus.emoji && (
-                  <img
-                    src={customStatus.emoji.id
-                      ? `https://cdn.discordapp.com/emojis/${customStatus.emoji.id}.${customStatus.emoji.animated ? 'gif' : 'png'}?size=24`
-                      : ""
-                    }
-                    alt=""
-                    className="w-4 h-4 object-contain"
-                  />
+                  customStatus.emoji.id ? (
+                    <img
+                      src={`https://cdn.discordapp.com/emojis/${customStatus.emoji.id}.${customStatus.emoji.animated ? 'gif' : 'png'}?size=24`}
+                      alt={customStatus.emoji.name || ""}
+                      className="w-4 h-4 object-contain"
+                    />
+                  ) : (
+                    <span className="text-sm leading-none">{customStatus.emoji.name}</span>
+                  )
                 )}
                 <span>{customStatus.state}</span>
               </div>
@@ -1346,10 +1380,71 @@ function DiscordProfileCard({ user, discordData, connections, lanyard }: Discord
 }
 
 // ========================================
+// Custom JS Cursor
+// ========================================
+function CustomJSCursor({ imageUrl }: { imageUrl: string }) {
+  const elRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = elRef.current;
+    if (!el) return;
+
+    // Start off-screen
+    el.style.transform = 'translate3d(-200px, -200px, 0)';
+    el.style.opacity = '1';
+
+    // Get the current zoom level of the html element (set to 0.8 in globals.css)
+    const zoomStr = getComputedStyle(document.documentElement).zoom;
+    const zoom = zoomStr && zoomStr !== 'normal' ? parseFloat(zoomStr) : 1;
+
+    const onMove = (e: MouseEvent) => {
+      // Directly set transform — no React state, no RAF delay, zero lag
+      // Divide by zoom to correct the variable offset distance bug caused by CSS zoom
+      el.style.transform = `translate3d(${e.clientX / zoom}px, ${e.clientY / zoom}px, 0)`;
+    };
+
+    const onLeave = () => { el.style.opacity = '0'; };
+    const onEnter = () => { el.style.opacity = '1'; };
+
+    window.addEventListener('mousemove', onMove, { passive: true });
+    document.addEventListener('mouseleave', onLeave);
+    document.addEventListener('mouseenter', onEnter);
+
+    return () => {
+      window.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseleave', onLeave);
+      document.removeEventListener('mouseenter', onEnter);
+    };
+  }, []);
+
+  return (
+    <div
+      ref={elRef}
+      className="pointer-events-none fixed z-[99999]"
+      style={{
+        left: 0,
+        top: 0,
+        // Top-left of the image = the cursor hotspot
+        willChange: 'transform',
+        opacity: 1,
+      }}
+    >
+      <img
+        src={imageUrl}
+        alt=""
+        style={{ display: 'block', width: '32px', height: '32px', objectFit: 'contain' }}
+        className="drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]"
+      />
+    </div>
+  );
+}
+
+// ========================================
 // ClientProfile Main Page Component
 // ========================================
 interface ClientProfileProps {
   skipIntro?: boolean;
+  isPreview?: boolean;
   user: {
     id: number;
     username: string;
@@ -1368,14 +1463,16 @@ interface ClientProfileProps {
     audios?: Array<{ id: string; url: string; name: string }>;
     audio_shuffle?: boolean;
     audio_player_enabled?: boolean;
+    active_audio_id?: string;
     discord_profile_transparency?: number;
     enter_screen_text?: string;
+    custom_cursor_url?: string;
   };
   initialDiscordData?: DiscordData | null;
   initialConnections?: OAuthConnection[];
 }
 
-export default function ClientProfile({ skipIntro = false, user, initialDiscordData, initialConnections }: ClientProfileProps) {
+export default function ClientProfile({ skipIntro = false, isPreview = false, user, initialDiscordData, initialConnections }: ClientProfileProps) {
   const [entered, setEntered] = useState(skipIntro);
   const [showFloatingActivity, setShowFloatingActivity] = useState(false);
   const backgroundAudioEnabled = user.background_audio_enabled ?? false;
@@ -1444,11 +1541,11 @@ export default function ClientProfile({ skipIntro = false, user, initialDiscordD
       bgVideoRef.current.volume = volume;
 
       // VIDEO AUDIO MODE
-      if (backgroundAudioEnabled) {
+      if (backgroundAudioEnabled && !isPreview) {
         bgVideoRef.current.muted = isMuted;
       }
 
-      // EXTERNAL AUDIO MODE
+      // EXTERNAL AUDIO MODE OR PREVIEW
       else {
         bgVideoRef.current.muted = true;
       }
@@ -1458,6 +1555,7 @@ export default function ClientProfile({ skipIntro = false, user, initialDiscordD
     volume,
     isMuted,
     backgroundAudioEnabled,
+    isPreview,
   ]);
 
   useEffect(() => { setMounted(true); }, []);
@@ -1481,16 +1579,21 @@ export default function ClientProfile({ skipIntro = false, user, initialDiscordD
 
     let selectedAudio = user.audios[0];
 
-    // SHUFFLE MODE
+    // SHUFFLE MODE — pick random when multiple audios and shuffle enabled
     if (user.audio_shuffle && user.audios.length > 1) {
       selectedAudio = user.audios[Math.floor(Math.random() * user.audios.length)];
+    }
+    // ACTIVE AUDIO — pick by active_audio_id if set and not shuffling
+    else if (user.active_audio_id) {
+      const found = user.audios.find((a) => a.id === user.active_audio_id);
+      if (found) selectedAudio = found;
     }
 
     const audio = new Audio(selectedAudio.url);
     audio.preload = "auto";
     audio.loop = !user.audio_shuffle;
     audio.volume = volume;
-    audio.muted = false;
+    audio.muted = isPreview ? true : false;
 
     audioRef.current = audio;
 
@@ -1506,13 +1609,13 @@ export default function ClientProfile({ skipIntro = false, user, initialDiscordD
   useEffect(() => {
     if (!audioRef.current) return;
     audioRef.current.volume = volume;
-    if (backgroundAudioEnabled) {
+    if (backgroundAudioEnabled || isPreview) {
       audioRef.current.pause();
     } else {
       audioRef.current.play().catch(() => { });
     }
     // Do NOT touch .muted here — it's managed exclusively by toggleMute/handleVolumeChange
-  }, [volume]);
+  }, [volume, isPreview, backgroundAudioEnabled]);
 
   const handleEnterChamber = () => {
     setEntered(true);
@@ -1541,27 +1644,29 @@ export default function ClientProfile({ skipIntro = false, user, initialDiscordD
 
   // Volume toggle: if muted restore prev; if unmuted mute
   const toggleMute = () => {
-    if (!audioRef.current) return;
-
     if (isMuted) {
       const restoreVolume = prevVolumeRef.current > 0 ? prevVolumeRef.current : 0.3;
-      audioRef.current.muted = false;
-      audioRef.current.volume = restoreVolume;
+      if (audioRef.current) {
+        audioRef.current.muted = false;
+        audioRef.current.volume = restoreVolume;
+      }
       setVolume(restoreVolume);
       setIsMuted(false);
     } else {
       prevVolumeRef.current = volume > 0 ? volume : 0.3;
-      audioRef.current.muted = true;
+      if (audioRef.current) {
+        audioRef.current.muted = true;
+      }
       setIsMuted(true);
     }
   };
 
   const handleVolumeChange = (newVol: number) => {
-    if (!audioRef.current) return;
-
     const shouldMute = newVol === 0;
-    audioRef.current.muted = shouldMute;
-    audioRef.current.volume = newVol;
+    if (audioRef.current) {
+      audioRef.current.muted = shouldMute;
+      audioRef.current.volume = newVol;
+    }
     setVolume(newVol);
     setIsMuted(shouldMute);
 
@@ -1583,15 +1688,23 @@ export default function ClientProfile({ skipIntro = false, user, initialDiscordD
   };
 
   return (
-    <div className="relative min-h-screen bg-[#F5F5F5] dark:bg-[#0A0A0A] text-stone-900 dark:text-[#F5F1E8] font-sans flex items-center justify-center overflow-x-hidden transition-colors duration-500 z-10">
+    <div
+      className="client-profile-root relative min-h-screen bg-[#F5F5F5] dark:bg-[#0A0A0A] text-stone-900 dark:text-[#F5F1E8] font-sans flex items-center justify-center overflow-x-hidden transition-colors duration-500 z-10"
+    >
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Roboto:wght@300;400;500;700&display=swap');
+
+        ${user.custom_cursor_url ? `
+          .client-profile-root, .client-profile-root * {
+            cursor: none !important;
+          }
+        ` : ''}
 
         :root {
           --bg-primary: #f5f5f5;
           --bg-secondary: #e8e8e8;
-          --bg-card: rgba(255, 255, 255, 0.75);
-          --bg-card-hover: rgba(255, 255, 255, 0.9);
+          --bg-card: rgba(255, 255, 255, ${user.discord_profile_transparency ?? 0.40});
+          --bg-card-hover: rgba(255, 255, 255, ${Math.min(1, (user.discord_profile_transparency ?? 0.40) + 0.15)});
           --bg-card-solid: #ffffff;
           --bg-glass: rgba(255, 255, 255, 0.6);
           --bg-glass-strong: rgba(255, 255, 255, 0.9);
@@ -1624,7 +1737,7 @@ export default function ClientProfile({ skipIntro = false, user, initialDiscordD
         .dark {
           --bg-primary: #0A0A0A;
           --bg-secondary: #0F0F0F;
-          --bg-card: rgba(15, 15, 15, 0.45);
+          --bg-card: rgba(15, 15, 15, ${user.discord_profile_transparency ?? 0.45});
           --bg-card-hover: rgba(149, 0, 0, 0.05);
           --bg-card-solid: #0F0F0F;
           --bg-glass: rgba(10, 10, 10, 0.4);
@@ -1739,11 +1852,16 @@ export default function ClientProfile({ skipIntro = false, user, initialDiscordD
       <EtherealShadow
         user={user}
         bgVideoRef={bgVideoRef}
-        isMuted={isMuted}
+        isMuted={isPreview || isMuted}
       />
 
       {/* Oneko Cursor Tracker */}
       <NekoTracker />
+
+      {/* Custom Image Cursor */}
+      {mounted && user.custom_cursor_url && (
+        <CustomJSCursor imageUrl={user.custom_cursor_url} />
+      )}
 
       {/* Ambient background blur circles */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden z-0 select-none">

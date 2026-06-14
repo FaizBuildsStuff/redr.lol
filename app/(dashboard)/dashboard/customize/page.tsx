@@ -40,6 +40,8 @@ interface UserProfile {
   email: string;
   alias?: string;
   discord_id?: string;
+  discord_avatar?: string;
+  discord_username?: string;
   typewriter_heading?: string;
   typewriter_quotes?: string[];
   background_url?: string;
@@ -48,6 +50,8 @@ interface UserProfile {
   audio_shuffle?: boolean;
   audio_player_enabled?: boolean;
   background_audio_enabled?: boolean;
+  active_audio_id?: string;
+  custom_cursor_url?: string;
   location?: string;
   discord_profile_transparency?: number;
   enter_screen_text?: string;
@@ -72,6 +76,8 @@ interface ProfileSnapshot {
   audioShuffle: boolean;
   audioPlayerEnabled: boolean;
   backgroundAudioEnabled: boolean;
+  activeAudioId: string | null;
+  customCursorUrl: string | null;
 }
 
 export default function CustomizePage() {
@@ -100,6 +106,13 @@ export default function CustomizePage() {
   const [audioShuffle, setAudioShuffle] = useState(false);
   const [audioPlayerEnabled, setAudioPlayerEnabled] = useState(false);
   const [backgroundAudioEnabled, setBackgroundAudioEnabled] = useState(false);
+  const [activeAudioId, setActiveAudioId] = useState<string | null>(null);
+  const [isAudioModalOpen, setIsAudioModalOpen] = useState(false);
+
+  // Cursor states
+  const [customCursorUrl, setCustomCursorUrl] = useState<string | null>(null);
+  const [uploadingCursor, setUploadingCursor] = useState(false);
+  const [isCursorModalOpen, setIsCursorModalOpen] = useState(false);
 
   // Location states
   const [location, setLocation] = useState("");
@@ -113,6 +126,7 @@ export default function CustomizePage() {
 
   const { startUpload: startAudioUpload } = useUploadThing("audioUploader");
   const { startUpload: startBackgroundUpload } = useUploadThing("backgroundUploader");
+  const { startUpload: startCursorUpload } = useUploadThing("backgroundUploader");
 
   const sectionItems = [
     { id: "identity", label: "Identity", icon: Type },
@@ -139,9 +153,11 @@ export default function CustomizePage() {
       JSON.stringify(audios) !== JSON.stringify(snapshot.audios) ||
       audioShuffle !== snapshot.audioShuffle ||
       audioPlayerEnabled !== snapshot.audioPlayerEnabled ||
-      backgroundAudioEnabled !== snapshot.backgroundAudioEnabled
+      backgroundAudioEnabled !== snapshot.backgroundAudioEnabled ||
+      activeAudioId !== snapshot.activeAudioId ||
+      customCursorUrl !== snapshot.customCursorUrl
     );
-  }, [alias, audioPlayerEnabled, audioShuffle, audios, backgroundAudioEnabled, backgroundType, backgroundUrl, discordProfileTransparency, enterScreenText, location, snapshot, typewriterHeading, typewriterQuotes]);
+  }, [alias, audioPlayerEnabled, audioShuffle, audios, backgroundAudioEnabled, backgroundType, backgroundUrl, discordProfileTransparency, enterScreenText, location, snapshot, typewriterHeading, typewriterQuotes, activeAudioId, customCursorUrl]);
 
   useEffect(() => {
     async function checkAuth() {
@@ -173,6 +189,12 @@ export default function CustomizePage() {
           if (data.user.background_audio_enabled !== undefined) {
             setBackgroundAudioEnabled(data.user.background_audio_enabled);
           }
+          if (data.user.active_audio_id !== undefined) {
+            setActiveAudioId(data.user.active_audio_id);
+          }
+          if (data.user.custom_cursor_url !== undefined) {
+            setCustomCursorUrl(data.user.custom_cursor_url);
+          }
           if (data.user.location) {
             setLocation(data.user.location);
           }
@@ -193,6 +215,8 @@ export default function CustomizePage() {
             audioShuffle: data.user.audio_shuffle ?? false,
             audioPlayerEnabled: data.user.audio_player_enabled ?? false,
             backgroundAudioEnabled: data.user.background_audio_enabled ?? false,
+            activeAudioId: data.user.active_audio_id ?? null,
+            customCursorUrl: data.user.custom_cursor_url ?? null,
           });
         } else {
           router.push("/signin");
@@ -220,6 +244,7 @@ export default function CustomizePage() {
           typewriter_quotes: typewriterQuotes,
           discord_profile_transparency: discordProfileTransparency,
           enter_screen_text: enterScreenText,
+          custom_cursor_url: customCursorUrl,
         }),
       });
       if (res.ok) {
@@ -237,6 +262,8 @@ export default function CustomizePage() {
           audioShuffle,
           audioPlayerEnabled,
           backgroundAudioEnabled,
+          activeAudioId,
+          customCursorUrl,
         });
         setTimeout(() => setSavedSuccess(false), 2000);
       }
@@ -375,9 +402,16 @@ export default function CustomizePage() {
     }
   };
 
-  const handleAudioSettings = async (shuffle: boolean, playerEnabled: boolean) => {
+  const handleAudioSettings = async (
+    shuffle: boolean,
+    playerEnabled: boolean,
+    activeId: string | null = activeAudioId,
+    bgAudioEnabled: boolean = backgroundAudioEnabled
+  ) => {
     setAudioShuffle(shuffle);
     setAudioPlayerEnabled(playerEnabled);
+    setActiveAudioId(activeId);
+    setBackgroundAudioEnabled(bgAudioEnabled);
 
     try {
       const res = await fetch("/api/user/audio", {
@@ -386,14 +420,47 @@ export default function CustomizePage() {
         body: JSON.stringify({
           shuffle,
           player_enabled: playerEnabled,
+          active_audio_id: activeId,
         }),
       });
 
       if (!res.ok) {
         console.error("Failed to update audio settings");
       }
+
+      if (bgAudioEnabled !== backgroundAudioEnabled) {
+        await fetch("/api/user/background", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ background_audio_enabled: bgAudioEnabled }),
+        });
+      }
     } catch (error) {
       console.error("Audio settings error:", error);
+    }
+  };
+
+  const handleCursorUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploadingCursor(true);
+    try {
+      const uploadedFiles = await startCursorUpload(Array.from(files));
+      if (uploadedFiles && uploadedFiles.length > 0) {
+        const file = uploadedFiles[0];
+        setCustomCursorUrl(file.url);
+        // Save immediately
+        await fetch("/api/user/profile", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ custom_cursor_url: file.url }),
+        });
+      }
+    } catch (error) {
+      console.error("Cursor upload error:", error);
+    } finally {
+      setUploadingCursor(false);
     }
   };
 
@@ -411,6 +478,8 @@ export default function CustomizePage() {
     setAudioShuffle(snapshot.audioShuffle);
     setAudioPlayerEnabled(snapshot.audioPlayerEnabled);
     setBackgroundAudioEnabled(snapshot.backgroundAudioEnabled);
+    setActiveAudioId(snapshot.activeAudioId);
+    setCustomCursorUrl(snapshot.customCursorUrl);
   };
 
   const handleLocationSave = async () => {
@@ -538,17 +607,30 @@ export default function CustomizePage() {
         Premium Customizer
       </div>
 
-      <div className="relative z-10 flex w-full max-w-6xl flex-col gap-10">
+      <div className="relative z-10 flex w-full max-w-[85rem] flex-col gap-10">
 
         {/* ASSETS UPLOADER */}
         <section>
-          <h2 className="text-sm font-medium text-white/80 mb-5">Assets Uploader</h2>
-          <div className="grid gap-4 md:grid-cols-3">
+          <h2 className="text-base font-semibold text-white/90 mb-6">Assets Uploader</h2>
+          <div className="grid gap-6 md:grid-cols-3">
             
             {/* Background Card */}
-            <div className="rounded-xl bg-[#0c0c0c] border border-white/[0.03] p-5">
-              <h3 className="text-xs font-medium text-white mb-3">Background</h3>
-              <div className="flex h-28 w-full items-center justify-center rounded-lg bg-[#050505] border border-transparent hover:border-white/5 transition-all">
+            <div className="rounded-xl bg-[#0c0c0c] border border-white/[0.03] p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-medium text-white">Background</h3>
+                {backgroundType === "video" && (
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <span className="text-[10px] text-white/50">Enable Audio</span>
+                    <input
+                      type="checkbox"
+                      checked={backgroundAudioEnabled}
+                      onChange={handleBackgroundAudioToggle}
+                      className="accent-red-500"
+                    />
+                  </label>
+                )}
+              </div>
+              <div className="flex h-40 w-full items-center justify-center rounded-lg bg-[#050505] border border-transparent hover:border-white/5 transition-all">
                 {backgroundUrl ? (
                   <div className="relative h-full w-full overflow-hidden rounded-lg group">
                     {backgroundType === "video" ? (
@@ -557,40 +639,53 @@ export default function CustomizePage() {
                       <img src={backgroundUrl} alt="Preview" className="h-full w-full object-cover opacity-60" />
                     )}
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
-                      <button onClick={handleRemoveBackground} className="text-xs text-red-400 font-medium">Remove</button>
+                      <button onClick={handleRemoveBackground} className="text-sm text-red-400 font-medium">Remove</button>
                     </div>
                   </div>
                 ) : (
                   <label className="flex h-full w-full cursor-pointer flex-col items-center justify-center">
                     <input type="file" accept="image/*,video/*" onChange={handleBackgroundUpload} disabled={uploadingBackground} className="hidden" />
-                    <Upload className="h-5 w-5 text-white/30 mb-2" />
-                    <span className="text-[11px] text-white/40">{uploadingBackground ? "Uploading..." : "Click to upload a file"}</span>
+                    <Upload className="h-6 w-6 text-white/30 mb-3" />
+                    <span className="text-xs text-white/40">{uploadingBackground ? "Uploading..." : "Click to upload a file"}</span>
                   </label>
                 )}
               </div>
             </div>
 
             {/* Audio Card */}
-            <div className="rounded-xl bg-[#0c0c0c] border border-white/[0.03] p-5">
-              <h3 className="text-xs font-medium text-white mb-3">Audio</h3>
-              <div className="flex h-28 w-full items-center justify-center rounded-lg bg-[#050505] border border-transparent hover:border-white/5 transition-all">
-                <label className="flex h-full w-full cursor-pointer flex-col items-center justify-center">
-                  <input type="file" accept="audio/*" onChange={handleAudioUpload} disabled={uploadingAudio || audioControlsDisabled} className="hidden" />
-                  <Music className="h-5 w-5 text-white/30 mb-2" />
-                  <span className="text-[11px] text-white/40">{uploadingAudio ? "Uploading..." : "Click to open audio manager"}</span>
-                </label>
+            <div className="rounded-xl bg-[#0c0c0c] border border-white/[0.03] p-6">
+              <h3 className="text-sm font-medium text-white mb-4">Audio</h3>
+              <div className="flex h-40 w-full items-center justify-center rounded-lg bg-[#050505] border border-transparent hover:border-white/5 transition-all">
+                <button
+                  onClick={() => setIsAudioModalOpen(true)}
+                  disabled={audioControlsDisabled}
+                  className={`flex h-full w-full flex-col items-center justify-center ${audioControlsDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                >
+                  <Music className="h-6 w-6 text-white/30 mb-3" />
+                  <span className="text-xs text-white/40">
+                    {audioControlsDisabled ? "Disabled by Background Audio" : audios.length > 0 ? `${audios.length} Track${audios.length !== 1 ? 's' : ''} Uploaded` : "Click to open audio manager"}
+                  </span>
+                </button>
               </div>
             </div>
 
             {/* Custom Cursor Card */}
-            <div className="rounded-xl bg-[#0c0c0c] border border-white/[0.03] p-5">
-              <h3 className="text-xs font-medium text-white mb-3">Custom Cursor</h3>
-              <div className="flex h-28 w-full items-center justify-center rounded-lg bg-[#050505] border border-transparent hover:border-white/5 transition-all">
-                <label className="flex h-full w-full cursor-pointer flex-col items-center justify-center">
-                  <input type="file" accept="image/*" disabled className="hidden" />
-                  <Upload className="h-5 w-5 text-white/30 mb-2" />
-                  <span className="text-[11px] text-white/40">Click to upload a file</span>
-                </label>
+            <div className="rounded-xl bg-[#0c0c0c] border border-white/[0.03] p-6">
+              <h3 className="text-sm font-medium text-white mb-4">Custom Cursor</h3>
+              <div className="flex h-40 w-full items-center justify-center rounded-lg bg-[#050505] border border-transparent hover:border-white/5 transition-all overflow-hidden relative">
+                {customCursorUrl ? (
+                  <div className="relative h-full w-full flex flex-col items-center justify-center group cursor-pointer" onClick={() => setIsCursorModalOpen(true)}>
+                    <img src={customCursorUrl} alt="Cursor Preview" className="max-h-24 max-w-24 object-contain drop-shadow-md" />
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 backdrop-blur-sm">
+                      <span className="text-xs text-white font-medium">Change Cursor</span>
+                    </div>
+                  </div>
+                ) : (
+                  <button onClick={() => setIsCursorModalOpen(true)} className="flex h-full w-full flex-col items-center justify-center cursor-pointer">
+                    <Upload className="h-6 w-6 text-white/30 mb-3" />
+                    <span className="text-xs text-white/40">Click to set custom cursor</span>
+                  </button>
+                )}
               </div>
             </div>
 
@@ -610,99 +705,118 @@ export default function CustomizePage() {
 
         {/* GENERAL CUSTOMIZATION */}
         <section>
-          <h2 className="text-sm font-medium text-white/80 mb-5">General Customization</h2>
-          <div className="rounded-xl bg-[#0c0c0c] border border-white/[0.03] p-6">
-            <div className="grid gap-x-8 gap-y-6 md:grid-cols-2 lg:grid-cols-4">
+          <h2 className="text-base font-semibold text-white/90 mb-6">General Customization</h2>
+          <div className="rounded-xl bg-[#0c0c0c] border border-white/[0.03] p-8">
+            <div className="grid gap-x-12 gap-y-8 md:grid-cols-2">
               
               {/* Column 1 */}
-              <div className="space-y-6">
+              <div className="space-y-8">
                 <div>
-                  <label className="block text-[11px] text-white/50 mb-2">Description</label>
+                  <label className="block text-xs font-medium text-white/60 mb-2.5">Description</label>
                   <div className="relative">
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20 text-[10px] font-bold">A</div>
+                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20 text-xs font-bold">A</div>
                     <Input
                       type="text"
                       value={enterScreenText}
                       onChange={(e) => setEnterScreenText(e.target.value)}
                       placeholder="this is my description"
-                      className="h-9 w-full rounded-lg bg-[#050505] border-transparent pl-8 text-xs text-white/80 focus:border-white/10"
+                      className="h-9 w-full rounded-lg bg-[#050505] border-transparent pl-10 text-sm text-white/80 focus:border-white/10"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-[11px] text-white/50 mb-2">Alias</label>
+                  <label className="block text-xs font-medium text-white/60 mb-2.5">Alias</label>
                   <div className="relative">
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20">
-                      <Sparkles className="h-3.5 w-3.5" />
+                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20">
+                      <Sparkles className="h-4 w-4" />
                     </div>
                     <Input
                       type="text"
                       value={alias}
                       onChange={(e) => setAlias(e.target.value)}
                       placeholder="Choose an option"
-                      className="h-9 w-full rounded-lg bg-[#050505] border-transparent pl-8 text-xs text-white/80 focus:border-white/10"
+                      className="h-9 w-full rounded-lg bg-[#050505] border-transparent pl-10 text-sm text-white/80 focus:border-white/10"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Column 2 */}
-              <div className="space-y-6">
+              <div className="space-y-8">
                 <div>
-                  <label className="block text-[11px] text-white/50 mb-2">Discord Presence</label>
+                  <label className="block text-xs font-medium text-white/60 mb-2.5">Discord Presence</label>
                   {!user?.discord_id ? (
-                    <Dialog open={isDiscordDialogOpen} onOpenChange={setIsDiscordDialogOpen}>
-                      <DialogTrigger asChild>
-                        <button className="flex min-h-9 w-full items-center justify-start rounded-lg bg-[#050505] px-3 py-2 text-left text-[11px] text-white/60 hover:bg-[#080808] transition-colors border border-transparent">
-                          <span className="flex items-center gap-1.5"><DoorOpen className="h-3 w-3" /> Click here</span> to connect your Discord and unlock this feature.
-                        </button>
-                      </DialogTrigger>
-                      <DialogContent className="border-white/10 bg-[#0A0A0A]">
-                        <DialogHeader>
-                          <DialogTitle>Connect Discord</DialogTitle>
-                          <DialogDescription>Enter your Discord User ID.</DialogDescription>
-                        </DialogHeader>
-                        <div className="grid gap-4 py-4">
-                          <Input
-                            placeholder="e.g. 123456789012345678"
-                            value={inputDiscordId}
-                            onChange={(e) => setInputDiscordId(e.target.value)}
-                            className="bg-black/50"
-                          />
-                          <Button onClick={handleSaveDiscord} disabled={savingDiscord} className="w-full">
-                            {savingDiscord ? "Connecting..." : "Connect"}
-                          </Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                    <a
+                      href="/api/auth/discord/login?from=customize"
+                      className="group flex w-full items-center gap-3 rounded-xl bg-[#5865F2]/10 border border-[#5865F2]/20 px-4 py-3 text-left hover:bg-[#5865F2]/15 hover:border-[#5865F2]/35 transition-all duration-200"
+                    >
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#5865F2]/20 shrink-0">
+                        <svg className="h-4 w-4 fill-[#5865F2]" viewBox="0 0 127.14 96.36"><path d="M107.7,8.07A105.15,105.15,0,0,0,77.26,0a77.19,77.19,0,0,0-3.3,6.83A96.67,96.67,0,0,0,53.22,6.83,77.19,77.19,0,0,0,49.88,0,105.15,105.15,0,0,0,19.44,8.07C3.66,31.58-1.86,54.65,1,77.53A105.73,105.73,0,0,0,32,96.36a77.7,77.7,0,0,0,6.63-10.85,68.43,68.43,0,0,1-10.5-5c1-.73,2-1.51,2.94-2.31A75.52,75.52,0,0,0,96,78.2c1,.8,1.94,1.58,2.94,2.31a68.17,68.17,0,0,1-10.5,5A77.7,77.7,0,0,0,95.12,96.36a105.73,105.73,0,0,0,31.06-18.83C129.87,50.7,123.36,27.83,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53S36.18,40.36,42.45,40.36,53.83,46,53.83,53,48.72,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.24,60,73.24,53S78.41,40.36,84.69,40.36,96.07,46,96.07,53,91,65.69,84.69,65.69Z" /></svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-white/90">Connect Discord</p>
+                        <p className="text-[10px] text-white/40 mt-0.5">Link your account to show live presence</p>
+                      </div>
+                      <svg className="h-3.5 w-3.5 text-white/30 group-hover:text-white/60 transition-colors shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 18l6-6-6-6" /></svg>
+                    </a>
                   ) : (
-                    <div className="flex h-9 w-full items-center justify-between rounded-lg bg-[#050505] px-3 border border-transparent">
-                      <span className="text-xs text-white/80">{user.discord_id}</span>
-                      <button onClick={handleDisconnectDiscord} disabled={savingDiscord} className="text-[10px] text-red-400 font-medium hover:underline">Disconnect</button>
+                    <div className="flex w-full items-center gap-3 rounded-xl bg-[#5865F2]/10 border border-[#5865F2]/20 px-4 py-3">
+                      {user.discord_avatar ? (
+                        <img
+                          src={`https://cdn.discordapp.com/avatars/${user.discord_id}/${user.discord_avatar}.png?size=64`}
+                          alt="Discord avatar"
+                          className="h-8 w-8 rounded-full shrink-0 ring-1 ring-[#5865F2]/40"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                        />
+                      ) : (
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#5865F2]/30 shrink-0">
+                          <svg className="h-4 w-4 fill-[#5865F2]" viewBox="0 0 127.14 96.36"><path d="M107.7,8.07A105.15,105.15,0,0,0,77.26,0a77.19,77.19,0,0,0-3.3,6.83A96.67,96.67,0,0,0,53.22,6.83,77.19,77.19,0,0,0,49.88,0,105.15,105.15,0,0,0,19.44,8.07C3.66,31.58-1.86,54.65,1,77.53A105.73,105.73,0,0,0,32,96.36a77.7,77.7,0,0,0,6.63-10.85,68.43,68.43,0,0,1-10.5-5c1-.73,2-1.51,2.94-2.31A75.52,75.52,0,0,0,96,78.2c1,.8,1.94,1.58,2.94,2.31a68.17,68.17,0,0,1-10.5,5A77.7,77.7,0,0,0,95.12,96.36a105.73,105.73,0,0,0,31.06-18.83C129.87,50.7,123.36,27.83,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53S36.18,40.36,42.45,40.36,53.83,46,53.83,53,48.72,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.24,60,73.24,53S78.41,40.36,84.69,40.36,96.07,46,96.07,53,91,65.69,84.69,65.69Z" /></svg>
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-xs font-semibold text-white truncate">{user.username}</p>
+                          <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-semibold text-emerald-400 border border-emerald-500/20">
+                            <span className="h-1 w-1 rounded-full bg-emerald-400 inline-block"></span>
+                            Connected
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-white/40 mt-0.5">ID: {user.discord_id}</p>
+                      </div>
+                      <button
+                        onClick={handleDisconnectDiscord}
+                        disabled={savingDiscord}
+                        className="shrink-0 rounded-lg px-2.5 py-1.5 text-[10px] font-semibold text-red-400/80 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-all"
+                      >
+                        Disconnect
+                      </button>
                     </div>
                   )}
                 </div>
                 <div>
-                  <label className="block text-[11px] text-white/50 mb-2">Typewriter Heading</label>
+                  <label className="block text-xs font-medium text-white/60 mb-2.5">Typewriter Heading</label>
                   <div className="relative">
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20">
-                      <Sparkles className="h-3.5 w-3.5" />
+                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20">
+                      <Sparkles className="h-4 w-4" />
                     </div>
                     <Input
                       type="text"
                       value={typewriterHeading}
                       onChange={(e) => setTypewriterHeading(e.target.value)}
                       placeholder="Username Effects"
-                      className="h-9 w-full rounded-lg bg-[#050505] border-transparent pl-8 text-xs text-white/80 focus:border-white/10"
+                      className="h-9 w-full rounded-lg bg-[#050505] border-transparent pl-10 text-sm text-white/80 focus:border-white/10"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Column 3 */}
-              <div className="space-y-6">
+              <div className="space-y-8">
                 <div>
-                  <label className="flex items-center gap-1 text-[11px] text-white/50 mb-4">Profile Opacity <div className="flex h-3 w-3 items-center justify-center rounded-full border border-white/30 text-[8px]">?</div></label>
+                  <label className="flex items-center justify-between text-xs font-medium text-white/60 mb-4">
+                    <span className="flex items-center gap-1.5">Cards Opacity <div className="flex h-4 w-4 items-center justify-center rounded-full border border-white/30 text-[9px]">?</div></span>
+                    <span className="text-[10px] font-mono text-white/40">{Math.round(discordProfileTransparency * 100)}%</span>
+                  </label>
                   <div className="relative px-1 mb-4">
                     <input
                       type="range"
@@ -714,58 +828,76 @@ export default function CustomizePage() {
                       className="w-full h-1 bg-[#222] rounded-full appearance-none outline-none accent-[#555] cursor-pointer"
                     />
                     <div className="flex justify-between mt-2 px-1">
-                      <span className="text-[9px] text-white/40">0%</span>
-                      <span className="text-[9px] text-white/40">50%</span>
-                      <span className="text-[9px] text-white/40">100%</span>
+                      <span className="text-[9px] text-white/40">Glass</span>
+                      <span className="text-[9px] text-white/40">Solid</span>
                     </div>
                   </div>
                   
+                  {/* Live preview */}
                   <div className="relative p-3 rounded-xl border border-white/10 overflow-hidden">
                     <div
                       className="absolute inset-0 z-0"
-                      style={{
-                        background: `linear-gradient(45deg, #1a1a2e, #16213e, #0f3460)`
-                      }}
+                      style={{ background: `linear-gradient(45deg, #1a1a2e, #16213e, #0f3460)` }}
                     />
-                    <div
-                      className="relative z-10 rounded-lg border border-white/10 p-3"
-                      style={{
-                        background: `rgba(12, 12, 12, ${discordProfileTransparency})`,
-                        backdropFilter: "blur(12px)"
-                      }}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div className="h-6 w-6 rounded-full bg-white/20 animate-pulse" />
-                        <div>
-                          <div className="h-1.5 w-12 bg-white/20 rounded-full mb-1" />
-                          <div className="h-1 w-8 bg-white/10 rounded-full" />
+                    {/* Widget card preview */}
+                    <div className="relative z-10 space-y-2">
+                      <div
+                        className="rounded-lg border border-white/10 p-3"
+                        style={{
+                          background: `rgba(15, 15, 15, ${discordProfileTransparency})`,
+                          backdropFilter: "blur(28px)",
+                        }}
+                      >
+                        <div className="flex items-center gap-2">
+                          <div className="h-5 w-5 rounded-full bg-white/20 animate-pulse shrink-0" />
+                          <div className="flex-1">
+                            <div className="h-1.5 w-16 bg-white/25 rounded-full mb-1" />
+                            <div className="h-1 w-10 bg-white/10 rounded-full" />
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        className="rounded-lg border border-white/10 p-2.5"
+                        style={{
+                          background: `rgba(15, 15, 15, ${discordProfileTransparency})`,
+                          backdropFilter: "blur(28px)",
+                        }}
+                      >
+                        <div className="flex gap-1.5">
+                          <div className="h-1 flex-1 bg-white/15 rounded-full" />
+                          <div className="h-1 w-6 bg-red-500/30 rounded-full" />
                         </div>
                       </div>
                     </div>
+                    {discordProfileTransparency === 0 && (
+                      <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
+                        <span className="text-[9px] font-semibold text-white/50 bg-black/40 rounded px-1.5 py-0.5">Fully transparent</span>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div>
-                  <label className="block text-[11px] text-white/50 mb-2">Location</label>
+                  <label className="block text-xs font-medium text-white/60 mb-2.5">Location</label>
                   <div className="relative">
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20">
-                      <MapPin className="h-3.5 w-3.5" />
+                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20">
+                      <MapPin className="h-4 w-4" />
                     </div>
                     <Input
                       type="text"
                       value={location}
                       onChange={(e) => setLocation(e.target.value)}
                       placeholder="My Location"
-                      className="h-9 w-full rounded-lg bg-[#050505] border-transparent pl-8 text-xs text-white/80 focus:border-white/10"
+                      className="h-9 w-full rounded-lg bg-[#050505] border-transparent pl-10 text-sm text-white/80 focus:border-white/10"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Column 4 */}
-              <div className="space-y-6">
+              <div className="space-y-8">
                 <div>
-                  <label className="flex items-center gap-1 text-[11px] text-white/50 mb-2">Typewriter Quotes <div className="flex h-3 w-3 items-center justify-center rounded-full border border-white/30 text-[8px]">?</div></label>
-                  <div className="space-y-2">
+                  <label className="flex items-center gap-1.5 text-xs font-medium text-white/60 mb-2.5">Typewriter Quotes <div className="flex h-4 w-4 items-center justify-center rounded-full border border-white/30 text-[9px]">?</div></label>
+                  <div className="space-y-2.5">
                     {typewriterQuotes.map((quote, index) => (
                       <div key={index} className="flex gap-2">
                         <Input
@@ -776,7 +908,7 @@ export default function CustomizePage() {
                             updated[index] = e.target.value;
                             setTypewriterQuotes(updated);
                           }}
-                          className="h-8 rounded-lg bg-[#050505] border-transparent text-[11px] text-white/80 focus:border-white/10"
+                          className="h-9 rounded-lg bg-[#050505] border-transparent text-sm text-white/80 focus:border-white/10"
                         />
                         <button
                           onClick={() => {
@@ -784,15 +916,15 @@ export default function CustomizePage() {
                               setTypewriterQuotes(typewriterQuotes.filter((_, i) => i !== index));
                             }
                           }}
-                          className="h-8 w-8 shrink-0 flex items-center justify-center rounded-lg bg-[#050505] text-white/40 hover:text-red-400"
+                          className="h-9 w-11 shrink-0 flex items-center justify-center rounded-lg bg-[#050505] text-white/40 hover:text-red-400"
                         >
-                          <X className="h-3 w-3" />
+                          <X className="h-4 w-4" />
                         </button>
                       </div>
                     ))}
                     <button
                       onClick={() => setTypewriterQuotes([...typewriterQuotes, ""])}
-                      className="h-8 w-full rounded-lg bg-[#050505] text-[11px] text-white/40 hover:text-white/80 transition-all border border-transparent hover:border-white/5"
+                      className="h-9 w-full rounded-lg bg-[#050505] text-xs font-medium text-white/40 hover:text-white/80 transition-all border border-transparent hover:border-white/5"
                     >
                       + Add Quote
                     </button>
@@ -836,6 +968,194 @@ export default function CustomizePage() {
           </motion.div>
         )}
       </AnimatePresence>
+      <AnimatePresence>
+        {isAudioModalOpen && (
+          <Dialog open={isAudioModalOpen} onOpenChange={setIsAudioModalOpen}>
+            <DialogContent className="border-white/10 bg-[#0A0A0A] max-w-md w-full">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-semibold text-white">Audio Manager</DialogTitle>
+                <DialogDescription className="text-white/50 text-xs">
+                  To set an audio as active, please select your desired audio by clicking on it.
+                  Add up to 4 audios with <span className="text-[#b58deb] font-bold inline-flex items-center"><Sparkles className="h-3 w-3 mr-0.5" /> Premium</span>
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-6 mt-2">
+                <div className="flex flex-col gap-1 text-xs">
+                  <div className="flex justify-between items-center text-white/60">
+                    <span>Audios ({audios.length}/4)</span>
+                  </div>
+                  
+                  <div className="space-y-2 mt-2 max-h-[200px] overflow-y-auto pr-1">
+                    {audios.map((audio) => (
+                      <div
+                        key={audio.id}
+                        onClick={() => handleAudioSettings(audioShuffle, audioPlayerEnabled, audio.id, false)}
+                        className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${activeAudioId === audio.id ? 'border-red-500/40 bg-red-500/10' : 'border-white/5 bg-[#0f0f0f] hover:border-white/20'}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`flex h-8 w-8 items-center justify-center rounded-full ${activeAudioId === audio.id ? 'bg-red-500/20 text-red-400' : 'bg-white/5 text-white/40'}`}>
+                            <Music className="h-4 w-4" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-medium text-white">{audio.name}</p>
+                            {activeAudioId === audio.id && <p className="text-[10px] text-red-400">Active</p>}
+                          </div>
+                        </div>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleRemoveAudio(audio.id); }}
+                          className="h-8 w-8 flex items-center justify-center text-white/30 hover:text-red-400 rounded-lg hover:bg-white/5"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-white/5 bg-[#0f0f0f] p-4 flex flex-col items-center justify-center relative overflow-hidden group">
+                  <input
+                    type="file"
+                    accept="audio/*"
+                    onChange={handleAudioUpload}
+                    disabled={uploadingAudio || audios.length >= 4}
+                    className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed z-10"
+                  />
+                  {uploadingAudio ? (
+                    <div className="flex flex-col items-center gap-3 w-full px-4">
+                      <span className="text-xs text-white/60">Uploading...</span>
+                      <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden relative">
+                        <motion.div
+                          className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-red-600 via-red-400 to-red-600 w-full"
+                          initial={{ x: "-100%" }}
+                          animate={{ x: "100%" }}
+                          transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="h-10 w-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
+                        <Upload className="h-4 w-4 text-white/50" />
+                      </div>
+                      <span className="text-xs text-white/60">Click to upload custom audio</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-3">
+                  <label className="flex items-center justify-between cursor-pointer p-3 rounded-xl border border-white/5 bg-[#0f0f0f] hover:border-white/10">
+                    <div>
+                      <p className="text-xs font-medium text-white">Shuffle Audios</p>
+                      <p className="text-[10px] text-white/40">Play a random audio from your list</p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={audioShuffle}
+                      onChange={(e) => handleAudioSettings(e.target.checked, audioPlayerEnabled, activeAudioId, backgroundAudioEnabled)}
+                      className="accent-red-500 w-4 h-4"
+                    />
+                  </label>
+                  <label className="flex items-center justify-between cursor-pointer p-3 rounded-xl border border-white/5 bg-[#0f0f0f] hover:border-white/10">
+                    <div>
+                      <p className="text-xs font-medium text-white">Audio Player</p>
+                      <p className="text-[10px] text-white/40">Show a mini player on your profile</p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={audioPlayerEnabled}
+                      onChange={(e) => handleAudioSettings(audioShuffle, e.target.checked, activeAudioId, backgroundAudioEnabled)}
+                      className="accent-red-500 w-4 h-4"
+                    />
+                  </label>
+                  <label className="flex items-center justify-between cursor-pointer p-3 rounded-xl border border-white/5 bg-[#0f0f0f] hover:border-white/10">
+                    <div>
+                      <p className="text-xs font-medium text-white">Disable Custom Audio</p>
+                      <p className="text-[10px] text-white/40">Automatically enables video background audio if available</p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={activeAudioId === null}
+                      onChange={(e) => {
+                        const disabled = e.target.checked;
+                        handleAudioSettings(audioShuffle, audioPlayerEnabled, disabled ? null : (audios[0]?.id || null), disabled && backgroundType === 'video');
+                      }}
+                      className="accent-red-500 w-4 h-4"
+                    />
+                  </label>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isCursorModalOpen && (
+          <Dialog open={isCursorModalOpen} onOpenChange={setIsCursorModalOpen}>
+            <DialogContent className="border-white/10 bg-[#0A0A0A] max-w-sm w-full">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-semibold text-white">Custom Cursor</DialogTitle>
+                <DialogDescription className="text-white/50 text-xs">
+                  Upload an image to replace the default mouse cursor on your profile.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4 mt-4">
+                {customCursorUrl && (
+                  <div className="flex flex-col items-center justify-center gap-3 p-6 rounded-xl border border-white/5 bg-[#0f0f0f]">
+                    <img src={customCursorUrl} alt="Cursor" className="max-h-24 max-w-24 object-contain" />
+                    <button
+                      onClick={async () => {
+                        setCustomCursorUrl(null);
+                        await fetch("/api/user/profile", {
+                          method: "PATCH",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ custom_cursor_url: null }),
+                        });
+                      }}
+                      className="text-xs text-red-400 font-medium"
+                    >
+                      Remove Cursor
+                    </button>
+                  </div>
+                )}
+
+                <div className="rounded-xl border border-white/5 bg-[#0f0f0f] p-6 flex flex-col items-center justify-center relative overflow-hidden group">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleCursorUpload}
+                    disabled={uploadingCursor}
+                    className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed z-10"
+                  />
+                  {uploadingCursor ? (
+                    <div className="flex flex-col items-center gap-3 w-full px-4">
+                      <span className="text-xs text-white/60">Uploading...</span>
+                      <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden relative">
+                        <motion.div
+                          className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-red-600 via-red-400 to-red-600 w-full"
+                          initial={{ x: "-100%" }}
+                          animate={{ x: "100%" }}
+                          transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="h-10 w-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
+                        <Upload className="h-4 w-4 text-white/50" />
+                      </div>
+                      <span className="text-xs text-white/60">Click to upload an image</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+      </AnimatePresence>
+
     </section>
   );
 }

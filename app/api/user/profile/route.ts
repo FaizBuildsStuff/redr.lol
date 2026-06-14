@@ -103,6 +103,14 @@ export async function PATCH(req: NextRequest) {
       hasUpdates = true;
     }
 
+    if (body.custom_cursor_url !== undefined) {
+      await sql`
+        UPDATE users SET custom_cursor_url = ${body.custom_cursor_url}
+        WHERE id = ${userId}
+      `;
+      hasUpdates = true;
+    }
+
     if (body.alias !== undefined) {
       const cleanAlias = typeof body.alias === "string" ? body.alias.trim().toLowerCase() : "";
       if (cleanAlias && !/^[a-z0-9_][a-z0-9_-]*$/.test(cleanAlias)) {
@@ -126,7 +134,7 @@ export async function PATCH(req: NextRequest) {
     // Return the updated user row
     const [updated] = await sql`
       SELECT id, username, email, alias, typewriter_heading, typewriter_quotes,
-             custom_links, active_badges, theme, music_active, sparkles_active, custom_font, discord_profile_transparency, enter_screen_text
+             custom_links, active_badges, theme, music_active, sparkles_active, custom_font, discord_profile_transparency, enter_screen_text, custom_cursor_url
       FROM users
       WHERE id = ${userId}
     `;
