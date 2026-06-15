@@ -1,30 +1,129 @@
 "use client";
 
-import React, { useState } from "react";
-import { motion } from "framer-motion";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { LucideIcon, Sparkles } from "lucide-react";
 
+const STATUS_LINES = [
+  "Establishing secure connection...",
+  "Verifying session token...",
+  "Loading profile data...",
+  "Syncing dashboard...",
+];
+
 export function DashboardLoading({ label = "Preparing dashboard" }: { label?: string }) {
+  const [statusIdx, setStatusIdx] = useState(0);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const statusTimer = setInterval(() => {
+      setStatusIdx(i => (i + 1) % STATUS_LINES.length);
+    }, 900);
+    const progressTimer = setInterval(() => {
+      setProgress(p => Math.min(p + Math.random() * 18, 92));
+    }, 400);
+    return () => { clearInterval(statusTimer); clearInterval(progressTimer); };
+  }, []);
+
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#050505] text-[#F5F1E8]">
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:56px_56px] opacity-40" />
-      <div className="relative flex flex-col items-center gap-5 text-center">
-        <motion.div
-          animate={{ opacity: [0.72, 1, 0.72], scale: [0.98, 1.02, 0.98] }}
-          transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-          className="flex h-20 w-20 items-center justify-center rounded-[24px] border border-white/[0.08] bg-white/[0.035] shadow-[0_24px_80px_rgba(0,0,0,0.5)]"
-        >
-          <img src="/Logo.png" alt="redr logo" className="h-12 w-12 object-contain" />
-        </motion.div>
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/55">{label}</p>
-          <div className="mx-auto mt-4 h-1 w-44 overflow-hidden rounded-full bg-white/[0.08]">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#050505]">
+      {/* Subtle grid */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
+
+      {/* Radial glow center */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_50%,rgba(239,68,68,0.07),transparent)]" />
+
+      {/* Slow scanline sweep */}
+      <motion.div
+        animate={{ y: ["-100%", "200%"] }}
+        transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+        className="absolute inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-red-500/20 to-transparent pointer-events-none"
+      />
+
+      {/* Main content */}
+      <div className="relative z-10 flex flex-col items-center gap-10">
+
+        {/* Logo stack */}
+        <div className="relative flex items-center justify-center">
+          {/* Outer orbital ring */}
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
+            className="absolute h-[120px] w-[120px] rounded-full border border-dashed border-red-500/20"
+          />
+          {/* Inner ring */}
+          <motion.div
+            animate={{ rotate: -360 }}
+            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+            className="absolute h-[88px] w-[88px] rounded-full border border-red-500/30"
+            style={{ borderTopColor: "rgba(239,68,68,0.7)" }}
+          />
+
+          {/* Glow pulse */}
+          <motion.div
+            animate={{ scale: [1, 1.3, 1], opacity: [0.15, 0.3, 0.15] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute h-20 w-20 rounded-full bg-red-500 blur-2xl"
+          />
+
+          {/* Logo container */}
+          <motion.div
+            animate={{ scale: [1, 1.03, 1] }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            className="relative flex h-[70px] w-[70px] items-center justify-center rounded-[22px] border border-red-500/20 bg-[#0A0A0A] shadow-[0_0_40px_rgba(239,68,68,0.15),inset_0_1px_0_rgba(255,255,255,0.05)]"
+          >
+            <img
+              src="/Logo.png"
+              alt="redr logo"
+              className="h-10 w-10 object-contain drop-shadow-[0_0_12px_rgba(239,68,68,0.6)]"
+            />
+          </motion.div>
+        </div>
+
+        {/* Brand name */}
+        <div className="flex flex-col items-center gap-1.5">
+          <span className="text-[22px] font-bold tracking-tight text-white">
+            redr<span className="text-red-500">.lol</span>
+          </span>
+        </div>
+
+        {/* Status + progress */}
+        <div className="flex w-64 flex-col items-center gap-4">
+          {/* Animated status text */}
+          <div className="h-4 overflow-hidden">
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={statusIdx}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.25 }}
+                className="text-center text-[11px] font-mono text-[#555] tracking-wide"
+              >
+                {STATUS_LINES[statusIdx]}
+              </motion.p>
+            </AnimatePresence>
+          </div>
+
+          {/* Progress bar */}
+          <div className="relative h-[2px] w-full overflow-hidden rounded-full bg-white/[0.06]">
             <motion.div
-              animate={{ x: ["-100%", "130%"] }}
-              transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
-              className="h-full w-20 rounded-full bg-white"
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+              className="absolute left-0 top-0 h-full rounded-full bg-gradient-to-r from-red-600 to-red-400"
+            />
+            {/* Shimmer */}
+            <motion.div
+              animate={{ x: ["-100%", "300%"] }}
+              transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute top-0 h-full w-16 bg-gradient-to-r from-transparent via-white/40 to-transparent rounded-full"
             />
           </div>
+
+          {/* Percentage */}
+          <p className="text-[10px] font-mono text-[#333] tabular-nums">
+            {Math.floor(progress)}%
+          </p>
         </div>
       </div>
     </div>

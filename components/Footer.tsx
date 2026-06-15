@@ -229,41 +229,41 @@ const Footer = () => {
             {
               title: "General",
               links: [
-                "Login",
-                "Sign Up",
-                "Pricing",
-                "Leaderboard",
-                "Status",
+                { label: "Login", href: "/signin" },
+                { label: "Sign Up", href: "/signup" },
+                { label: "Pricing", href: "/pricing" },
+                { label: "Leaderboard", href: "/leaderboard" },
+                { label: "Status", href: "/status" },
               ],
             },
             {
               title: "Resources",
               links: [
-                "Help Center",
-                "Changelog",
-                "Custom Themes",
-                "Documentation",
-                "Partners",
+                { label: "Help Center", href: "/help-center" },
+                { label: "Changelog", href: "/changelog" },
+                { label: "Custom Themes", href: "/themes" },
+                { label: "Documentation", href: "/docs" },
+                { label: "Partners", href: "/partners" },
               ],
             },
             {
               title: "Contact",
               links: [
-                "Discord",
-                "Support Email",
-                "Business Email",
-                "Twitter",
-                "Instagram",
+                { label: "Discord", href: "https://discord.gg/redrose" },
+                { label: "Support Email", href: "mailto:support@redr.lol" },
+                { label: "Business Email", href: "mailto:business@redr.lol" },
+                { label: "Twitter", href: "https://twitter.com/redrlol" },
+                { label: "Instagram", href: "https://instagram.com/redrlol" },
               ],
             },
             {
               title: "Legal",
               links: [
-                "Terms",
-                "Privacy",
-                "Copyright",
-                "Cookies",
-                "Guidelines",
+                { label: "Terms", href: "/terms" },
+                { label: "Privacy", href: "/privacy" },
+                { label: "Copyright", href: "/copyright" },
+                { label: "Cookies", href: "/cookies" },
+                { label: "Guidelines", href: "/guidelines" },
               ],
             },
           ].map((group, i) => (
@@ -278,11 +278,11 @@ const Footer = () => {
                 {group.links.map((link, idx) => (
                   <a
                     key={idx}
-                    href="#"
+                    href={link.href}
                     className="group/link flex items-center gap-2 text-[#8F8F8F] transition-all duration-300 hover:text-white"
                   >
                     <span>
-                      {link}
+                      {link.label}
                     </span>
 
                     <ArrowUpRight className="h-3.5 w-3.5 opacity-0 transition-all duration-300 group-hover/link:translate-x-[2px] group-hover/link:-translate-y-[2px] group-hover/link:opacity-100" />

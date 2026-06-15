@@ -38,16 +38,16 @@ interface UserProfile {
 interface SidebarProps {
   user: UserProfile;
   setMobileOpen?: (open: boolean) => void;
+  openCmd?: () => void;
 }
 
-export default function Sidebar({ user, setMobileOpen }: SidebarProps) {
+export default function Sidebar({ user, setMobileOpen, openCmd }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
 
-  const [accountOpen, setAccountOpen] = useState(true);
+  const [accountOpen, setAccountOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [shared, setShared] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -99,15 +99,6 @@ export default function Sidebar({ user, setMobileOpen }: SidebarProps) {
     { name: "Templates", href: "/dashboard/templates", icon: LayoutTemplate },
   ];
 
-  const allLinks = [
-    ...accountSublinks.map(l => ({ ...l, group: "account" })),
-    ...navLinks.map(l => ({ ...l, group: "nav" })),
-  ];
-
-  const filteredLinks = searchQuery.trim()
-    ? allLinks.filter(l => l.name.toLowerCase().includes(searchQuery.toLowerCase()))
-    : null;
-
   return (
     <div className="relative flex h-full flex-col select-none">
 
@@ -125,48 +116,22 @@ export default function Sidebar({ user, setMobileOpen }: SidebarProps) {
       </div>
 
       {/* ── SEARCH ── */}
-      <div className="relative mb-6">
+      <button
+        onClick={openCmd}
+        className="relative mb-6 flex w-full items-center rounded-xl bg-white/[0.04] border border-white/[0.06] py-2.5 pl-9 pr-14 text-[13px] text-[#555] hover:text-[#888] hover:bg-white/[0.06] transition-all cursor-pointer text-left focus:outline-none focus:border-red-500/30"
+      >
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#555]" />
-        <input
-          type="text"
-          placeholder="Search features..."
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-          className="w-full rounded-xl bg-white/[0.04] border border-white/[0.06] py-2.5 pl-9 pr-14 text-[13px] text-white placeholder:text-[#555] focus:outline-none focus:border-red-500/30 focus:bg-white/[0.06] transition-all"
-        />
+        Search features...
         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-medium text-[#444] border border-[#333] rounded px-1.5 py-0.5">
           Ctrl K
         </span>
-      </div>
+      </button>
 
       {/* ── NAV ── */}
       <div className="flex-1 overflow-y-auto space-y-1 pr-1 scrollbar-none">
 
-        {filteredLinks ? (
-          /* Search results */
-          filteredLinks.length > 0 ? filteredLinks.map(link => {
-            const Icon = link.icon;
-            const isActive = pathname === link.href;
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => { setSearchQuery(""); setMobileOpen && setMobileOpen(false); }}
-                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium transition-all duration-200 ${isActive
-                  ? "bg-red-500/12 text-white"
-                  : "text-[#888] hover:text-white hover:bg-white/[0.04]"}`}
-              >
-                <Icon className={`h-4 w-4 shrink-0 ${isActive ? "text-red-500" : "text-[#555]"}`} />
-                {link.name}
-              </Link>
-            );
-          }) : (
-            <p className="px-3 py-4 text-xs text-[#555]">No results for "{searchQuery}"</p>
-          )
-        ) : (
-          <>
-            {/* Account Accordion */}
-            <div className="mb-2">
+        {/* Account Accordion */}
+        <div className="mb-2">
               <button
                 onClick={() => setAccountOpen(!accountOpen)}
                 className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-[13px] font-semibold transition-all duration-200 cursor-pointer ${accountOpen ? "bg-red-500/10 text-white" : "text-[#777] hover:text-white hover:bg-white/[0.04]"}`}
@@ -231,8 +196,6 @@ export default function Sidebar({ user, setMobileOpen }: SidebarProps) {
                 </Link>
               );
             })}
-          </>
-        )}
       </div>
 
       {/* ── FOOTER ── */}

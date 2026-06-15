@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 import { DashboardLoading } from "@/components/DashboardUI";
+import CommandPalette from "@/components/CommandPalette";
 
 interface UserProfile {
   id: number;
@@ -26,6 +27,7 @@ export default function DashboardLayout({
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [cmdOpen, setCmdOpen] = useState(false);
 
   // Fetch auth status and user details
   useEffect(() => {
@@ -52,9 +54,18 @@ export default function DashboardLayout({
     }
     checkAuth();
 
+    // Ctrl+K global shortcut
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+        e.preventDefault();
+        setCmdOpen(open => !open);
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+
     // Poll every 10 seconds to enforce real-time kicks/bans
     const interval = setInterval(checkAuth, 10000);
-    return () => clearInterval(interval);
+    return () => { clearInterval(interval); document.removeEventListener("keydown", handleKeyDown); };
   }, [router]);
 
   if (loading) {
@@ -65,6 +76,8 @@ export default function DashboardLayout({
 
   return (
     <div className="relative flex min-h-[125vh] bg-[#0A0A0A] text-[#F5F1E8] font-['Satoshi'] antialiased">
+      {/* Command Palette */}
+      <CommandPalette open={cmdOpen} onClose={() => setCmdOpen(false)} username={user.username} />
       
       {/* BACKGROUND MESH */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -89,7 +102,7 @@ export default function DashboardLayout({
 
       {/* DESKTOP FIXED SIDEBAR */}
       <aside className="fixed bottom-0 top-0 left-0 z-30 hidden w-[260px] border-r border-white/5 bg-[#0D0D0D]/80 p-6 md:flex md:flex-col backdrop-blur-xl shadow-[5px_0_30px_rgba(0,0,0,0.5)]">
-        <Sidebar user={user} />
+        <Sidebar user={user} openCmd={() => setCmdOpen(true)} />
       </aside>
 
       {/* MOBILE NAVIGATION DRAWER */}
@@ -134,9 +147,8 @@ export default function DashboardLayout({
                 </button>
               </div>
 
-              {/* Sidebar content */}
               <div className="relative z-10 flex-1 overflow-y-auto px-4 py-4">
-                <Sidebar user={user} setMobileOpen={setMobileOpen} />
+                <Sidebar user={user} setMobileOpen={setMobileOpen} openCmd={() => setCmdOpen(true)} />
               </div>
             </motion.aside>
           </>

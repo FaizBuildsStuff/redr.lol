@@ -10,8 +10,33 @@ const StatsSection = () => {
 
   const [username, setUsername] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [stats, setStats] = useState([
+    { number: "...", label: "Profile Views" },
+    { number: "...", label: "Active Users" },
+    { number: "...", label: "Links Created" },
+    { number: "...", label: "Premium Members" },
+  ]);
 
   useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch("/api/public/stats");
+        if (res.ok) {
+          const data = await res.json();
+          const formatter = Intl.NumberFormat('en-US', { notation: "compact", maximumFractionDigits: 1 });
+          
+          setStats([
+            { number: formatter.format(data.views || 0), label: "Profile Views" },
+            { number: formatter.format(data.users || 0), label: "Active Users" },
+            { number: formatter.format(data.links || 0), label: "Links Created" },
+            { number: formatter.format(data.premium || 0), label: "Premium Members" },
+          ]);
+        }
+      } catch (err) {
+        console.error("Failed to fetch stats", err);
+      }
+    };
+    fetchStats();
 
     const checkAuth = async () => {
       try {
@@ -214,24 +239,7 @@ const StatsSection = () => {
         {/* Stats */}
         <div className="mt-24 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
 
-          {[
-            {
-              number: "120K+",
-              label: "Profile Views",
-            },
-            {
-              number: "1K+",
-              label: "Active Users",
-            },
-            {
-              number: "8K+",
-              label: "Links Created",
-            },
-            {
-              number: "240+",
-              label: "Premium Members",
-            },
-          ].map((item, i) => (
+          {stats.map((item, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, y: 35 }}

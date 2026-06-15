@@ -6,8 +6,10 @@ import {
   Folder, File as FileIcon, FileText, LockKeyhole, TerminalSquare, Upload, 
   Plus, MoreVertical, Edit2, Trash2, ChevronRight, HardDrive, ArrowLeft, Loader2 
 } from "lucide-react";
-import { UploadButton } from "@uploadthing/react";
+import { generateUploadButton } from "@uploadthing/react";
+import type { OurFileRouter } from "@/lib/uploadthing";
 
+const UploadButton = generateUploadButton<OurFileRouter>();
 interface VaultItem {
   id: number;
   name: string;
