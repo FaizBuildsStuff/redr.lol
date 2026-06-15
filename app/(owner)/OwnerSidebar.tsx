@@ -9,10 +9,11 @@ import {
   Users,
   TerminalSquare,
   LogOut,
-  ChevronDown,
+  MoreHorizontal,
   LayoutDashboard,
   Database,
-  LockKeyhole
+  LockKeyhole,
+  Search,
 } from "lucide-react";
 
 interface UserProfile {
@@ -30,6 +31,7 @@ interface OwnerSidebarProps {
 export default function OwnerSidebar({ user, setMobileOpen }: OwnerSidebarProps) {
   const pathname = usePathname();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -39,9 +41,7 @@ export default function OwnerSidebar({ user, setMobileOpen }: OwnerSidebarProps)
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleLogout = async () => {
@@ -61,110 +61,125 @@ export default function OwnerSidebar({ user, setMobileOpen }: OwnerSidebarProps)
     { name: "Owner Vault", href: "/owner/vault", icon: LockKeyhole },
   ];
 
+  const filtered = searchQuery.trim()
+    ? navLinks.filter(l => l.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    : navLinks;
+
+  const userId = user?.id;
+  const formattedUid = userId != null ? `UID ${String(userId).padStart(7, "0")}` : "UID unknown";
+
   return (
-    <div className="relative flex h-full flex-col justify-between">
-      {/* Background visual layers for owner */}
-      <div className="pointer-events-none absolute inset-0 z-0">
-        <div className="absolute left-[-20px] top-[-20px] h-[200px] w-[200px] rounded-full bg-red-600/30 blur-[90px]" />
-      </div>
+    <div className="relative flex h-full flex-col select-none">
 
-      <div className="relative z-10 flex h-full flex-col justify-between flex-1">
+      {/* ── LOGO ── */}
+      <div className="flex items-center gap-3 px-2 py-1 mb-5">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-red-500/30 bg-red-500/10 shadow-[0_0_18px_rgba(239,68,68,0.2)]">
+          <ShieldAlert className="h-5 w-5 text-red-500" />
+        </div>
         <div>
-          {/* LOGO AREA */}
-          <div className="relative flex items-center gap-4 rounded-[20px] border border-red-500/20 bg-red-500/[0.03] px-4 py-4 backdrop-blur-3xl shadow-[0_0_30px_rgba(239,68,68,0.05)]">
-            <div className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl border border-red-500/30 bg-red-500/10 shadow-[0_0_20px_rgba(239,68,68,0.3)]">
-              <ShieldAlert className="h-5 w-5 text-red-500" />
-            </div>
-            <div className="relative">
-              <span className="text-lg font-bold tracking-tight text-white">
-                redr
-                <span className="text-red-500">.owner</span>
-              </span>
-              <div className="absolute -right-3 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,1)] animate-pulse" />
-            </div>
-          </div>
-
-          <div className="mt-8 space-y-2">
-            <div className="px-3 pb-2 text-[10px] font-bold uppercase tracking-widest text-red-500/70">
-              Control Panel
-            </div>
-            {navLinks.map((link) => {
-              const Icon = link.icon;
-              const isActive = pathname === link.href;
-              return (
-                <Link
-                  key={link.name}
-                  href={link.href}
-                  onClick={() => setMobileOpen && setMobileOpen(false)}
-                  className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold transition-all duration-300 cursor-pointer ${
-                    isActive
-                      ? "bg-red-500/10 text-red-400 border border-red-500/20 shadow-[0_0_20px_rgba(239,68,68,0.1)]"
-                      : "text-[#8C8C8C] hover:text-white hover:bg-white/[0.03]"
-                  }`}
-                >
-                  <Icon className={`h-4.5 w-4.5 ${isActive ? "text-red-500" : ""}`} />
-                  {link.name}
-                </Link>
-              );
-            })}
+          <span className="text-[17px] font-bold tracking-tight text-white">
+            redr<span className="text-red-500">.owner</span>
+          </span>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_6px_rgba(239,68,68,1)]" />
+            <span className="text-[10px] text-red-400/60 font-mono uppercase tracking-widest">secure</span>
           </div>
         </div>
+      </div>
 
-        {/* FOOTER WIDGET SECTION */}
-        <div className="space-y-4 pt-6 border-t border-white/5 relative z-10" ref={dropdownRef}>
-          <div className="flex items-center justify-between relative overflow-hidden rounded-[20px] border border-red-500/10 bg-black/40 p-3 backdrop-blur-2xl">
-            <div className="flex items-center gap-3">
-              <div className="relative h-10 w-10 overflow-hidden rounded-xl border border-red-500/30 bg-gradient-to-br from-red-600 to-[#100303] flex items-center justify-center">
-                <span className="text-sm font-black text-white tracking-widest uppercase">
-                  {user.username.slice(0, 2)}
-                </span>
-              </div>
-              <div>
-                <h4 className="text-sm font-bold text-white truncate max-w-[100px]">
-                  {user.username}
-                </h4>
-                <p className="text-[10px] text-red-400 font-mono leading-none mt-1 uppercase tracking-wider">
-                  {user.role || "OWNER"}
-                </p>
-              </div>
-            </div>
+      {/* ── SEARCH ── */}
+      <div className="relative mb-6">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#555]" />
+        <input
+          type="text"
+          placeholder="Search panel..."
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          className="w-full rounded-xl bg-white/[0.04] border border-white/[0.06] py-2.5 pl-9 pr-4 text-[13px] text-white placeholder:text-[#555] focus:outline-none focus:border-red-500/30 focus:bg-white/[0.06] transition-all"
+        />
+      </div>
 
-            <button
-              type="button"
-              onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-white/[0.05] text-[#8C8C8C] hover:text-white transition-all duration-200 cursor-pointer"
+      {/* ── NAV ── */}
+      <div className="flex-1 overflow-y-auto space-y-0.5 pr-1 scrollbar-none">
+        <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-[0.15em] text-[#444]">Control Panel</p>
+        {filtered.length > 0 ? filtered.map(link => {
+          const Icon = link.icon;
+          const isActive = pathname === link.href;
+          return (
+            <Link
+              key={link.name}
+              href={link.href}
+              onClick={() => { setSearchQuery(""); setMobileOpen && setMobileOpen(false); }}
+              className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium transition-all duration-200 ${isActive
+                ? "bg-red-500/10 text-white border border-red-500/10"
+                : "text-[#777] hover:text-white hover:bg-white/[0.04]"}`}
             >
-              <ChevronDown className={`h-4 w-4 transition-transform ${dropdownOpen ? "rotate-180" : ""}`} />
-            </button>
-          </div>
+              <Icon className={`h-4 w-4 shrink-0 ${isActive ? "text-red-400" : "text-[#555]"}`} />
+              {link.name}
+            </Link>
+          );
+        }) : (
+          <p className="px-3 py-4 text-xs text-[#555]">No results for "{searchQuery}"</p>
+        )}
+      </div>
 
+      {/* ── FOOTER ── */}
+      <div className="mt-4 space-y-3 border-t border-white/[0.05] pt-4">
+
+        {/* Quick links */}
+        <div className="rounded-2xl bg-white/[0.03] border border-white/[0.05] p-3.5 space-y-2">
+          <Link
+            href="/dashboard"
+            className="flex items-center justify-between rounded-xl bg-red-500/8 hover:bg-red-500/15 border border-red-500/10 px-3.5 py-2.5 text-[12px] font-semibold text-red-300 transition-all duration-200"
+          >
+            <span className="flex items-center gap-2">
+              <Database className="h-3.5 w-3.5" />
+              Exit to Dashboard
+            </span>
+          </Link>
+        </div>
+
+        {/* User card */}
+        <div className="relative" ref={dropdownRef}>
           <AnimatePresence>
             {dropdownOpen && (
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 8, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 8, scale: 0.97 }}
                 transition={{ duration: 0.15 }}
-                className="absolute bottom-[calc(100%+12px)] left-0 right-0 z-50 rounded-2xl border border-white/10 bg-[#0D0D0D] p-2 shadow-2xl backdrop-blur-xl"
+                className="absolute bottom-[calc(100%+8px)] left-0 right-0 z-50 rounded-2xl border border-white/[0.06] bg-[#0A0A0A] p-1.5 shadow-2xl"
               >
-                <Link
-                  href="/dashboard"
-                  onClick={() => setDropdownOpen(false)}
-                  className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs font-semibold text-[#8C8C8C] hover:text-white hover:bg-white/[0.03] transition-all duration-200"
-                >
-                  <Database className="h-4 w-4 text-white/50" />
-                  Exit to Dashboard
-                </Link>
                 <button
-                  onClick={handleLogout}
-                  className="mt-1 flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs font-semibold text-red-400 hover:bg-red-500/10 transition-all duration-200 cursor-pointer"
+                  onClick={() => { setDropdownOpen(false); handleLogout(); }}
+                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-[12px] font-medium text-red-400 hover:bg-red-500/10 transition-all cursor-pointer"
                 >
-                  <LogOut className="h-4 w-4 text-red-500" />
+                  <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-red-500/10 text-red-500">
+                    <LogOut className="h-3.5 w-3.5" />
+                  </div>
                   Sign Out
                 </button>
               </motion.div>
             )}
           </AnimatePresence>
+
+          <div className="flex items-center justify-between rounded-2xl bg-white/[0.03] border border-white/[0.05] px-3 py-2.5">
+            <div className="flex items-center gap-2.5">
+              <div className="h-[34px] w-[34px] rounded-xl border border-red-500/30 bg-gradient-to-br from-red-600 to-[#100303] flex items-center justify-center shrink-0">
+                <span className="text-xs font-black text-white uppercase">{user.username.slice(0, 2)}</span>
+              </div>
+              <div>
+                <h4 className="text-[13px] font-semibold text-white truncate max-w-[100px]">{user.username}</h4>
+                <p className="text-[10px] text-[#555] font-mono leading-none mt-0.5">{formattedUid}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-white/[0.05] text-[#555] hover:text-white transition-all cursor-pointer"
+            >
+              <MoreHorizontal className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </div>
     </div>
