@@ -139,6 +139,30 @@ export const ourFileRouter = {
   };
 }),
 
+  vaultUploader: f({
+    "image": { maxFileSize: "32MB", maxFileCount: 1 },
+    "video": { maxFileSize: "128MB", maxFileCount: 1 },
+    "audio": { maxFileSize: "32MB", maxFileCount: 1 },
+    "pdf": { maxFileSize: "32MB", maxFileCount: 1 },
+    "text": { maxFileSize: "8MB", maxFileCount: 1 },
+    "blob": { maxFileSize: "64MB", maxFileCount: 1 },
+  })
+  .middleware(async ({ req }) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/auth/me`, {
+      headers: { cookie: req.headers.get("cookie") || "" },
+      cache: "no-store",
+    });
+    const data = await res.json();
+    if (!data.user || data.user.role !== "owner") {
+      throw new UploadThingError("Unauthorized: Owners only");
+    }
+    return { userId: data.user.id };
+  })
+  .onUploadComplete(async ({ metadata, file }) => {
+    console.log("Vault file uploaded:", file.url);
+    return { uploadedBy: metadata.userId, url: file.url, name: file.name, size: file.size };
+  }),
+
 } satisfies FileRouter;
 
 export type OurFileRouter =

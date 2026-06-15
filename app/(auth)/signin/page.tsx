@@ -23,12 +23,14 @@ export default function Signin() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [otpCode, setOtpCode] = useState("");
+  const [step, setStep] = useState<"credentials" | "otp">("credentials");
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const handleSignin = async (event: React.FormEvent) => {
-    event.preventDefault();
+  const handleSignin = async (event?: React.FormEvent) => {
+    if (event) event.preventDefault();
     setError(null);
 
     if (!email.trim()) {
@@ -41,21 +43,30 @@ export default function Signin() {
       return;
     }
 
+    if (step === "otp" && otpCode.length !== 6) {
+      setError("Please enter the 6-digit code.");
+      return;
+    }
+
     setLoading(true);
 
     try {
       const response = await fetch("/api/auth/signin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, ...(step === "otp" ? { otpCode } : {}) }),
       });
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Failed to sign in.");
 
-      localStorage.setItem("is_logged_in", "true");
-      router.push("/dashboard");
-      router.refresh();
+      if (data.requiresOtp) {
+        setStep("otp");
+      } else {
+        localStorage.setItem("is_logged_in", "true");
+        router.push("/dashboard");
+        router.refresh();
+      }
     } catch (err: any) {
       setError(err.message || "Invalid credentials.");
     } finally {
@@ -212,8 +223,9 @@ export default function Signin() {
               </motion.div>
             )}
 
-            <form onSubmit={handleSignin} className="mt-8 space-y-4">
-              <div className="group relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.04] to-white/[0.02] p-5 backdrop-blur-xl transition-all duration-300 hover:border-white/20 focus-within:border-red-500/40 focus-within:shadow-[0_0_40px_rgba(239,68,68,0.15)]">
+            {step === "credentials" ? (
+              <form onSubmit={handleSignin} className="mt-8 space-y-4">
+                <div className="group relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.04] to-white/[0.02] p-5 backdrop-blur-xl transition-all duration-300 hover:border-white/20 focus-within:border-red-500/40 focus-within:shadow-[0_0_40px_rgba(239,68,68,0.15)]">
 
   <div className="pointer-events-none absolute inset-0 z-0 opacity-0 bg-gradient-to-r from-red-500/5 via-transparent to-red-500/5 transition-opacity duration-300 group-focus-within:opacity-100" />
 
@@ -301,7 +313,7 @@ export default function Signin() {
               >
                 {loading ? (
                   <>
-                    Signing in <Loader2 className="h-4 w-4 animate-spin" />
+                    Processing <Loader2 className="h-4 w-4 animate-spin" />
                   </>
                 ) : (
                   <>
@@ -310,6 +322,44 @@ export default function Signin() {
                 )}
               </button>
             </form>
+            ) : (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-8 space-y-6">
+                <div className="group rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.04] to-white/[0.02] p-5 backdrop-blur-xl transition-all duration-300 hover:border-white/20 focus-within:border-red-500/40 focus-within:shadow-[0_0_30px_rgba(239,68,68,0.12)]">
+                  <div className="flex items-center justify-between">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">
+                      Verification Code
+                    </p>
+                  </div>
+
+                  <Input
+                    autoFocus
+                    type="text"
+                    maxLength={6}
+                    value={otpCode}
+                    onChange={(event) => setOtpCode(event.target.value.replace(/[^0-9]/g, ''))}
+                    placeholder="000000"
+                    className="mt-4 h-16 rounded-xl border border-white/10 bg-white/[0.03] px-4 text-center text-3xl tracking-[0.3em] font-medium text-white placeholder:text-zinc-600 shadow-none transition-all duration-300 hover:border-white/15 focus:border-red-500/40 focus:bg-white/[0.05] focus-visible:ring-0"
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleSignin()}
+                  disabled={loading || otpCode.length !== 6}
+                  className="group flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-red-600 text-sm font-semibold text-white transition-all hover:bg-red-500 disabled:pointer-events-none disabled:opacity-50"
+                >
+                  {loading ? (
+                    <>
+                      Verifying <Loader2 className="h-4 w-4 animate-spin" />
+                    </>
+                  ) : (
+                    <>
+                      Verify & Access <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    </>
+                  )}
+                </button>
+              </motion.div>
+            )}
 
             <div className="relative mt-6 flex items-center py-2">
               <div className="flex-grow border-t border-white/[0.06]"></div>

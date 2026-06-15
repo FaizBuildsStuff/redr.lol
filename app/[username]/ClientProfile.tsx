@@ -680,7 +680,50 @@ function BadgeIconOnly({ badgeId }: { badgeId: string }) {
 }
 
 // ========================================
-// Social Connection Scramble Link Component
+// Platform icon for social widget (uses /assets SVGs where available)
+// ========================================
+const PLATFORM_ASSETS = new Set([
+  "youtube", "spotify", "instagram", "twitter", "tiktok", "paypal",
+  "github", "playstation", "xbox", "twitch", "reddit", "steam", "facebook",
+]);
+
+const PLATFORM_COLORS: Record<string, string> = {
+  snapchat: "#FFFC00", discord: "#5865F2", telegram: "#26A5E4",
+  soundcloud: "#FF5500", cashapp: "#00D64F", venmo: "#3D95CE",
+  applemusic: "#FA233B", gitlab: "#FC6D26", vk: "#0077FF",
+  linktree: "#43E55E", bluesky: "#0085FF", threads: "#101010",
+  linkedin: "#0A66C2", kick: "#53FC18", pinterest: "#E60023",
+  patreon: "#FF424D", kofi: "#FF5E5B", bitcoin: "#F7931A",
+  ethereum: "#627EEA", email: "#EA4335", roblox: "#E00B24",
+  custom: "#3a3a3a",
+};
+
+function SocialIcon({ iconType }: { iconType?: string }) {
+  const type = iconType ?? "custom";
+  if (PLATFORM_ASSETS.has(type)) {
+    return (
+      <img
+        src={`/assets/images/connections/${type}.svg`}
+        alt={type}
+        className="h-4 w-4 object-contain"
+        style={type === "github" || type === "twitter" ? { filter: "brightness(10)" } : undefined}
+      />
+    );
+  }
+  // Fallback: colored dot with first letter
+  const color = PLATFORM_COLORS[type] ?? "#888";
+  return (
+    <span
+      className="flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-black"
+      style={{ background: color, color: "#fff" }}
+    >
+      {type[0]?.toUpperCase()}
+    </span>
+  );
+}
+
+// ========================================
+// Social Connection Link/Copy Component
 // ========================================
 interface ScrambleLinkProps {
   href: string;
@@ -688,13 +731,16 @@ interface ScrambleLinkProps {
   icon: React.ReactNode;
   title: string;
   username?: string;
+  linkType?: "link" | "text";
+  iconType?: string;
 }
 
-function ScrambleLink({ href, label, icon, title, username }: ScrambleLinkProps) {
+function ScrambleLink({ href, label, icon, title, username, linkType = "link", iconType }: ScrambleLinkProps) {
   const [text, setText] = useState(label);
+  const [copied, setCopied] = useState(false);
   const intervalId = useRef<any>(null);
 
-  const handleMouseEnter = () => {
+  const scramble = () => {
     const chars = '!<>-/[]{}—=+*^?#________';
     let iterations = 0;
     if (intervalId.current) clearInterval(intervalId.current);
@@ -710,7 +756,7 @@ function ScrambleLink({ href, label, icon, title, username }: ScrambleLinkProps)
     }, 30);
   };
 
-  const handleMouseLeave = () => {
+  const unscramble = () => {
     if (intervalId.current) clearInterval(intervalId.current);
     setText(label);
   };
@@ -719,7 +765,7 @@ function ScrambleLink({ href, label, icon, title, username }: ScrambleLinkProps)
     return () => { if (intervalId.current) clearInterval(intervalId.current); };
   }, [label]);
 
-  const handleClick = () => {
+  const trackClick = () => {
     if (username) {
       fetch("/api/analytics/click", {
         method: "POST",
@@ -729,15 +775,53 @@ function ScrambleLink({ href, label, icon, title, username }: ScrambleLinkProps)
     }
   };
 
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(href);
+      setCopied(true);
+      setText("Copied!");
+      trackClick();
+      setTimeout(() => {
+        setCopied(false);
+        setText(label);
+      }, 2000);
+    } catch {}
+  };
+
+  const sharedClass = "social-item relative flex items-center gap-3 px-4 py-3.5 bg-stone-50/50 dark:bg-black/20 border border-stone-200/60 dark:border-white/5 hover:border-stone-400 dark:hover:border-white/20 rounded-lg overflow-hidden text-xs font-semibold text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white transition-all duration-200 select-none cursor-pointer group";
+
+  if (linkType === "text") {
+    return (
+      <button
+        onClick={handleCopy}
+        onMouseEnter={!copied ? scramble : undefined}
+        onMouseLeave={!copied ? unscramble : undefined}
+        className={`${sharedClass} w-full text-left ${copied ? "dark:border-green-500/30 dark:bg-green-500/10" : ""}`}
+        title={`Copy ${title}`}
+      >
+        <div className="item-bg absolute inset-0 bg-gradient-to-r from-stone-200/30 to-transparent dark:from-white/[0.04] dark:to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-0 pointer-events-none" />
+        <span className="relative z-10 scale-110 transition-all duration-250 text-[1.1rem]">{icon}</span>
+        <span className={`relative z-10 font-sans tracking-[1px] uppercase text-[0.8rem] font-medium transition-colors duration-250 flex-1 ${copied ? "text-green-400" : ""}`}>{text}</span>
+        <span className="relative z-10 opacity-40 group-hover:opacity-70">
+          {copied ? (
+            <svg className="h-3 w-3 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+          ) : (
+            <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
+          )}
+        </span>
+      </button>
+    );
+  }
+
   return (
     <a
       href={href}
       target="_blank"
       rel="noreferrer"
-      onClick={handleClick}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      className="social-item relative flex items-center gap-3 px-4 py-3.5 bg-stone-50/50 dark:bg-black/20 border border-stone-200/60 dark:border-white/5 hover:border-stone-400 dark:hover:border-white/20 rounded-lg overflow-hidden text-xs font-semibold text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white transition-all duration-200 select-none hover:translate-x-0.5 cursor-pointer group"
+      onClick={trackClick}
+      onMouseEnter={scramble}
+      onMouseLeave={unscramble}
+      className={sharedClass}
       title={title}
     >
       <div className="item-bg absolute inset-0 bg-gradient-to-r from-stone-200/30 to-transparent dark:from-white/[0.04] dark:to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-0 pointer-events-none" />
@@ -753,19 +837,6 @@ function ScrambleLink({ href, label, icon, title, username }: ScrambleLinkProps)
 function SocialWidget({ customLinks, username }: { customLinks?: any[], username?: string }) {
   const links = customLinks && customLinks.length > 0 ? customLinks.filter(l => l.active !== false) : [];
 
-  const renderIcon = (type: string) => {
-    switch (type) {
-      case "twitter": return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4.5 w-4.5"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" /></svg>;
-      case "github": return <svg className="h-4.5 w-4.5 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" /></svg>;
-      case "discord": return <svg className="h-4.5 w-4.5 fill-current" viewBox="0 0 127.14 96.36"><path d="M107.7,8.07A105.15,105.15,0,0,0,77.26,0a77.19,77.19,0,0,0-3.3,6.83A96.67,96.67,0,0,0,53.22,6.83,77.19,77.19,0,0,0,49.88,0,105.15,105.15,0,0,0,19.44,8.07C3.66,31.58-1.86,54.65,1,77.53A105.73,105.73,0,0,0,32,96.36a77.7,77.7,0,0,0,6.63-10.85,68.43,68.43,0,0,1-10.5-5c1-.73,2-1.51,2.94-2.31A75.52,75.52,0,0,0,96,78.2c1,.8,1.94,1.58,2.94,2.31a68.17,68.17,0,0,1-10.5,5A77.7,77.7,0,0,0,95.12,96.36a105.73,105.73,0,0,0,31.06-18.83C129.87,50.7,123.36,27.83,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53S36.18,40.36,42.45,40.36,53.83,46,53.83,53,48.72,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.24,60,73.24,53S78.41,40.36,84.69,40.36,96.07,46,96.07,53,91,65.69,84.69,65.69Z" /></svg>;
-      case "youtube": return <svg className="h-4.5 w-4.5 fill-current" viewBox="0 0 24 24"><path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.518 3.545 12 3.545 12 3.545s-7.518 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.87.508 9.388.508 9.388.508s7.518 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" /></svg>;
-      case "instagram": return <svg className="h-4.5 w-4.5 fill-none stroke-current stroke-2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" y1="6.5" x2="17.51" y2="6.5" /></svg>;
-      case "steam": return <svg className="h-4.5 w-4.5 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.54 3.03 8.375 7.153 9.605l.937-2.612a2.385 2.385 0 0 1-.09-.597 2.395 2.395 0 1 1 4.79 0c0 .416-.107.807-.294 1.15l.904 2.523C18.847 20.672 22 16.71 22 12c0-5.523-4.477-10-10-10zm0 1.25c4.832 0 8.75 3.918 8.75 8.75 0 3.826-2.454 7.08-5.883 8.243l-.936-2.61a2.393 2.393 0 0 1 .069-.533 2.395 2.395 0 0 1-4.79 0c0-.184.02-.363.059-.536l-.968-2.702A4.79 4.79 0 0 0 12 3.25zM12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 1.25a2.75 2.75 0 1 1 0 5.5 2.75 2.75 0 0 1 0-5.5zm0 .75a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm0 .75a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5z" /></svg>;
-      default: return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4.5 w-4.5"><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg>;
-    }
-  };
-
-  // Don't render the card at all for new users with no links set
   if (links.length === 0) return null;
 
   return (
@@ -777,7 +848,16 @@ function SocialWidget({ customLinks, username }: { customLinks?: any[], username
       </div>
       <div className="social-grid grid grid-cols-2 gap-3 w-full">
         {links.map((link, idx) => (
-          <ScrambleLink key={idx} href={link.url} label={link.title} title={link.title} icon={renderIcon(link.iconType)} username={username} />
+          <ScrambleLink
+            key={idx}
+            href={link.url}
+            label={link.title}
+            title={link.title}
+            icon={<SocialIcon iconType={link.iconType} />}
+            username={username}
+            linkType={link.linkType ?? "link"}
+            iconType={link.iconType}
+          />
         ))}
       </div>
     </InteractiveCard>

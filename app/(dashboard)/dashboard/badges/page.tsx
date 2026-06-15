@@ -163,8 +163,6 @@ export default function BadgesPage() {
               Badges are treated as small signals, not decoration overload. Keep your active set intentional and premium.
             </p>
           </div>
-          import Link from "next/link";
-
           <Link
             href="https://discord.gg/ECvnDYQQFx"
             target="_blank"

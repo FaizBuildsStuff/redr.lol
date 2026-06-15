@@ -11,7 +11,8 @@ import {
   LogOut,
   ChevronDown,
   LayoutDashboard,
-  Database
+  Database,
+  LockKeyhole
 } from "lucide-react";
 
 interface UserProfile {
@@ -21,7 +22,12 @@ interface UserProfile {
   role?: string;
 }
 
-export default function OwnerSidebar({ user }: { user: UserProfile }) {
+interface OwnerSidebarProps {
+  user: UserProfile;
+  setMobileOpen?: (open: boolean) => void;
+}
+
+export default function OwnerSidebar({ user, setMobileOpen }: OwnerSidebarProps) {
   const pathname = usePathname();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -52,6 +58,7 @@ export default function OwnerSidebar({ user }: { user: UserProfile }) {
     { name: "Overview", href: "/owner", icon: LayoutDashboard },
     { name: "User Management", href: "/owner/users", icon: Users },
     { name: "System Logs", href: "/owner/logs", icon: TerminalSquare },
+    { name: "Owner Vault", href: "/owner/vault", icon: LockKeyhole },
   ];
 
   return (
@@ -88,6 +95,7 @@ export default function OwnerSidebar({ user }: { user: UserProfile }) {
                 <Link
                   key={link.name}
                   href={link.href}
+                  onClick={() => setMobileOpen && setMobileOpen(false)}
                   className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold transition-all duration-300 cursor-pointer ${
                     isActive
                       ? "bg-red-500/10 text-red-400 border border-red-500/20 shadow-[0_0_20px_rgba(239,68,68,0.1)]"

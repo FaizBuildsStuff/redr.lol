@@ -69,80 +69,83 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    // 1. Ensure the database schema exists
     await initDb();
-
-    // 2. Parse request body
     const body = await request.json();
-    const { username, email, password } = body;
+    const { username, email, password, otpCode } = body;
 
-    // 3. Validation
     if (!username || !email || !password) {
-      return NextResponse.json(
-        { error: "Username, email, and password are required." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Username, email, and password are required." }, { status: 400 });
     }
 
     const cleanUsername = username.trim().toLowerCase();
     const cleanEmail = email.trim().toLowerCase();
 
     if (cleanUsername.length < 3) {
-      return NextResponse.json(
-        { error: "Username must be at least 3 characters long." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Username must be at least 3 characters long." }, { status: 400 });
     }
 
     if (!/^[a-z0-9_][a-z0-9_-]*$/.test(cleanUsername)) {
-      return NextResponse.json(
-        { error: "Username can only contain lowercase letters, numbers, underscores, and hyphens." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Username can only contain lowercase letters, numbers, underscores, and hyphens." }, { status: 400 });
     }
 
     if (!cleanEmail.includes("@") || !cleanEmail.includes(".")) {
-      return NextResponse.json(
-        { error: "Please enter a valid email address." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Please enter a valid email address." }, { status: 400 });
     }
 
     if (password.length < 6) {
-      return NextResponse.json(
-        { error: "Password must be at least 6 characters long." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Password must be at least 6 characters long." }, { status: 400 });
     }
 
-    // 4. Check if email or username is already taken
     const existingUsers = await sql`
       SELECT id, username, email FROM users 
-      WHERE username = ${cleanUsername} OR email = ${cleanEmail}
+      WHERE LOWER(username) = ${cleanUsername} OR LOWER(email) = ${cleanEmail}
       LIMIT 1
     `;
 
     if (existingUsers.length > 0) {
       const existing = existingUsers[0];
-      if (existing.username === cleanUsername) {
-        return NextResponse.json(
-          { error: "Username is already taken." },
-          { status: 400 }
-        );
+      if (existing.username.toLowerCase() === cleanUsername) {
+        return NextResponse.json({ error: "Username is already taken." }, { status: 400 });
       }
-      if (existing.email === cleanEmail) {
-        return NextResponse.json(
-          { error: "Email is already registered." },
-          { status: 400 }
-        );
+      if (existing.email.toLowerCase() === cleanEmail) {
+        return NextResponse.json({ error: "Email is already registered." }, { status: 400 });
       }
     }
 
-    // 5. Hash the password
+    // Step 1: No OTP provided, generate and send it
+    if (!otpCode) {
+      const code = Math.floor(100000 + Math.random() * 900000).toString(); // 6 digits
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
+
+      await sql`
+        INSERT INTO otps (email, code, purpose, expires_at)
+        VALUES (${cleanEmail}, ${code}, 'signup', ${expiresAt})
+      `;
+
+      // Import inline to avoid circular issues or top-level await issues
+      const { sendOtpEmail } = await import("@/lib/email");
+      await sendOtpEmail(cleanEmail, code, "signup");
+
+      return NextResponse.json({ requiresOtp: true, message: "OTP sent to your email." });
+    }
+
+    // Step 2: OTP provided, verify it
+    const validOtps = await sql`
+      SELECT id FROM otps 
+      WHERE email = ${cleanEmail} AND code = ${otpCode} AND purpose = 'signup' AND expires_at > NOW()
+      ORDER BY created_at DESC
+      LIMIT 1
+    `;
+
+    if (validOtps.length === 0) {
+      return NextResponse.json({ error: "Invalid or expired OTP." }, { status: 400 });
+    }
+
+    await sql`DELETE FROM otps WHERE id = ${validOtps[0].id}`;
+
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // 6. Insert new user into Neon DB
     const insertedUsers = await sql`
       INSERT INTO users (username, email, password)
       VALUES (${cleanUsername}, ${cleanEmail}, ${hashedPassword})
@@ -151,14 +154,12 @@ export async function POST(request: Request) {
 
     const newUser = insertedUsers[0];
 
-    // 7. Create Session Token
     const token = createToken({
       userId: newUser.id,
       username: newUser.username,
       email: newUser.email,
     });
 
-    // 8. Return response with cookies set
     const response = NextResponse.json({
       success: true,
       user: {
@@ -168,24 +169,21 @@ export async function POST(request: Request) {
       },
     });
 
-    // HttpOnly Cookie for secure session
     response.cookies.set("session", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
+      maxAge: 7 * 24 * 60 * 60,
     });
 
-    // Client-accessible cookie for instant front-end logged-in checks
     response.cookies.set("is_logged_in", "true", {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
+      maxAge: 7 * 24 * 60 * 60,
     });
 
-    // Log the successful signup asynchronously
     logSystemEvent("user_signup", { ip: request.headers.get("x-forwarded-for") || "unknown" }, newUser.id);
 
     return response;
