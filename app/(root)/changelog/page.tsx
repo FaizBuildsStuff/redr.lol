@@ -1,27 +1,132 @@
-import { Sparkles } from "lucide-react";
+import {
+  ArrowUpRight,
+  Calendar,
+  Sparkles,
+} from "lucide-react";
+
+const changelogs = [
+  {
+    version: "v1.4.0",
+    date: "June 15, 2026",
+    title: "Profile Performance Upgrade",
+    description:
+      "Improved profile loading speeds, optimized image delivery and reduced database query times across all creator pages.",
+    tags: [
+      "Performance",
+      "Database",
+      "Profiles",
+    ],
+  },
+  {
+    version: "v1.3.0",
+    date: "June 10, 2026",
+    title: "Audio System Overhaul",
+    description:
+      "Added improved audio streaming, better buffering and smoother playback controls.",
+    tags: [
+      "Audio",
+      "Player",
+      "UX",
+    ],
+  },
+  {
+    version: "v1.2.0",
+    date: "June 5, 2026",
+    title: "Discord Presence Improvements",
+    description:
+      "Presence updates are now faster and more reliable with improved websocket handling.",
+    tags: [
+      "Discord",
+      "Presence",
+      "Infrastructure",
+    ],
+  },
+];
 
 export default function ChangelogPage() {
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#050505] pt-32 pb-20 text-[#f5f1e8]">
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute left-1/2 top-20 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-[#ff4d4d]/10 blur-[140px]" />
+    <main className="relative min-h-screen overflow-hidden text-white">
+      {/* Background */}
+      <div className="fixed inset-0 -z-10">
+        <div className="absolute inset-0 bg-[#09090b]" />
+
+        <div className="absolute top-0 left-1/2 h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-red-500/[0.07] blur-[160px]" />
+
+        <div className="absolute bottom-0 right-0 h-[500px] w-[500px] rounded-full bg-red-500/[0.03] blur-[180px]" />
       </div>
-      <div className="relative z-10 mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-        <div className="rounded-[2rem] border border-white/10 bg-black/40 px-6 py-12 shadow-[0_0_80px_rgba(220,38,38,0.1)] backdrop-blur-xl sm:px-10">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#ff5c5c]/25 bg-[#ff5c5c]/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-[#ffb3b3] mb-6">
-            <Sparkles className="h-3.5 w-3.5" />
+
+      <div className="mx-auto max-w-5xl px-5 pt-32 pb-20 md:px-8 md:pt-40">
+        {/* Hero */}
+        <section>
+          <div className="inline-flex items-center gap-2 rounded-full border border-red-500/10 bg-red-500/5 px-4 py-2">
+            <Sparkles size={15} />
+            <span className="text-sm text-zinc-300">
+              Product Updates
+            </span>
+          </div>
+
+          <h1 className="mt-6 text-5xl font-semibold tracking-tight md:text-6xl">
             Changelog
+          </h1>
+
+          <p className="mt-5 max-w-2xl text-lg text-zinc-400">
+            Follow every improvement, release and
+            infrastructure update shipped to redr.lol.
+          </p>
+        </section>
+
+        {/* Timeline */}
+        <section className="mt-20">
+          <div className="relative border-l border-zinc-800 pl-8">
+            {changelogs.map((item, index) => (
+              <div
+                key={index}
+                className="relative mb-16"
+              >
+                {/* Dot */}
+                <div className="absolute -left-[41px] top-2 h-4 w-4 rounded-full border border-red-500/40 bg-red-500" />
+
+                {/* Date */}
+                <div className="mb-4 flex items-center gap-2 text-sm text-zinc-500">
+                  <Calendar size={14} />
+                  {item.date}
+                </div>
+
+                {/* Version */}
+                <div className="inline-flex rounded-full border border-red-500/15 bg-red-500/5 px-3 py-1 text-xs font-medium text-red-300">
+                  {item.version}
+                </div>
+
+                {/* Content */}
+                <h2 className="mt-4 text-2xl font-semibold">
+                  {item.title}
+                </h2>
+
+                <p className="mt-4 max-w-3xl leading-7 text-zinc-400">
+                  {item.description}
+                </p>
+
+                {/* Tags */}
+                <div className="mt-6 flex flex-wrap gap-2">
+                  {item.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full border border-zinc-800 bg-zinc-900/70 px-3 py-1 text-xs text-zinc-300"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Read More */}
+                <button className="mt-6 inline-flex items-center gap-2 text-sm text-zinc-400 transition hover:text-white">
+                  Learn More
+                  <ArrowUpRight size={14} />
+                </button>
+              </div>
+            ))}
           </div>
-          <h1 className="text-4xl font-semibold tracking-tight text-white mb-4">Product Updates</h1>
-          <p className="text-[#9b9387] mb-8">Latest improvements and features shipped to redr.lol.</p>
-          <div className="space-y-8">
-            <div className="rounded-xl border border-white/10 bg-white/5 p-6">
-              <span className="text-[#ff7b7b] text-sm font-medium mb-2 block">June 2026</span>
-              <h2 className="text-xl font-semibold text-white mb-2">Modern Command Palette</h2>
-              <p className="text-[#c9c2b5]">Added a sleek global command palette with instant search functionality across all dashboard areas. We also added full coverage for all footer pages including terms, guidelines, and status.</p>
-            </div>
-          </div>
-        </div>
+        </section>
       </div>
     </main>
   );

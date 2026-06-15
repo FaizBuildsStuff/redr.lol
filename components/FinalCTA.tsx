@@ -140,19 +140,8 @@ const FinalCTA = () => {
         </motion.div>
       ))}
 
-      {/* Giant Background Rose Blur */}
-      <motion.div
-        animate={{
-          scale: [1, 1.06, 1],
-          rotate: [0, 4, -4, 0],
-        }}
-        transition={{
-          duration: 20,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-        className="absolute left-1/2 top-1/2 h-[700px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-red-600/10 blur-[160px]"
-      />
+      {/* Giant Background Rose Blur - Static for performance */}
+      <div className="absolute left-1/2 top-1/2 h-[700px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-red-600/10 blur-[160px]" />
 
       {/* Animated Handdrawn Wave */}
       <motion.div
@@ -177,16 +166,15 @@ const FinalCTA = () => {
         </svg>
       </motion.div>
 
-      {/* Tiny Floating Particles */}
-      {[...Array(25)].map((_, i) => (
+      {/* Tiny Floating Particles - Reduced count and simplified for performance */}
+      {[...Array(10)].map((_, i) => (
         <motion.div
           key={i}
           animate={{
-            opacity: [0.2, 1, 0.2],
-            y: [0, -10, 0],
+            opacity: [0.1, 0.8, 0.1],
           }}
           transition={{
-            duration: 3 + i * 0.2,
+            duration: 3 + i * 0.5,
             repeat: Infinity,
           }}
           className="absolute"
@@ -195,7 +183,7 @@ const FinalCTA = () => {
             left: `${Math.random() * 100}%`,
           }}
         >
-          <div className="h-[2px] w-[2px] rounded-full bg-red-300 blur-[1px]" />
+          <div className="h-[2px] w-[2px] rounded-full bg-red-400" />
         </motion.div>
       ))}
 

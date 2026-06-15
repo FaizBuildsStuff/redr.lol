@@ -49,32 +49,9 @@ const FAQSection = () => {
         {/* Giant Glow */}
         <div className="absolute left-1/2 top-1/2 h-[900px] w-[900px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-red-600/10 blur-[180px]" />
 
-        {/* Animated Orb */}
-        <motion.div
-          animate={{
-            x: [0, 40, 0],
-            y: [0, -30, 0],
-          }}
-          transition={{
-            duration: 18,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="absolute left-[10%] top-[15%] h-[260px] w-[260px] rounded-full bg-red-500/10 blur-[100px]"
-        />
-
-        <motion.div
-          animate={{
-            x: [0, -30, 0],
-            y: [0, 40, 0],
-          }}
-          transition={{
-            duration: 16,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="absolute bottom-[10%] right-[8%] h-[320px] w-[320px] rounded-full bg-red-700/10 blur-[120px]"
-        />
+        {/* Static Orbs for performance */}
+        <div className="absolute left-[10%] top-[15%] h-[260px] w-[260px] rounded-full bg-red-500/10 blur-[100px]" />
+        <div className="absolute bottom-[10%] right-[8%] h-[320px] w-[320px] rounded-full bg-red-700/10 blur-[120px]" />
 
         {/* Doodle Ring */}
         <motion.div
